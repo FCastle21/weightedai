@@ -556,9 +556,9 @@ const styles = `
   .reset-btn:hover { border-color: var(--acid); color: var(--acid); }
 
   /* INSPO */
-  .inspo-card { background: #0d1400; border-left: 3px solid var(--acid); padding: 20px 24px; margin-bottom: 32px; display: flex; align-items: flex-start; gap: 14px; }
+  .inspo-card { background: #0f0f0f; border: 1px solid #1e1e1e; padding: 20px 24px; margin-bottom: 32px; display: flex; align-items: flex-start; gap: 12px; }
   .inspo-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
-  .inspo-text { font-size: 15px; color: var(--acid); line-height: 1.6; font-style: italic; }
+  .inspo-text { font-size: 15px; color: var(--white); line-height: 1.6; font-style: italic; }
 
   /* VIDEO POPUP */
   .video-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 20px; animation: fadeIn 0.2s ease; }
@@ -1203,14 +1203,6 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
                   <button className="reset-btn" onClick={handleReset}>Start Over</button>
                 </div>
 
-                {inspo && (
-                  <div className="inspo-card">
-                    <div className="inspo-icon">⚡</div>
-                    <div className="inspo-text">{inspo}</div>
-                  </div>
-                )}
-
-
                 {unlocked ? (
                   <>
                     {tier!=="free" && (
@@ -1219,12 +1211,7 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
                         <span><strong>Payment confirmed.</strong> {tier==="unlimited"?"Welcome to WeightedAI Unlimited! ":""}Your full plan is unlocked.</span>
                       </div>
                     )}
-                    {inspo && (
-                      <div className="inspo-card">
-                        <div className="inspo-icon">⚡</div>
-                        <div className="inspo-text">{inspo}</div>
-                      </div>
-                    )}
+                    
                     <div className="music-card">
                       <div className="music-icon">🎵</div>
                       <div style={{flex:1}}>
@@ -1244,6 +1231,12 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
                         </div>
                       </div>
                     </div>
+                    {inspo && (
+                      <div className="inspo-card">
+                        <span className="inspo-icon">⚡</span>
+                        <div className="inspo-text">{inspo}</div>
+                      </div>
+                    )}
                     <div className="plan-content" dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
                     {tier==="free" && (
                       <div className="upsell-strip">
@@ -1261,12 +1254,7 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
                   <>
                     <div className="plan-preview">
                       <div className="plan-preview-inner">
-                        {inspo && (
-                      <div className="inspo-card">
-                        <div className="inspo-icon">⚡</div>
-                        <div className="inspo-text">{inspo}</div>
-                      </div>
-                    )}
+                        
                     <div className="plan-content" dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
                       </div>
                       <div className="plan-preview-fade" />
