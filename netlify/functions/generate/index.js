@@ -9,7 +9,7 @@ exports.handler = async function(event, context) {
     const { prompt } = JSON.parse(event.body);
 
     const postData = JSON.stringify({
-      model: "claude-sonnet-4-20250514",
+      model: "claude-sonnet-4-5",
       max_tokens: 2000,
       messages: [{ role: "user", content: prompt }]
     });
