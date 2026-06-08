@@ -685,54 +685,39 @@ const MUSCLES   = ["Full Body", "Back", "Chest", "Shoulders", "Biceps", "Triceps
 
 const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"" };
 
-function parseMarkdown(text, onExercise) {
-  // Common exercise keywords to detect and linkify
-  const exercisePattern = /\b([A-Z][a-z]+(?: [A-Z]?[a-z]+){1,5}(?= —| -| \d|\.|,|:))/g;
+function parseMarkdown(text) {
+  // Step 1: Process [INFO:] tags FIRST before markdown conversion
+  // Pattern: **Exercise Name** [INFO: desc. Muscles: x. Tip: y.]
+  text = text.replace(/\*\*([^*]+)\*\*\s*\[INFO:\s*([^.]+)\.\s*Muscles:\s*([^.]+)\.\s*Tip:\s*([^\]]+?)\s*\.?\]/g, function(match, name, desc, muscles, tip) {
+    var safeName = name.trim().replace(/'/g, "&#39;");
+    var safeDesc = desc.trim().replace(/'/g, "&#39;");
+    var safeMuscles = muscles.trim().replace(/'/g, "&#39;");
+    var safeTip = tip.trim().replace(/'/g, "&#39;");
+    return '%%EXSTART%%' + name.trim() + '%%EXEND%%' + safeName + '|' + safeDesc + '|' + safeMuscles + '|' + safeTip + '%%EXCLOSE%%';
+  });
 
-  const linkify = (html) => {
-    return html.replace(/<li>([^<]+)/g, (match, inner) => {
-      const exMatch = inner.match(/^([A-Za-z][A-Za-z \-\/()]+?)(?= -| —| –|:| \d|$)/);
-      if (exMatch && exMatch[1].trim().length > 3) {
-        const name = exMatch[1].trim();
-        const rest = inner.slice(name.length);
-        const safeName = name.replace(/'/g, "\\'");
-        return '<li><a class="ex-link" onclick="window.__showExercise(\'' + safeName + '\')">' + name + '</a>' + rest;
-      }
-      return match;
-    });
-  };
-
-  let html = text
+  // Step 2: Standard markdown conversion
+  var html = text
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>\n?)+/g, m => `<ul>${m}</ul>`)
+    .replace(/(<li>.*<\/li>\n?)+/g, function(m) { return '<ul>' + m + '</ul>'; })
     .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
     .replace(/^(?!<[hulo]|<li)(.+)$/gm, '<p>$1</p>')
     .replace(/<p><\/p>/g, '')
     .replace(/\n{2,}/g, '\n');
 
-  return linkify(html);
+  // Step 3: Convert exercise placeholders to green name + info button
+  html = html.replace(/%%EXSTART%%([^%]+)%%EXEND%%([^|]+)\|([^|]+)\|([^|]+)\|([^%]+)%%EXCLOSE%%/g, function(match, name, safeName, safeDesc, safeMuscles, safeTip) {
+    return '<strong style="color:var(--acid)">' + name + '</strong><button class="ex-info-btn" onclick="window.__showInfo(\'' + safeName + '\',\'' + safeDesc + '\',\'' + safeMuscles + '\',\'' + safeTip + '\')">i</button>';
+  });
+
+  return html;
 }
 
-// ── Storage helpers ────────────────────────────────────────────────────────────
-const storageKey = (email) => `user:${email.toLowerCase().trim()}`;
-
-async function loadProfile(email) {
-  try {
-    const res = await window.storage.get(storageKey(email));
-    return res ? JSON.parse(res.value) : null;
-  } catch { return null; }
-}
-
-async function saveProfile(email, data) {
-  try {
-    await window.storage.set(storageKey(email), JSON.stringify(data));
-  } catch {}
-}
 
 function getWeekKey() {
   const now = new Date();
