@@ -943,11 +943,18 @@ Be specific. Use tables where helpful.`}
 INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — sharp, grounded, no hollow motivation. Reference exercise science: progressive overload, neuromuscular adaptation, protein synthesis, fatigue mechanisms, or mental discipline under physical stress. Relevant to their specific goal.]"}`;
 
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
       const res  = await fetch("/.netlify/functions/generate", {
         method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ prompt }),
+        signal: controller.signal
       });
+      clearTimeout(timeout);
       const data = await res.json();
+      if (!res.ok || data.type === "error") {
+        throw new Error(data.error?.message || "API error");
+      }
       const raw  = data.content?.find(b=>b.type==="text")?.text||"";
       const inspoMatch = raw.match(/INSPO_JSON:\{"message":"([^"]+)"\}/);
       if (inspoMatch) setInspo(inspoMatch[1]);
@@ -965,8 +972,9 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
         await saveProfile(leadData.email, { ...toSave, name: leadData.name, tier });
       }
       setStep("plan");
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch(err) {
+      console.error("Generation error:", err);
+      setError("Something went wrong: " + (err.message || "Please try again."));
       setStep("form");
     }
   };
