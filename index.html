@@ -1096,11 +1096,11 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
               </div>
               <div className="field">
                 <label>Weight (lbs/kg)</label>
-                <input type="text" placeholder="e.g. 185 lbs" value={form.weight} onChange={e=>set("weight",e.target.value)} />
+                <input type="text" placeholder="e.g. 185 lbs" inputMode="decimal" value={form.weight} onChange={e=>set("weight",e.target.value)} />
               </div>
               <div className="field">
                 <label>Height</label>
-                <input type="text" placeholder="e.g. 5'11&quot;" value={form.height} onChange={e=>set("height",e.target.value)} />
+                <input type="text" placeholder="e.g. 5'11&quot;" inputMode="decimal" value={form.height} onChange={e=>set("height",e.target.value)} />
               </div>
               <div className="field full">
                 <label>Primary Goal</label>
