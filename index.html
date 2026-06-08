@@ -676,12 +676,12 @@ function parseMarkdown(text, onExercise) {
 
   const linkify = (html) => {
     return html.replace(/<li>([^<]+)/g, (match, inner) => {
-      // Extract first phrase before sets/reps info as exercise name
-      const exMatch = inner.match(/^([A-Za-z][A-Za-z\s\-\/]+?)(?:\s*[\(\-—]|\s*\d|$)/);
-      if (exMatch && exMatch[1].trim().length > 4) {
+      const exMatch = inner.match(/^([A-Za-z][A-Za-z \-\/()]+?)(?= -| —| –|:| \d|$)/);
+      if (exMatch && exMatch[1].trim().length > 3) {
         const name = exMatch[1].trim();
         const rest = inner.slice(name.length);
-        return `<li><a class="ex-link" onclick="window.__showExercise('${name.replace(/'/g, "\'")}')">${name}</a>${rest}`;
+        const safeName = name.replace(/'/g, "\\'");
+        return '<li><a class="ex-link" onclick="window.__showExercise(\'' + safeName + '\')">' + name + '</a>' + rest;
       }
       return match;
     });
@@ -892,7 +892,7 @@ Provide:
 ### Warm-Up (5 min)
 3-4 warm-up moves.
 ### Main Workout
-6-8 exercises — sets, reps, rest, form cues for 2 key moves.
+6-8 exercises — sets, reps, rest.
 ### Cool-Down (5 min)
 3-4 stretches.
 ### This Week's Focus
@@ -946,7 +946,7 @@ What to expect and next steps.
 Be thorough and specific. Use a clean table or structured list for the daily schedule.` : `# ${leadData.name}'s Personalized Plan
 ## Overview
 ## Weekly Schedule
-## Workout Plans (each day: name, muscle focus, 5-7 exercises with sets/reps/rest, 1-2 form tips)
+## Workout Plans (each day: name, muscle focus, 5-7 exercises with sets/reps/rest)
 ## Nutrition Strategy (calorie target, macros, meal timing, food recommendations)
 ## Recovery Protocol
 ## 4-Week Progression
