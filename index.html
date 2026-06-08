@@ -890,7 +890,10 @@ PROFILE:
 - Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not include exercises for any other muscle groups.
 - Injuries: ${currentForm.injuries||"None"}
 
-Provide:
+Start your response with a single line:
+FOCUS: [1-2 sentence stoic or science-based insight to prime their mindset. Reference exercise science, neuromuscular adaptation, or mental discipline. No hollow motivation. Relevant to their goal.]
+
+Then provide:
 ## This Week's Full-Body Workout
 ### Warm-Up (5 min)
 3-4 warm-up moves.
@@ -903,7 +906,6 @@ One actionable training tip for their goal. Do NOT include any nutrition advice.
 
 Do NOT include nutrition plans, multi-week programs, or long-form content. This is a free single workout only.
 
-INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — sharp, grounded, informative. No hollow motivation. Examples: discuss neuromuscular fatigue, protein synthesis timing, progressive overload mechanisms, mental focus under physical stress. Relevant to their goal.]"}`
       : `You are an elite fitness coach. Create a complete personalized program for ${leadData.name}.
 
 PROFILE:
@@ -946,7 +948,10 @@ Weekly recovery recommendations.
 ## End of 30 Days
 What to expect and next steps.
 
-Be thorough and specific. Use a clean table or structured list for the daily schedule.` : `# ${leadData.name}'s Personalized Plan
+Be thorough and specific. Use a clean table or structured list for the daily schedule.` : `Start your response with a single line:
+FOCUS: [1-2 sentence stoic or science-based insight to prime their mindset. Reference exercise science, progressive overload, protein synthesis, or mental discipline. No hollow motivation. Relevant to their specific goal.]
+
+# ${leadData.name}'s Personalized Plan
 ## Overview
 ## Weekly Schedule
 ## Workout Plans (each day: name, muscle focus, 5-7 exercises with sets/reps/rest)
@@ -958,7 +963,6 @@ Do NOT include any nutrition advice, calorie targets, or macro recommendations. 
 
 Be specific. Use tables where helpful.`}
 
-INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — sharp, grounded, no hollow motivation. Reference exercise science: progressive overload, neuromuscular adaptation, protein synthesis, fatigue mechanisms, or mental discipline under physical stress. Relevant to their specific goal.]"}`;
 
     try {
       const controller = new AbortController();
@@ -974,9 +978,9 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
         throw new Error(data.error?.message || "API error");
       }
       const raw  = data.content?.find(b=>b.type==="text")?.text||"";
-      const inspoMatch = raw.match(/INSPO_JSON:\{"message":"([^"]+)"\}/);
+      const inspoMatch = raw.match(/FOCUS:\s*(.+)/);
       if (inspoMatch) setInspo(inspoMatch[1]);
-      const cleanPlan = raw.replace(/INSPO_JSON:\{.*?\}/s,"").trim();
+      const cleanPlan = raw.replace(/FOCUS:\s*.+\n?/, "").trim();
       setPlan(cleanPlan);
 
       if (isFree) {
@@ -1096,11 +1100,11 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
               </div>
               <div className="field">
                 <label>Weight (lbs/kg)</label>
-                <input type="text" placeholder="e.g. 185 lbs" inputMode="decimal" value={form.weight} onChange={e=>set("weight",e.target.value)} />
+                <input type="text" placeholder="e.g. 185 lbs" value={form.weight} onChange={e=>set("weight",e.target.value)} />
               </div>
               <div className="field">
                 <label>Height</label>
-                <input type="text" placeholder="e.g. 5'11&quot;" inputMode="decimal" value={form.height} onChange={e=>set("height",e.target.value)} />
+                <input type="text" placeholder="e.g. 5'11&quot;" value={form.height} onChange={e=>set("height",e.target.value)} />
               </div>
               <div className="field full">
                 <label>Primary Goal</label>
