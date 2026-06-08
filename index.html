@@ -570,6 +570,21 @@ const styles = `
   .video-modal-frame { width: 100%; aspect-ratio: 16/9; border: none; }
   .video-modal-note { padding: 12px 20px; font-size: 11px; color: #444; letter-spacing: 1px; text-align: center; }
 
+  /* EXERCISE INFO */
+  .ex-info-btn { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: transparent; border: 1px solid var(--acid); border-radius: 50%; color: var(--acid); font-size: 11px; cursor: pointer; margin-left: 6px; vertical-align: middle; transition: all 0.2s; line-height: 1; flex-shrink: 0; }
+  .ex-info-btn:hover { background: var(--acid); color: var(--black); }
+  .info-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 20px; animation: fadeIn 0.2s ease; }
+  .info-modal { background: #111; border: 1px solid #2a2a2a; border-top: 3px solid var(--acid); width: 100%; max-width: 480px; animation: slideUp 0.25s ease; }
+  .info-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid #1e1e1e; }
+  .info-modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--acid); }
+  .info-modal-close { background: transparent; border: 1px solid #2a2a2a; color: #666; width: 32px; height: 32px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .info-modal-close:hover { border-color: var(--acid); color: var(--acid); }
+  .info-modal-body { padding: 24px 22px; }
+  .info-modal-desc { font-size: 15px; color: #ccc; line-height: 1.7; margin-bottom: 20px; }
+  .info-modal-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: flex-start; }
+  .info-modal-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--acid); font-weight: 500; flex-shrink: 0; padding-top: 2px; min-width: 70px; }
+  .info-modal-value { font-size: 14px; color: #aaa; line-height: 1.5; }
+
   /* EXERCISE LINKS */
   .plan-content a.ex-link { color: var(--acid); text-decoration: none; cursor: pointer; transition: opacity 0.2s; font-weight: 500; border-bottom: 1px dotted var(--acid); display: inline; }
   .plan-content a.ex-link:hover { opacity: 0.75; border-bottom-color: transparent; }
@@ -826,11 +841,14 @@ function WeightedAI() {
   const [showModal, setShowModal] = useState(false);
   const [musicVibe, setMusicVibe] = useState("");
   const [videoExercise, setVideoExercise] = useState(null);
+  const [infoExercise, setInfoExercise] = useState(null);
   const [thirtyDayPlan, setThirtyDayPlan] = useState(false);
 
   useEffect(() => {
     window.__showExercise = (name) => setVideoExercise(name);
-    return () => { delete window.__showExercise; };
+    window.__showInfo = (name, desc, muscles, tip) => setInfoExercise({name, desc, muscles, tip});
+    return () => { delete window.__showExercise;
+      delete window.__showInfo; };
   }, []);
 
   const set = (k,v) => setForm(f => ({...f,[k]:v}));
@@ -892,7 +910,9 @@ Provide:
 ### Warm-Up (5 min)
 3-4 warm-up moves.
 ### Main Workout
-6-8 exercises — bold every exercise name using **Exercise Name** markdown, followed by sets, reps, rest.
+6-8 exercises in this exact format for each:
+**Exercise Name** [INFO: Brief 1-sentence description. Muscles: primary muscles worked. Tip: one key tip.] — sets x reps, rest period.
+Example: **Push-Up** [INFO: A bodyweight pressing movement performed on the floor. Muscles: Chest, triceps, shoulders. Tip: Keep your core tight and body in a straight line.] — 3 x 12, 60s rest.
 ### Cool-Down (5 min)
 3-4 stretches.
 ### This Week's Focus
@@ -932,7 +952,8 @@ Calorie target, macros, meal timing, and food recommendations.
 ## The 30-Day Schedule
 For each week (Week 1-4), list every training day with:
 - Day number and focus
-- 5-6 exercises. Bold every exercise name using **Exercise Name** markdown, followed by sets, reps, rest.
+- 5-6 exercises in this exact format:
+**Exercise Name** [INFO: Brief 1-sentence description. Muscles: primary muscles worked. Tip: one key tip.] — sets x reps, rest period.
 - One coaching note per day
 
 Use rest days strategically. Progress intensity each week.
@@ -987,7 +1008,7 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
 
   const handleReset = () => {
     setPlan(null); setLead(null); setUnlocked(false); setInspo(null);
-    setBlocked(false); setProfileLoaded(false); setEditingProfile(false); setMusicVibe(""); setVideoExercise(null); setThirtyDayPlan(false);
+    setBlocked(false); setProfileLoaded(false); setEditingProfile(false); setMusicVibe(""); setVideoExercise(null); setInfoExercise(null); setThirtyDayPlan(false);
     setStep("home"); setTier(null); setForm(BLANK_FORM);
     window.scrollTo({top:0,behavior:"smooth"});
   };
@@ -1284,20 +1305,24 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
           />
         )}
 
-        {videoExercise && (
-          <div className="video-overlay" onClick={e => e.target===e.currentTarget && setVideoExercise(null)}>
-            <div className="video-modal">
-              <div className="video-modal-header">
-                <div className="video-modal-title">{videoExercise}</div>
-                <button className="video-modal-close" onClick={() => setVideoExercise(null)}>✕</button>
+        {infoExercise && (
+          <div className="info-overlay" onClick={e => e.target===e.currentTarget && setInfoExercise(null)}>
+            <div className="info-modal">
+              <div className="info-modal-header">
+                <div className="info-modal-title">{infoExercise.name}</div>
+                <button className="info-modal-close" onClick={() => setInfoExercise(null)}>✕</button>
               </div>
-              <iframe
-                className="video-modal-frame"
-                src={`https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(videoExercise + " exercise demonstration")}&autoplay=1`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-              <div className="video-modal-note">🎥 Tap outside or ✕ to close · Results from YouTube</div>
+              <div className="info-modal-body">
+                <div className="info-modal-desc">{infoExercise.desc}</div>
+                <div className="info-modal-row">
+                  <div className="info-modal-label">Muscles</div>
+                  <div className="info-modal-value">{infoExercise.muscles}</div>
+                </div>
+                <div className="info-modal-row">
+                  <div className="info-modal-label">Key Tip</div>
+                  <div className="info-modal-value">{infoExercise.tip}</div>
+                </div>
+              </div>
             </div>
           </div>
         )}
