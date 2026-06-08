@@ -60,9 +60,9 @@
 
     /* ── HERO ── */
     .hero {
-      min-height: 0;
+      min-height: 100vh;
       display: flex; flex-direction: column; justify-content: flex-end;
-      padding: 120px 48px 80px;
+      padding: 0 48px 80px;
       position: relative; overflow: hidden;
     }
 
@@ -200,6 +200,47 @@
     /* QUOTE CARD */
 
 
+    /* ── PRICING ── */
+    .pricing-section { padding: 120px 48px; border-top: 1px solid #1a1a1a; }
+    .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: #141414; margin-top: 64px; }
+    .pricing-card {
+      background: var(--black); padding: 48px 36px;
+      position: relative; transition: background 0.2s;
+    }
+    .pricing-card.featured { background: #0d1a00; }
+    .pricing-badge {
+      position: absolute; top: -1px; left: 0; right: 0;
+      background: var(--orange); color: var(--white);
+      font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 3px;
+      padding: 6px; text-align: center;
+    }
+    .pricing-tier { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--mint); margin-bottom: 24px; margin-top: 8px; }
+    .pricing-price {
+      font-family: 'Bebas Neue', sans-serif; font-size: 72px;
+      color: var(--white); letter-spacing: -1px; line-height: 1; margin-bottom: 6px;
+    }
+    .pricing-price sup { font-size: 32px; vertical-align: super; }
+    .pricing-period { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .pricing-latte { font-size: 12px; color: var(--orange); margin-bottom: 36px; }
+    .pricing-divider { height: 1px; background: #1a1a1a; margin-bottom: 32px; }
+    .pricing-features { display: flex; flex-direction: column; gap: 14px; margin-bottom: 40px; }
+    .pricing-feat { display: flex; align-items: flex-start; gap: 12px; font-size: 13px; color: #888; line-height: 1.4; }
+    .pricing-feat.on { color: #ccc; }
+    .pricing-feat-check { color: var(--mint); flex-shrink: 0; }
+    .pricing-feat-cross { color: #333; flex-shrink: 0; }
+    .pricing-btn {
+      display: block; width: 100%;
+      background: var(--mint); color: var(--black); border: none;
+      font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 4px;
+      padding: 18px; cursor: pointer; text-align: center;
+      text-decoration: none; transition: background 0.2s;
+    }
+    .pricing-btn:hover { background: var(--mint-dark); }
+    .pricing-btn.ghost {
+      background: transparent; border: 1px solid #2a2a2a; color: #666;
+    }
+    .pricing-btn.ghost:hover { border-color: var(--mint); color: var(--mint); background: transparent; }
+
     /* ── TESTIMONIALS ── */
     .testimonials { padding: 120px 48px; border-top: 1px solid #1a1a1a; }
     .testimonial-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: #141414; margin-top: 64px; }
@@ -241,7 +282,7 @@
     .footer-links a:hover { color: var(--muted); }
 
     /* ── APP SECTION ── */
-    .app-section { padding: 0; border-top: 1px solid #1a1a1a; }
+    .app-section { padding: 120px 48px; border-top: 1px solid #1a1a1a; }
 
 
     @media (max-width: 768px) {
@@ -273,7 +314,7 @@
       <a href="#pricing">Pricing</a>
       <a href="#app">Get Started</a>
     </div>
-    <a href="#app" class="nav-cta">Get Started</a>
+    <a href="#app" class="nav-cta">Try Free</a>
   </nav>
 
   <!-- HERO -->
@@ -287,7 +328,7 @@
     <p class="hero-sub">WeightedAI builds a complete, science-backed workout and nutrition plan tailored to your body, your goals, and your life — in seconds.</p>
 
     <div class="hero-actions">
-      
+      <a href="#app" class="btn-primary">GET STARTED FREE →</a>
       <a href="#how-it-works" class="btn-ghost">See how it works <span>↓</span></a>
     </div>
 
@@ -378,7 +419,70 @@
 
   </div>
 
+  <!-- PRICING -->
+  <section class="pricing-section" id="pricing">
+    <p class="section-label">Pricing</p>
+    <h2 class="section-title">START FREE.<br />SCALE WHEN READY.</h2>
 
+    <div class="pricing-grid">
+
+      <!-- FREE -->
+      <div class="pricing-card">
+        <div class="pricing-tier">Free</div>
+        <div class="pricing-price">$0</div>
+        <div class="pricing-period">one workout per week · no card needed</div>
+        <div class="pricing-latte">&nbsp;</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pricing-feat on"><span class="pricing-feat-check">✓</span> 1 full-body workout per week</div>
+          <div class="pricing-feat on"><span class="pricing-feat-check">✓</span> Science-based focus message</div>
+          <div class="pricing-feat on"><span class="pricing-feat-check">✓</span> No credit card required</div>
+          <div class="pricing-feat"><span class="pricing-feat-cross">–</span> Custom workout splits</div>
+          <div class="pricing-feat"><span class="pricing-feat-cross">–</span> Nutrition plan</div>
+          <div class="pricing-feat"><span class="pricing-feat-cross">–</span> 4-week progression</div>
+        </div>
+        <a href="#app" class="pricing-btn ghost">START FREE →</a>
+      </div>
+
+      <!-- À LA CARTE -->
+      <div class="pricing-card">
+        <div class="pricing-tier">À La Carte</div>
+        <div class="pricing-price"><sup>$</sup>7</div>
+        <div class="pricing-period">per workout · pay as you go</div>
+        <div class="pricing-latte">☕ The price of a large latte</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pricing-feat on"><span class="pricing-feat-check">✓</span> Any workout type</div>
+          <div class="pricing-feat on"><span class="pricing-feat-check">✓</span> Science-based focus message</div>
+          <div class="pricing-feat on"><span class="pricing-feat-check">✓</span> Nutrition targets</div>
+          <div class="pricing-feat on"><span class="pricing-feat-check">✓</span> Recovery protocol</div>
+          <div class="pricing-feat"><span class="pricing-feat-cross">–</span> 4-week progression</div>
+          <div class="pricing-feat"><span class="pricing-feat-cross">–</span> Unlimited access</div>
+        </div>
+        <a href="#app" class="pricing-btn">GET A WORKOUT →</a>
+      </div>
+
+      <!-- UNLIMITED -->
+      <div class="pricing-card featured">
+        <div class="pricing-badge">BEST VALUE</div>
+        <div class="pricing-tier">Unlimited</div>
+        <div class="pricing-price"><sup>$</sup>20</div>
+        <div class="pricing-period">per month · cancel anytime</div>
+        <div class="pricing-latte">&nbsp;</div>
+        <div class="pricing-divider"></div>
+        <div class="pricing-features">
+          <div class="pricing-feat on"><span class="pricing-feat-check">✓</span> Unlimited workouts</div>
+          <div class="pricing-feat on"><span class="pricing-feat-check">✓</span> Science-based focus message</div>
+          <div class="pricing-feat on"><span class="pricing-feat-check">✓</span> Full nutrition plan</div>
+          <div class="pricing-feat on"><span class="pricing-feat-check">✓</span> 4-week progression roadmap</div>
+          <div class="pricing-feat on"><span class="pricing-feat-check">✓</span> Priority support</div>
+          <div class="pricing-feat on"><span class="pricing-feat-check">✓</span> New programs monthly</div>
+        </div>
+        <a href="#app" class="pricing-btn">GO UNLIMITED →</a>
+      </div>
+
+    </div>
+  </section>
 
 
 
@@ -386,8 +490,8 @@
   <div class="cta-strip">
     <h2>YOUR PLAN<br />STARTS HERE.</h2>
     <div class="cta-strip-right">
-      <a href="#app" class="btn-dark">GET STARTED →</a>
-      
+      <a href="#app" class="btn-dark">GET STARTED FREE →</a>
+      <p class="cta-note">No credit card required</p>
     </div>
   </div>
 
@@ -454,11 +558,7 @@ const styles = `
   .badge { background: var(--acid); color: var(--black); font-size: 11px; font-weight: 500; letter-spacing: 2px; padding: 6px 14px; text-transform: uppercase; }
 
   /* HERO */
-  .app-hero { padding: 20px 40px 20px; max-width: 900px; }
-  .app-hero-label { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--acid); margin-bottom: 12px; }
-  .app-hero-h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(40px, 6vw, 72px); line-height: 0.92; letter-spacing: 2px; color: var(--white); margin-bottom: 12px; }
-  .app-hero-h1 em { font-style: normal; color: var(--acid); }
-  .app-hero-p { font-size: 15px; line-height: 1.6; color: #999; max-width: 480px; }
+  .hero { padding: 80px 40px 60px; max-width: 900px; }
   .hero-label { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--acid); margin-bottom: 20px; }
   .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(64px, 10vw, 120px); line-height: 0.92; letter-spacing: 2px; color: var(--white); margin-bottom: 24px; }
   .hero h1 em { font-style: normal; color: var(--acid); }
@@ -560,31 +660,6 @@ const styles = `
   .inspo-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
   .inspo-text { font-size: 15px; color: var(--acid); line-height: 1.6; font-style: italic; }
 
-  /* VIDEO POPUP */
-  .video-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 20px; animation: fadeIn 0.2s ease; }
-  .video-modal { background: #111; border: 1px solid #2a2a2a; border-top: 3px solid var(--acid); width: 100%; max-width: 680px; animation: slideUp 0.25s ease; }
-  .video-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #1e1e1e; }
-  .video-modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: var(--acid); }
-  .video-modal-close { background: transparent; border: 1px solid #2a2a2a; color: #666; width: 32px; height: 32px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; flex-shrink: 0; }
-  .video-modal-close:hover { border-color: var(--acid); color: var(--acid); }
-  .video-modal-frame { width: 100%; aspect-ratio: 16/9; border: none; }
-  .video-modal-note { padding: 12px 20px; font-size: 11px; color: #444; letter-spacing: 1px; text-align: center; }
-
-  /* EXERCISE LINKS */
-  .plan-content a.ex-link { color: var(--acid); text-decoration: underline; text-decoration-style: dotted; cursor: pointer; transition: opacity 0.2s; }
-  .plan-content a.ex-link:hover { opacity: 0.75; }
-
-  /* MUSIC CARD */
-  .music-card { background: #0a0a0a; border: 1px solid #1e1e1e; border-left: 3px solid #1db954; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-  .music-icon { font-size: 22px; flex-shrink: 0; }
-  .music-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #1db954; margin-bottom: 8px; font-weight: 500; }
-  .music-input-row { display: flex; gap: 10px; flex: 1; min-width: 200px; }
-  .music-input { background: #111; border: 1px solid #2a2a2a; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px 14px; outline: none; transition: border-color 0.2s; flex: 1; }
-  .music-input:focus { border-color: #1db954; }
-  .music-input::placeholder { color: #444; }
-  .music-btn { background: #1db954; border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; padding: 10px 20px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; flex-shrink: 0; }
-  .music-btn:hover { opacity: 0.85; }
-
   /* PLAN CONTENT */
   .plan-content { line-height: 1.8; font-size: 15px; color: #ccc; padding-bottom: 40px; }
   .plan-content h1, .plan-content h2, .plan-content h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; color: var(--white); margin: 36px 0 14px; }
@@ -670,24 +745,8 @@ const MUSCLES   = ["Full Body", "Back", "Chest", "Shoulders", "Biceps", "Triceps
 
 const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"" };
 
-function parseMarkdown(text, onExercise) {
-  // Common exercise keywords to detect and linkify
-  const exercisePattern = /\b([A-Z][a-z]+(?: [A-Z]?[a-z]+){1,5}(?= —| -| \d|\.|,|:))/g;
-
-  const linkify = (html) => {
-    return html.replace(/<li>([^<]+)/g, (match, inner) => {
-      // Extract first phrase before sets/reps info as exercise name
-      const exMatch = inner.match(/^([A-Za-z][A-Za-z\s\-\/]+?)(?:\s*[\(\-—]|\s*\d|$)/);
-      if (exMatch && exMatch[1].trim().length > 4) {
-        const name = exMatch[1].trim();
-        const rest = inner.slice(name.length);
-        return `<li><a class="ex-link" onclick="window.__showExercise('${name.replace(/'/g, "\'")}')">${name}</a>${rest}`;
-      }
-      return match;
-    });
-  };
-
-  let html = text
+function parseMarkdown(text) {
+  return text
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
@@ -699,8 +758,6 @@ function parseMarkdown(text, onExercise) {
     .replace(/^(?!<[hulo]|<li)(.+)$/gm, '<p>$1</p>')
     .replace(/<p><\/p>/g, '')
     .replace(/\n{2,}/g, '\n');
-
-  return linkify(html);
 }
 
 // ── Storage helpers ────────────────────────────────────────────────────────────
@@ -755,6 +812,7 @@ function EmailGate({ tier, onSubmit, onClose }) {
             <>
               <div className="gate-perk"><span className="gate-check">✓</span> 1 free full-body workout per week</div>
               <div className="gate-perk"><span className="gate-check">✓</span> Science-based focus message</div>
+              <div className="gate-perk"><span className="gate-check">✓</span> No credit card required</div>
             </>
           ) : (
             <>
@@ -781,7 +839,7 @@ function PaymentModal({ tier, onClose, onSuccess }) {
   const [card, setCard]       = useState({ name:"", number:"", expiry:"", cvc:"" });
   const [processing, setProc] = useState(false);
   const isUnlimited = tier === "unlimited";
-  const price = isUnlimited ? "$24.99" : "$4.99";
+  const price = isUnlimited ? "$20.00" : "$7.00";
   const label = isUnlimited ? "WeightedAI Unlimited — Monthly" : "WeightedAI — Single Workout";
   const setF = (k,v) => setCard(c => ({...c,[k]:v}));
   const fmtCard   = v => v.replace(/\D/g,"").slice(0,16).replace(/(.{4})/g,"$1 ").trim();
@@ -802,7 +860,7 @@ function PaymentModal({ tier, onClose, onSuccess }) {
           <div className="modal-field"><label>Expiry</label><input placeholder="MM/YY" value={card.expiry} onChange={e=>setF("expiry",fmtExpiry(e.target.value))} /></div>
           <div className="modal-field"><label>CVC</label><input placeholder="123" maxLength={4} value={card.cvc} onChange={e=>setF("cvc",e.target.value.replace(/\D/g,"").slice(0,4))} /></div>
         </div>
-        <button className="modal-submit" onClick={pay} disabled={processing}>{processing?"PROCESSING...":isUnlimited?"START UNLIMITED — $24.99/MO →":"PAY $4.99 & UNLOCK →"}</button>
+        <button className="modal-submit" onClick={pay} disabled={processing}>{processing?"PROCESSING...":isUnlimited?"START UNLIMITED — $20/MO →":"PAY $7 & UNLOCK →"}</button>
         {isUnlimited && <p className="modal-fine">Cancel anytime. Billed monthly.</p>}
         <div className="modal-secure">🔒 SECURE CHECKOUT · SSL ENCRYPTED</div>
       </div>
@@ -824,20 +882,12 @@ function WeightedAI() {
   const [error, setError]       = useState(null);
   const [unlocked, setUnlocked] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [musicVibe, setMusicVibe] = useState("");
-  const [videoExercise, setVideoExercise] = useState(null);
-  const [thirtyDayPlan, setThirtyDayPlan] = useState(false);
-
-  useEffect(() => {
-    window.__showExercise = (name) => setVideoExercise(name);
-    return () => { delete window.__showExercise; };
-  }, []);
 
   const set = (k,v) => setForm(f => ({...f,[k]:v}));
   const toggle = (key,val) => setForm(f => ({...f,[key]:f[key]===val?"":val}));
   const toggleMuscle = (val) => setForm(f => ({...f, muscles: f.muscles.includes(val)?f.muscles.filter(m=>m!==val):[...f.muscles,val]}));
 
-  const handleTierSelect = (t) => { setTier(t); setStep("form"); setTimeout(()=>{ const el=document.getElementById('form-top'); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:'smooth'}); }}, 50); };
+  const handleTierSelect = (t) => { setTier(t); setStep("form"); window.scrollTo({top:400,behavior:"smooth"}); };
 
   const handleFormSubmit = () => {
     if (!form.goal||!form.level||!form.equipment) { setError("Please select your goal, level, and equipment."); return; }
@@ -916,34 +966,7 @@ PROFILE:
 - Injuries: ${currentForm.injuries||"None"}
 - Notes: ${currentForm.notes||"None"}
 
-${thirtyDayPlan ? `Create a complete 30-DAY training plan. Structure it as follows:
-
-# ${leadData.name}'s 30-Day Plan
-
-## Overview & Goals
-Brief summary of the approach and what they'll achieve in 30 days.
-
-## How To Use This Plan
-Short guide on how to follow the program.
-
-## Nutrition Strategy
-Calorie target, macros, meal timing, and food recommendations.
-
-## The 30-Day Schedule
-For each week (Week 1-4), list every training day with:
-- Day number and focus
-- 5-6 exercises with sets, reps, rest
-- One coaching note per day
-
-Use rest days strategically. Progress intensity each week.
-
-## Recovery Protocol
-Weekly recovery recommendations.
-
-## End of 30 Days
-What to expect and next steps.
-
-Be thorough and specific. Use a clean table or structured list for the daily schedule.` : `# ${leadData.name}'s Personalized Plan
+# ${leadData.name}'s Personalized Plan
 ## Overview
 ## Weekly Schedule
 ## Workout Plans (each day: name, muscle focus, 5-7 exercises with sets/reps/rest, 1-2 form tips)
@@ -952,14 +975,14 @@ Be thorough and specific. Use a clean table or structured list for the daily sch
 ## 4-Week Progression
 ## Success Metrics
 
-Be specific. Use tables where helpful.`}
+Be specific. Use tables where helpful.
 
 INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — sharp, grounded, no hollow motivation. Reference exercise science: progressive overload, neuromuscular adaptation, protein synthesis, fatigue mechanisms, or mental discipline under physical stress. Relevant to their specific goal.]"}`;
 
     try {
-      const res  = await fetch("/.netlify/functions/generate", {
+      const res  = await fetch("https://api.anthropic.com/v1/messages", {
         method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ model:"claude-sonnet-4-20250514", max_tokens:1000, messages:[{role:"user",content:prompt}] })
       });
       const data = await res.json();
       const raw  = data.content?.find(b=>b.type==="text")?.text||"";
@@ -987,7 +1010,7 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
 
   const handleReset = () => {
     setPlan(null); setLead(null); setUnlocked(false); setInspo(null);
-    setBlocked(false); setProfileLoaded(false); setEditingProfile(false); setMusicVibe(""); setVideoExercise(null); setThirtyDayPlan(false);
+    setBlocked(false); setProfileLoaded(false); setEditingProfile(false);
     setStep("home"); setTier(null); setForm(BLANK_FORM);
     window.scrollTo({top:0,behavior:"smooth"});
   };
@@ -1007,10 +1030,10 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
           <div className="badge">Beta</div>
         </header>
 
-        <section className="app-hero">
-          <p className="app-hero-label">AI-Powered Fitness Intelligence</p>
-          <h1 className="app-hero-h1">YOUR PLAN.<br /><em>BUILT</em> IN<br />SECONDS.</h1>
-          <p className="app-hero-p">Choose your plan below. Our AI coach generates a personalized workout instantly — for free, on-demand, or unlimited.</p>
+        <section className="hero">
+          <p className="hero-label">AI-Powered Fitness Intelligence</p>
+          <h1>YOUR PLAN.<br /><em>BUILT</em> IN<br />SECONDS.</h1>
+          <p>Choose your plan below. Our AI coach generates a personalized workout instantly — for free, on-demand, or unlimited.</p>
         </section>
 
         {/* TIER SELECTOR */}
@@ -1030,8 +1053,8 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
             </div>
             <div className={`tier-card ${tier==="alacarte"?"active":""}`} onClick={() => handleTierSelect("alacarte")}>
               <div className="tier-name">À La Carte</div>
-              <div className="tier-price"><sup>$</sup>4.99</div>
-              <div className="tier-price-note">per workout · <em>☕ save a latte, kill this workout</em></div>
+              <div className="tier-price"><sup>$</sup>7</div>
+              <div className="tier-price-note">per workout · <em>☕ the price of a large latte</em></div>
               <div className="tier-features">
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Any workout type</div>
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Focus message included</div>
@@ -1043,7 +1066,7 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
             <div className={`tier-card popular-tier ${tier==="unlimited"?"active":""}`} onClick={() => handleTierSelect("unlimited")}>
               <div className="tier-popular-tag">BEST VALUE</div>
               <div className="tier-name">Unlimited</div>
-              <div className="tier-price"><sup>$</sup>24.99</div>
+              <div className="tier-price"><sup>$</sup>20</div>
               <div className="tier-price-note">per month · cancel anytime</div>
               <div className="tier-features">
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Unlimited workouts</div>
@@ -1056,14 +1079,14 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
           </div>
           {tier && (
             <button className="tier-cta" onClick={() => setStep("form")} style={{maxWidth:900,display:"block"}}>
-              {tier==="free"?"GET MY FREE WORKOUT →":tier==="alacarte"?"BUILD MY WORKOUT — $4.99 →":"START UNLIMITED — $24.99/MO →"}
+              {tier==="free"?"GET MY FREE WORKOUT →":tier==="alacarte"?"BUILD MY WORKOUT — $7 →":"START UNLIMITED — $20/MO →"}
             </button>
           )}
         </section>
 
         {/* FORM */}
         {(step==="form"||step==="email-gate") && tier && (
-          <section className="form-section" id="form-top">
+          <section className="form-section">
             {profileLoaded && !editingProfile && (
               <div className="profile-banner">
                 <span>✓ Profile auto-loaded for <strong>{lead?.name || "you"}</strong>. Just pick your muscle groups and go.</span>
@@ -1122,16 +1145,6 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
                   </div>
                 </div>
               )}
-              {tier==="unlimited" && (
-                <div className="field full">
-                  <label>Plan Type</label>
-                  <div className="toggle-group">
-                    <button className={`toggle ${!thirtyDayPlan?"active":""}`} onClick={()=>setThirtyDayPlan(false)}>Standard Program</button>
-                    <button className={`toggle ${thirtyDayPlan?"active":""}`} onClick={()=>setThirtyDayPlan(true)}>30-Day Plan 🗓</button>
-                  </div>
-                  {thirtyDayPlan && <p style={{fontSize:13,color:"#666",marginTop:8,lineHeight:1.5}}>A complete day-by-day 30-day program built around your goals and schedule.</p>}
-                </div>
-              )}
               <div className="field full">
                 <label>Injuries or Limitations</label>
                 <input type="text" placeholder="e.g. Lower back pain, bad knees (or leave blank)" value={form.injuries} onChange={e=>set("injuries",e.target.value)} />
@@ -1160,7 +1173,7 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
           <section className="form-section">
             <div className="loading">
               <div className="loading-bar"><div className="loading-bar-inner" /></div>
-              <p>Building {lead?.name}'s {tier==="free"?"workout":thirtyDayPlan?"30-day plan":"plan"}...</p>
+              <p>Building {lead?.name}'s {tier==="free"?"workout":"plan"}...</p>
             </div>
           </section>
         )}
@@ -1180,14 +1193,14 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
               <div className="blocked-banner">
                 <h3>YOU'VE USED YOUR FREE WORKOUT THIS WEEK</h3>
                 <p>Your free workout resets every Monday. Come back then — or upgrade now to train on your schedule with a full personalized program.</p>
-                <button className="blocked-upgrade-btn" onClick={() => { setBlocked(false); setTier("alacarte"); setStep("form"); setPlan(null); setTimeout(()=>{ const el=document.getElementById('form-top'); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:'smooth'}); }}, 50); }}>
-                  UPGRADE FOR $4.99 →
+                <button className="blocked-upgrade-btn" onClick={() => { setBlocked(false); setTier("alacarte"); setStep("form"); setPlan(null); window.scrollTo({top:400,behavior:"smooth"}); }}>
+                  UPGRADE FOR $7 →
                 </button>
               </div>
             ) : (
               <div className="plan-wrapper">
                 <div className="results-header">
-                  <h2>{tier==="free"?"YOUR FREE WORKOUT":thirtyDayPlan?"YOUR 30-DAY PLAN":"YOUR CUSTOM PLAN"}</h2>
+                  <h2>{tier==="free"?"YOUR FREE WORKOUT":"YOUR CUSTOM PLAN"}</h2>
                   <button className="reset-btn" onClick={handleReset}>Start Over</button>
                 </div>
 
@@ -1197,26 +1210,6 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
                     <div className="inspo-text">{inspo}</div>
                   </div>
                 )}
-
-              <div className="music-card">
-                <div className="music-icon">🎵</div>
-                <div style={{flex:1}}>
-                  <div className="music-label">What are you feeling like listening to?</div>
-                  <div className="music-input-row">
-                    <input
-                      className="music-input"
-                      placeholder="e.g. heavy metal, hip hop, lo-fi, pump up..."
-                      value={musicVibe}
-                      onChange={e => setMusicVibe(e.target.value)}
-                      onKeyDown={e => { if(e.key==="Enter" && musicVibe.trim()) window.open("https://open.spotify.com/search/"+encodeURIComponent(musicVibe.trim()+" workout playlist"),"_blank"); }}
-                    />
-                    <button
-                      className="music-btn"
-                      onClick={() => { if(musicVibe.trim()) window.open("https://open.spotify.com/search/"+encodeURIComponent(musicVibe.trim()+" workout playlist"),"_blank"); }}
-                    >OPEN IN SPOTIFY →</button>
-                  </div>
-                </div>
-              </div>
 
                 {unlocked ? (
                   <>
@@ -1231,10 +1224,10 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
                       <div className="upsell-strip">
                         <div className="upsell-strip-text">
                           <h4>WANT MORE?</h4>
-                          <p>Full program, nutrition plan & progression — save a latte, kill this workout.</p>
+                          <p>Full program, nutrition plan & progression — the price of a large latte.</p>
                         </div>
-                        <button className="upsell-strip-btn" onClick={()=>{ setTier("alacarte"); setStep("form"); setUnlocked(false); setPlan(null); setTimeout(()=>{ const el=document.getElementById('form-top'); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:'smooth'}); }}, 50); }}>
-                          UPGRADE FOR $4.99 →
+                        <button className="upsell-strip-btn" onClick={()=>{ setTier("alacarte"); setStep("form"); setUnlocked(false); setPlan(null); window.scrollTo({top:400,behavior:"smooth"}); }}>
+                          UPGRADE FOR $7 →
                         </button>
                       </div>
                     )}
@@ -1250,10 +1243,10 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
                     <div className="paywall">
                       <h3>YOUR PLAN IS <span>READY</span></h3>
                       <p className="paywall-sub">{tier==="alacarte"?"Unlock this workout now.":"Unlock your full program, nutrition plan, and 4-week progression."}</p>
-                      <div className="paywall-price">{tier==="alacarte"?"$4.99":"$24.99/mo"}</div>
-                      
+                      <div className="paywall-price">{tier==="alacarte"?"$7":"$20/mo"}</div>
+                      {tier==="alacarte" && <div className="paywall-latte">☕ The price of a large latte</div>}
                       <button className="paywall-btn" onClick={()=>setShowModal(true)}>
-                        {tier==="alacarte"?"UNLOCK FOR $4.99 →":"START UNLIMITED →"}
+                        {tier==="alacarte"?"UNLOCK FOR $7 →":"START UNLIMITED →"}
                       </button>
                       <div className="paywall-note">🔒 Secure payment · Instant access</div>
                     </div>
@@ -1270,24 +1263,6 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
             onClose={()=>setShowModal(false)}
             onSuccess={()=>{ setShowModal(false); setUnlocked(true); }}
           />
-        )}
-
-        {videoExercise && (
-          <div className="video-overlay" onClick={e => e.target===e.currentTarget && setVideoExercise(null)}>
-            <div className="video-modal">
-              <div className="video-modal-header">
-                <div className="video-modal-title">{videoExercise}</div>
-                <button className="video-modal-close" onClick={() => setVideoExercise(null)}>✕</button>
-              </div>
-              <iframe
-                className="video-modal-frame"
-                src={`https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(videoExercise + " exercise demonstration")}&autoplay=1`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-              <div className="video-modal-note">🎥 Tap outside or ✕ to close · Results from YouTube</div>
-            </div>
-          </div>
         )}
       </div>
     </>
