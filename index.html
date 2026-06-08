@@ -702,13 +702,6 @@ async function saveProfile(email, data) {
   } catch {}
 }
 
-function getWeekKey() {
-  const now = new Date();
-  const jan1 = new Date(now.getFullYear(), 0, 1);
-  const week = Math.ceil(((now - jan1) / 86400000 + jan1.getDay() + 1) / 7);
-  return `${now.getFullYear()}-W${week}`;
-}
-
 function parseMarkdown(text) {
   var html = text
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
