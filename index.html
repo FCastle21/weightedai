@@ -887,7 +887,7 @@ PROFILE:
 - Level: ${currentForm.level}
 - Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}
 - Goal: ${currentForm.goal}
-- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body"}
+- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not include exercises for any other muscle groups.
 - Injuries: ${currentForm.injuries||"None"}
 
 Provide:
@@ -914,7 +914,7 @@ PROFILE:
 - Goal: ${currentForm.goal}
 - Level: ${currentForm.level}
 - Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps. Include TRX rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, single-leg variations. No barbells or machines.)":""}
-- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)"}
+- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not program exercises for muscles not listed here.
 - Days/week: ${currentForm.days}
 - Injuries: ${currentForm.injuries||"None"}
 - Notes: ${currentForm.notes||"None"}
