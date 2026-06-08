@@ -1222,11 +1222,11 @@ INSPO_JSON:{"message":"[1-2 sentence stoic or kinesiology-based insight — shar
                             placeholder="e.g. heavy metal, hip hop, lo-fi, pump up..."
                             value={musicVibe}
                             onChange={e => setMusicVibe(e.target.value)}
-                            onKeyDown={e => { if(e.key==="Enter" && musicVibe.trim()) window.open("https://open.spotify.com/search/"+encodeURIComponent(musicVibe.trim()+" workout playlist"),"_blank"); }}
+                            onKeyDown={e => { if(e.key==="Enter" && musicVibe.trim()) { const a=document.createElement("a"); a.href="spotify:search:"+encodeURIComponent(musicVibe.trim()+" workout playlist"); a.click(); }}}
                           />
                           <button
                             className="music-btn"
-                            onClick={() => { if(musicVibe.trim()) window.open("https://open.spotify.com/search/"+encodeURIComponent(musicVibe.trim()+" workout playlist"),"_blank"); }}
+                            onClick={() => { if(musicVibe.trim()) { const a=document.createElement("a"); a.href="spotify:search:"+encodeURIComponent(musicVibe.trim()+" workout playlist"); a.click(); }}}
                           >OPEN IN SPOTIFY →</button>
                         </div>
                       </div>
