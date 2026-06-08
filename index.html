@@ -1032,7 +1032,7 @@ Be specific. Use tables where helpful.`}
         <section className="tier-section">
           <p className="tier-label">Choose Your Plan</p>
           <div className="tier-grid">
-            <div className={`tier-card ${tier==="free"?"active":""}`} onClick={() => handleTierSelect("free")}>
+            <div className={`tier-card ${tier==="free"?"active":""`}`}`} onClick={() => handleTierSelect("free")}>
               <div className="tier-name">Free</div>
               <div className="tier-price">$0</div>
               <div className="tier-price-note">1 workout per week · no card needed</div>
@@ -1041,7 +1041,7 @@ Be specific. Use tables where helpful.`}
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Focus message included</div>
               </div>
             </div>
-            <div className={`tier-card ${tier==="alacarte"?"active":""}`} onClick={() => handleTierSelect("alacarte")}>
+            <div className={`tier-card ${tier==="alacarte"?"active":""`}`}`} onClick={() => handleTierSelect("alacarte")}>
               <div className="tier-name">À La Carte</div>
               <div className="tier-price"><sup>$</sup>4.99</div>
               <div className="tier-price-note">per workout · <em>☕ save a latte, kill this workout</em></div>
@@ -1052,7 +1052,7 @@ Be specific. Use tables where helpful.`}
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Profile saved</div>
               </div>
             </div>
-            <div className={`tier-card popular-tier ${tier==="unlimited"?"active":""}`} onClick={() => handleTierSelect("unlimited")}>
+            <div className={`tier-card popular-tier ${tier==="unlimited"?"active":""`}`}`} onClick={() => handleTierSelect("unlimited")}>
               <div className="tier-popular-tag">BEST VALUE</div>
               <div className="tier-name">Unlimited</div>
               <div className="tier-price"><sup>$</sup>24.99</div>
@@ -1105,32 +1105,32 @@ Be specific. Use tables where helpful.`}
               <div className="field full">
                 <label>Primary Goal</label>
                 <div className="toggle-group">
-                  {GOALS.map(g=><button key={g} className={`toggle ${form.goal===g?"active":""}`} onClick={()=>toggle("goal",g)}>{g}</button>)}
+                  {GOALS.map(g=><button key={g} className={`toggle ${form.goal===g?"active":""`}`} onClick={()=>toggle("goal",g)}>{g}</button>)}
                 </div>
               </div>
               <div className="field full">
                 <label>Experience Level</label>
                 <div className="toggle-group">
-                  {LEVELS.map(l=><button key={l} className={`toggle ${form.level===l?"active":""}`} onClick={()=>toggle("level",l)}>{l}</button>)}
+                  {LEVELS.map(l=><button key={l} className={`toggle ${form.level===l?"active":""`}`} onClick={()=>toggle("level",l)}>{l}</button>)}
                 </div>
               </div>
               <div className="field full">
                 <label>Available Equipment</label>
                 <div className="toggle-group">
-                  {EQUIPMENT.map(e=><button key={e} className={`toggle ${form.equipment===e?"active":""}`} onClick={()=>toggle("equipment",e)}>{e}</button>)}
+                  {EQUIPMENT.map(e=><button key={e} className={`toggle ${form.equipment===e?"active":""`}`} onClick={()=>toggle("equipment",e)}>{e}</button>)}
                 </div>
               </div>
               <div className="field full">
                 <label>Muscle Groups (select all that apply)</label>
                 <div className="toggle-group">
-                  {MUSCLES.map(m=><button key={m} className={`toggle ${form.muscles.includes(m)?"active":""}`} onClick={()=>toggleMuscle(m)}>{m}</button>)}
+                  {MUSCLES.map(m=><button key={m} className={`toggle ${form.muscles.includes(m)?"active":""`}`} onClick={()=>toggleMuscle(m)}>{m}</button>)}
                 </div>
               </div>
               {tier==="unlimited" && (
                 <div className="field full">
                   <label>Days Per Week</label>
                   <div className="toggle-group">
-                    {DAYS.map(d=><button key={d} className={`toggle ${form.days===d?"active":""}`} onClick={()=>set("days",d)}>{d} Days</button>)}
+                    {DAYS.map(d=><button key={d} className={`toggle ${form.days===d?"active":""`}`} onClick={()=>set("days",d)}>{d} Days</button>)}
                   </div>
                 </div>
               )}
@@ -1138,8 +1138,8 @@ Be specific. Use tables where helpful.`}
                 <div className="field full">
                   <label>Plan Type</label>
                   <div className="toggle-group">
-                    <button className={`toggle ${!thirtyDayPlan?"active":""}`} onClick={()=>setThirtyDayPlan(false)}>Standard Program</button>
-                    <button className={`toggle ${thirtyDayPlan?"active":""}`} onClick={()=>setThirtyDayPlan(true)}>30-Day Plan 🗓</button>
+                    <button className={`toggle ${!thirtyDayPlan?"active":""`}`} onClick={()=>setThirtyDayPlan(false)}>Standard Program</button>
+                    <button className={`toggle ${thirtyDayPlan?"active":""`}`} onClick={()=>setThirtyDayPlan(true)}>30-Day Plan 🗓</button>
                   </div>
                   {thirtyDayPlan && <p style={{fontSize:13,color:"#666",marginTop:8,lineHeight:1.5}}>A complete day-by-day 30-day program built around your goals and schedule.</p>}
                 </div>
