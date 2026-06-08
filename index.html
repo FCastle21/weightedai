@@ -686,17 +686,6 @@ const MUSCLES   = ["Full Body", "Back", "Chest", "Shoulders", "Biceps", "Triceps
 const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"" };
 
 function parseMarkdown(text) {
-  // Step 1: Process [INFO:] tags FIRST before markdown conversion
-  // Pattern: **Exercise Name** [INFO: desc. Muscles: x. Tip: y.]
-  text = text.replace(/\*\*([^*]+)\*\*\s*\[INFO:\s*([^.]+)\.\s*Muscles:\s*([^.]+)\.\s*Tip:\s*([^\]]+?)\s*\.?\]/g, function(match, name, desc, muscles, tip) {
-    var safeName = name.trim().replace(/'/g, "&#39;");
-    var safeDesc = desc.trim().replace(/'/g, "&#39;");
-    var safeMuscles = muscles.trim().replace(/'/g, "&#39;");
-    var safeTip = tip.trim().replace(/'/g, "&#39;");
-    return '%%EXSTART%%' + name.trim() + '%%EXEND%%' + safeName + '|' + safeDesc + '|' + safeMuscles + '|' + safeTip + '%%EXCLOSE%%';
-  });
-
-  // Step 2: Standard markdown conversion
   var html = text
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
@@ -709,12 +698,6 @@ function parseMarkdown(text) {
     .replace(/^(?!<[hulo]|<li)(.+)$/gm, '<p>$1</p>')
     .replace(/<p><\/p>/g, '')
     .replace(/\n{2,}/g, '\n');
-
-  // Step 3: Convert exercise placeholders to green name + info button
-  html = html.replace(/%%EXSTART%%([^%]+)%%EXEND%%([^|]+)\|([^|]+)\|([^|]+)\|([^%]+)%%EXCLOSE%%/g, function(match, name, safeName, safeDesc, safeMuscles, safeTip) {
-    return '<strong style="color:var(--acid)">' + name + '</strong><button class="ex-info-btn" onclick="window.__showInfo(\'' + safeName + '\',\'' + safeDesc + '\',\'' + safeMuscles + '\',\'' + safeTip + '\')">i</button>';
-  });
-
   return html;
 }
 
@@ -895,9 +878,7 @@ Provide:
 ### Warm-Up (5 min)
 3-4 warm-up moves.
 ### Main Workout
-6-8 exercises in this exact format for each:
-**Exercise Name** [INFO: Brief 1-sentence description. Muscles: primary muscles worked. Tip: one key tip.] — sets x reps, rest period.
-Example: **Push-Up** [INFO: A bodyweight pressing movement performed on the floor. Muscles: Chest, triceps, shoulders. Tip: Keep your core tight and body in a straight line.] — 3 x 12, 60s rest.
+6-8 exercises — bold every exercise name using **Exercise Name**, followed by sets, reps, rest.
 ### Cool-Down (5 min)
 3-4 stretches.
 ### This Week's Focus
@@ -937,8 +918,7 @@ Calorie target, macros, meal timing, and food recommendations.
 ## The 30-Day Schedule
 For each week (Week 1-4), list every training day with:
 - Day number and focus
-- 5-6 exercises in this exact format:
-**Exercise Name** [INFO: Brief 1-sentence description. Muscles: primary muscles worked. Tip: one key tip.] — sets x reps, rest period.
+- 5-6 exercises. Bold every exercise name using **Exercise Name**, followed by sets, reps, rest.
 - One coaching note per day
 
 Use rest days strategically. Progress intensity each week.
