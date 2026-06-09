@@ -322,7 +322,7 @@
         <div class="step-num">02</div>
         <div class="step-icon">⚡</div>
         <h3>AI Builds Your Plan</h3>
-        <p>Our AI coach analyzes your profile and generates a fully personalized workout and nutrition program in seconds.</p>
+        <p>Our AI engine analyzes your profile and generates a fully personalized workout and nutrition program in seconds.</p>
       </div>
       <div class="step">
         <div class="step-num">03</div>
@@ -958,7 +958,7 @@ function WeightedAI() {
     const isFree = tier === "free";
 
     const prompt = isFree
-      ? `You are an elite fitness coach. Generate a single full-body workout for ${leadData.name}.
+      ? `You are an elite fitness engine. Generate a single full-body workout for ${leadData.name}.
 
 PROFILE:
 - Age: ${currentForm.age || "Not specified"}
@@ -986,7 +986,7 @@ One actionable training tip for their goal. Do NOT include any nutrition advice.
 
 Do NOT include nutrition plans, multi-week programs, or long-form content. This is a free single workout only.`
       : thirtyDayPlan
-      ? `You are an elite fitness coach. Create a complete 30-DAY training plan for ${leadData.name}.
+      ? `You are an elite fitness engine. Create a complete 30-DAY training plan for ${leadData.name}.
 
 PROFILE:
 - Age: ${currentForm.age||"Not specified"}
@@ -1014,7 +1014,7 @@ VARIETY: Avoid repeating the same exercises every session. Mix rep ranges (3-6 f
 ## End of 30 Days
 
 Be thorough and specific. Use tables where helpful.`
-      : `You are an elite fitness coach. Create a complete personalized program for ${leadData.name}.
+      : `You are an elite fitness engine. Create a complete personalized program for ${leadData.name}.
 
 PROFILE:
 - Age: ${currentForm.age||"Not specified"}
@@ -1161,7 +1161,7 @@ Be specific. Use tables where helpful.`
         <section className="app-hero">
           <p className="app-hero-label">AI-Powered Fitness Intelligence</p>
           <h1 className="app-hero-h1">YOUR PLAN.<br />BUILT IN<br />SECONDS.</h1>
-          <p className="app-hero-p">Choose your plan below. Our AI coach generates a personalized workout instantly — for free, on-demand, or unlimited.</p>
+          <p className="app-hero-p">Choose your plan below. Our AI engine generates a personalized workout instantly — for free, on-demand, or unlimited.</p>
         </section>
 
         {/* TIER SELECTOR */}
