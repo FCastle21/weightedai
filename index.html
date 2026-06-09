@@ -1387,17 +1387,7 @@ Be specific. Use tables where helpful.`
                     )}
 
                     {tier==="free" && (
-                      <>
-                        <div className="upsell-strip">
-                          <div className="upsell-strip-text">
-                            <h4>WANT MORE?</h4>
-                            <p>Get a full personalized program with recovery tips — just $4.99.</p>
-                          </div>
-                          <button className="upsell-strip-btn" onClick={()=>{ setTier("alacarte"); setStep("form"); setUnlocked(false); setPlan(null); setTimeout(()=>{ const el=document.getElementById("form-top"); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:"smooth"}); }}, 50); }}>
-                            GET A WORKOUT — $4.99 →
-                          </button>
-                        </div>
-                        <div className="upsell-strip" style={{borderTopColor:"var(--acid)",marginTop:2}}>
+<div className="upsell-strip" style={{borderTopColor:"var(--acid)"}}>
                           <div className="upsell-strip-text">
                             <h4>GO UNLIMITED</h4>
                             <p>Unlimited workouts, full nutrition plans, 4-week progression & more — $24.99/month.</p>
@@ -1406,7 +1396,6 @@ Be specific. Use tables where helpful.`
                             GO UNLIMITED — $24.99 →
                           </button>
                         </div>
-                      </>
                     )}
                   </>
                 ) : (
