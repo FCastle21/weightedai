@@ -920,7 +920,7 @@ PROFILE:
 - Level: ${currentForm.level}
 - Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}
 - Goal: ${currentForm.goal}
-- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not include exercises for any other muscle groups.
+- Muscle Focus: ${isFree ? "Full Body" : currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not include exercises for any other muscle groups.
 - Injuries: ${currentForm.injuries||"None"}
 
 Start your response with a single line:
@@ -1153,11 +1153,7 @@ Be specific. Use tables where helpful.`
               </div>
             </div>
           </div>
-          {tier && (
-            <button className="tier-cta" onClick={() => setStep("form")} style={{maxWidth:900,display:"block"}}>
-              {tier==="free"?"GET MY FREE WORKOUT →":tier==="alacarte"?"BUILD MY WORKOUT — $4.99 →":"START UNLIMITED — $24.99/MO →"}
-            </button>
-          )}
+
         </section>
 
         {/* FORM */}
@@ -1208,9 +1204,13 @@ Be specific. Use tables where helpful.`
                 </div>
               </div>
               <div className="field full">
-                <label>Muscle Groups (select all that apply)</label>
+                <label>Muscle Groups{tier==="free" && <span style={{fontSize:11,color:"#555",letterSpacing:1,marginLeft:8,textTransform:"none"}}>Free plan is always full body</span>}</label>
                 <div className="toggle-group">
-                  {MUSCLES.map(m=><button key={m} className={`toggle ${form.muscles.includes(m)?"active":""}`} onClick={()=>toggleMuscle(m)}>{m}</button>)}
+                  {tier==="free" ? (
+                    <button className="toggle active" style={{cursor:"default"}}>Full Body</button>
+                  ) : (
+                    MUSCLES.map(m=><button key={m} className={`toggle ${form.muscles.includes(m)?"active":""}`} onClick={()=>toggleMuscle(m)}>{m}</button>)
+                  )}
                 </div>
               </div>
               {tier==="unlimited" && (
