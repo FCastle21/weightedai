@@ -450,7 +450,8 @@ const styles = `
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root { --black: #0a0a0a; --white: #f5f3ef; --acid: #3ddc84; --orange: #ff5c00; }
-  body { background: var(--black); }
+  body { background: var(--black); overflow-x: hidden; }
+  html { overflow-x: hidden; }
   .app { min-height: 100vh; background: var(--black); color: var(--white); font-family: 'DM Sans', sans-serif; font-weight: 300; overflow-x: hidden; }
 
   /* HEADER */
@@ -625,14 +626,14 @@ const styles = `
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
   /* MUSIC CARD */
-  .music-card { background: #0a0a0a; border: 1px solid #1e1e1e; border-left: 3px solid #1db954; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .music-card { background: #0a0a0a; border: 1px solid #1e1e1e; border-left: 3px solid #1db954; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; max-width: 100%; box-sizing: border-box; }
   .music-icon { font-size: 22px; flex-shrink: 0; }
   .music-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #1db954; margin-bottom: 8px; font-weight: 500; }
-  .music-input-row { display: flex; gap: 10px; flex: 1; min-width: 200px; }
+  .music-input-row { display: flex; gap: 10px; flex: 1; min-width: 0; width: 100%; }
   .music-input { background: #111; border: 1px solid #2a2a2a; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px 14px; outline: none; transition: border-color 0.2s; flex: 1; border-radius: 500px; }
   .music-input:focus { border-color: #1db954; }
   .music-input::placeholder { color: #444; }
-  .music-btn { background: #1db954; border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; padding: 10px 20px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; flex-shrink: 0; border-radius: 500px; }
+  .music-btn { background: #1db954; border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; padding: 10px 16px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; flex-shrink: 0; border-radius: 500px; }
   .music-btn:hover { opacity: 0.85; }
 
   /* PLAN CONTENT */
@@ -703,6 +704,14 @@ const styles = `
   @media (max-width: 680px) {
     .header, .hero, .tier-section, .form-section { padding-left: 20px; padding-right: 20px; }
     .form-section { padding-bottom: 20px; }
+    .music-card { padding: 16px; }
+    .music-input-row { flex-direction: column; }
+    .music-btn { width: 100%; text-align: center; }
+    .regen-row { flex-direction: column; }
+    .regen-submit { width: 100%; text-align: center; }
+    .plan-wrapper, .results-header { max-width: 100%; }
+    .progress-stats { grid-template-columns: 1fr 1fr 1fr; }
+    * { max-width: 100%; }
     .tier-grid, .form-grid { grid-template-columns: 1fr; }
     .field.full { grid-column: 1; }
     .gate, .modal { padding: 28px 20px; }
