@@ -589,6 +589,35 @@ const styles = `
   .plan-content a.ex-link { color: var(--acid); text-decoration: none; cursor: pointer; transition: opacity 0.2s; font-weight: 500; border-bottom: 1px dotted var(--acid); display: inline; }
   .plan-content a.ex-link:hover { opacity: 0.75; border-bottom-color: transparent; }
 
+  /* REGENERATE */
+  .regen-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+  .regen-btn { background: transparent; border: 1px solid #2a2a2a; color: #888; font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 10px 18px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; }
+  .regen-btn:hover { border-color: var(--acid); color: var(--acid); }
+  .regen-input { background: #0a0a0a; border: 1px solid #2a2a2a; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px 14px; outline: none; flex: 1; min-width: 200px; transition: border-color 0.2s; }
+  .regen-input:focus { border-color: var(--acid); }
+  .regen-input::placeholder { color: #444; }
+  .regen-submit { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; padding: 10px 20px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; }
+  .regen-submit:hover { opacity: 0.85; }
+
+  /* PROGRESS TRACKING */
+  .progress-section { border-top: 1px solid #1e1e1e; padding-top: 32px; margin-top: 32px; }
+  .progress-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; color: var(--white); margin-bottom: 20px; }
+  .workout-log { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .workout-log-item { display: flex; align-items: center; justify-content: space-between; background: #0f0f0f; border: 1px solid #1e1e1e; padding: 12px 16px; }
+  .workout-log-date { font-size: 12px; color: #555; letter-spacing: 1px; }
+  .workout-log-label { font-size: 14px; color: #aaa; }
+  .workout-log-badge { background: var(--acid); color: var(--black); font-size: 10px; letter-spacing: 2px; padding: 3px 8px; font-weight: 500; }
+  .mark-done-btn { background: transparent; border: 1px solid #2a2a2a; color: #666; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 1px; padding: 8px 16px; cursor: pointer; transition: all 0.2s; width: 100%; }
+  .mark-done-btn:hover { background: var(--acid); border-color: var(--acid); color: var(--black); }
+  .progress-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; background: #1a1a1a; margin-bottom: 20px; }
+  .progress-stat { background: var(--black); padding: 20px; text-align: center; }
+  .progress-stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 40px; color: var(--acid); line-height: 1; margin-bottom: 4px; }
+  .progress-stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #555; }
+
+  /* STREAMING CURSOR */
+  .streaming-cursor::after { content: "▋"; animation: blink 0.7s infinite; color: var(--acid); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
   /* MUSIC CARD */
   .music-card { background: #0a0a0a; border: 1px solid #1e1e1e; border-left: 3px solid #1db954; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .music-icon { font-size: 22px; flex-shrink: 0; }
@@ -829,6 +858,9 @@ function WeightedAI() {
   const [videoExercise, setVideoExercise] = useState(null);
   const [infoExercise, setInfoExercise] = useState(null);
   const [thirtyDayPlan, setThirtyDayPlan] = useState(false);
+  const [regenNote, setRegenNote] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [workoutLog, setWorkoutLog] = useState([]);
 
   useEffect(() => {
     window.__showExercise = (name) => setVideoExercise(name);
@@ -875,8 +907,8 @@ function WeightedAI() {
     await generatePlan(leadData, existingProfile);
   };
 
-  const generatePlan = async (leadData, existingProfile) => {
-    const currentForm = form;
+  const generatePlan = async (leadData, existingProfile, formOverride) => {
+    const currentForm = formOverride || form;
     const isFree = tier === "free";
 
     const prompt = isFree
@@ -962,27 +994,59 @@ Start with: FOCUS: [1-2 sentence stoic or science-based insight. Reference exerc
 
 Be specific. Use tables where helpful.`
 
+    setIsStreaming(true);
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30000);
-      const res  = await fetch("/.netlify/functions/generate", {
+      const timeout = setTimeout(() => controller.abort(), 60000);
+      const res = await fetch("/.netlify/functions/generate", {
         method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt, stream: true }),
         signal: controller.signal
       });
       clearTimeout(timeout);
-      const data = await res.json();
-      if (!res.ok || data.type === "error") {
-        throw new Error(data.error?.message || "API error");
+      if (!res.ok) throw new Error("API error");
+
+      // Stream the response
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let raw = "";
+      setStep("plan");
+      setUnlocked(tier === "free");
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        // Parse SSE chunks
+        const lines = chunk.split("\n");
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+            if (data === "[DONE]") break;
+            try {
+              const parsed = JSON.parse(data);
+              const delta = parsed.delta?.text || "";
+              if (delta) {
+                raw += delta;
+                // Extract focus message if we have it
+                const focusMatch = raw.match(/FOCUS:\s*(.+?)\n/);
+                if (focusMatch && !inspo) setInspo(focusMatch[1]);
+                const cleanPlan = raw.replace(/FOCUS:\s*.+\n?/, "").trim();
+                setPlan(cleanPlan);
+              }
+            } catch(e) {}
+          }
+        }
       }
-      const raw  = data.content?.find(b=>b.type==="text")?.text||"";
-      const inspoMatch = raw.match(/FOCUS:\s*(.+)/);
-      if (inspoMatch) setInspo(inspoMatch[1]);
+
+      // Final cleanup
+      setIsStreaming(false);
+      const focusMatch = raw.match(/FOCUS:\s*(.+?)\n/);
+      if (focusMatch) setInspo(focusMatch[1]);
       const cleanPlan = raw.replace(/FOCUS:\s*.+\n?/, "").trim();
       setPlan(cleanPlan);
 
       if (isFree) {
-        setUnlocked(true);
         // Mark free workout used this week
         const profile = existingProfile || {};
         await saveProfile(leadData.email, { ...profile, name: leadData.name, freeWeekUsed: getWeekKey() });
@@ -994,6 +1058,7 @@ Be specific. Use tables where helpful.`
       setStep("plan");
     } catch(err) {
       console.error("Generation error:", err);
+      setIsStreaming(false);
       setError("Something went wrong: " + (err.message || "Please try again."));
       setStep("form");
     }
@@ -1001,9 +1066,32 @@ Be specific. Use tables where helpful.`
 
   const handleReset = () => {
     setPlan(null); setLead(null); setUnlocked(false); setInspo(null);
-    setBlocked(false); setProfileLoaded(false); setEditingProfile(false); setMusicVibe(""); setVideoExercise(null); setInfoExercise(null); setThirtyDayPlan(false);
+    setBlocked(false); setProfileLoaded(false); setEditingProfile(false); setMusicVibe(""); setVideoExercise(null); setInfoExercise(null); setThirtyDayPlan(false); setRegenNote(""); setIsStreaming(false);
     setStep("home"); setTier(null); setForm(BLANK_FORM);
     window.scrollTo({top:0,behavior:"smooth"});
+  };
+
+  const handleRegenerate = async () => {
+    if (!regenNote.trim() && !window.confirm("Regenerate with the same settings?")) return;
+    setPlan(null); setInspo(null); setUnlocked(false);
+    const note = regenNote.trim();
+    setRegenNote("");
+    const updatedForm = note ? { ...form, notes: (form.notes ? form.notes + ". " : "") + "ADJUSTMENT: " + note } : form;
+    setStep("loading");
+    await generatePlan(lead, null, updatedForm);
+  };
+
+  const handleMarkDone = async () => {
+    const entry = {
+      date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      muscles: form.muscles.length > 0 ? form.muscles.join(", ") : "Full Body",
+      tier
+    };
+    const newLog = [entry, ...workoutLog].slice(0, 20);
+    setWorkoutLog(newLog);
+    if (lead) {
+      try { await window.storage.set("log:" + lead.email.toLowerCase().trim(), JSON.stringify(newLog)); } catch(e) {}
+    }
   };
 
   const handleEditProfile = () => {
@@ -1236,7 +1324,50 @@ Be specific. Use tables where helpful.`
                         <div className="inspo-text">{inspo}</div>
                       </div>
                     )}
-                    <div className="plan-content" dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
+                    <div className={`plan-content${isStreaming?" streaming-cursor":""}`} dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
+                    {/* REGENERATE */}
+                    {!isStreaming && (
+                      <div className="regen-row">
+                        <input className="regen-input" placeholder='Adjust: "make it harder", "no deadlifts", "shorter rest"...' value={regenNote} onChange={e=>setRegenNote(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleRegenerate()} />
+                        <button className="regen-submit" onClick={handleRegenerate}>REGENERATE →</button>
+                      </div>
+                    )}
+
+                    {/* PROGRESS TRACKING */}
+                    {!isStreaming && (
+                      <div className="progress-section">
+                        <div className="progress-title">TRACK YOUR PROGRESS</div>
+                        <div className="progress-stats">
+                          <div className="progress-stat">
+                            <div className="progress-stat-num">{workoutLog.length}</div>
+                            <div className="progress-stat-label">Workouts Done</div>
+                          </div>
+                          <div className="progress-stat">
+                            <div className="progress-stat-num">{workoutLog.filter(w=>{const d=new Date(w.date);const now=new Date();return d>=new Date(now.getFullYear(),now.getMonth(),1);}).length}</div>
+                            <div className="progress-stat-label">This Month</div>
+                          </div>
+                          <div className="progress-stat">
+                            <div className="progress-stat-num">{workoutLog.length > 0 ? Math.round(workoutLog.length / Math.max(1, Math.ceil((new Date()-new Date(workoutLog[workoutLog.length-1].date))/(7*24*60*60*1000)))) : 0}</div>
+                            <div className="progress-stat-label">Per Week Avg</div>
+                          </div>
+                        </div>
+                        {workoutLog.length > 0 && (
+                          <div className="workout-log">
+                            {workoutLog.slice(0,5).map((w,i) => (
+                              <div key={i} className="workout-log-item">
+                                <div>
+                                  <div className="workout-log-label">{w.muscles}</div>
+                                  <div className="workout-log-date">{w.date}</div>
+                                </div>
+                                <div className="workout-log-badge">DONE ✓</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <button className="mark-done-btn" onClick={handleMarkDone}>✓ MARK THIS WORKOUT AS COMPLETE</button>
+                      </div>
+                    )}
+
                     {tier==="free" && (
                       <div className="upsell-strip">
                         <div className="upsell-strip-text">
@@ -1254,7 +1385,7 @@ Be specific. Use tables where helpful.`
                     <div className="plan-preview">
                       <div className="plan-preview-inner">
                         
-                    <div className="plan-content" dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
+                    <div className={`plan-content${isStreaming?" streaming-cursor":""}`} dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
                       </div>
                       <div className="plan-preview-fade" />
                     </div>
