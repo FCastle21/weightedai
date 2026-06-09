@@ -758,7 +758,7 @@ const styles = `
 `;
 
 const GOALS     = ["Lose Fat", "Build Muscle", "Improve Endurance", "Gain Strength", "Body Recomp", "Athletic Performance"];
-const EQUIPMENT = ["Full Gym", "Home Gym", "Dumbbells Only", "Bodyweight Only", "TRX"];
+const EQUIPMENT = ["Full Gym", "Home Gym", "Dumbbells Only", "Bodyweight Only", "TRX", "Kettlebells"];
 const LEVELS    = ["Beginner", "Intermediate", "Advanced"];
 const DAYS      = ["3", "4", "5", "6"];
 const MUSCLES   = ["Full Body", "Back", "Chest", "Shoulders", "Biceps", "Triceps", "Legs / Glutes", "Core / Abs"];
@@ -999,7 +999,7 @@ PROFILE:
 - Height: ${currentForm.height||"Not specified"}
 - Goal: ${currentForm.goal}
 - Level: ${currentForm.level}
-- Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":""}
+- Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":""}
 - Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not program exercises for muscles not listed here.
 - Days/week: ${currentForm.days}
 - Injuries: ${currentForm.injuries||"None"}
@@ -1027,7 +1027,7 @@ PROFILE:
 - Height: ${currentForm.height||"Not specified"}
 - Goal: ${currentForm.goal}
 - Level: ${currentForm.level}
-- Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":""}
+- Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":""}
 - Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not program exercises for muscles not listed here.
 - Days/week: ${currentForm.days}
 - Injuries: ${currentForm.injuries||"None"}
