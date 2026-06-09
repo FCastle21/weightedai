@@ -1170,6 +1170,8 @@ Be specific. Use tables where helpful.`
         <section className="tier-section">
           <p className="tier-label">Choose Your Plan</p>
           <div className="tier-grid">
+
+            {/* FREE */}
             <div className={`tier-card ${tier==="free"?"active":""}`} onClick={() => handleTierSelect("free")}>
               <div className="tier-name">Free</div>
               <div className="tier-price">$0</div>
@@ -1179,6 +1181,8 @@ Be specific. Use tables where helpful.`
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Focus message included</div>
               </div>
             </div>
+
+            {/* A LA CARTE */}
             <div className={`tier-card ${tier==="alacarte"?"active":""}`} onClick={() => handleTierSelect("alacarte")}>
               <div className="tier-name">À La Carte</div>
               <div className="tier-price"><sup>$</sup>4.99</div>
@@ -1190,8 +1194,9 @@ Be specific. Use tables where helpful.`
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Profile saved</div>
               </div>
             </div>
-            <div className={`tier-card popular-tier ${tier==="unlimited"?"active":""}`} onClick={() => handleTierSelect("unlimited")}>
-              <div className="tier-popular-tag">BEST VALUE</div>
+
+            {/* UNLIMITED MONTHLY */}
+            <div className={`tier-card ${tier==="unlimited"?"active":""}`} onClick={() => handleTierSelect("unlimited")}>
               <div className="tier-name">Unlimited</div>
               <div className="tier-price"><sup>$</sup>24.99</div>
               <div className="tier-price-note">per month · cancel anytime</div>
@@ -1203,6 +1208,21 @@ Be specific. Use tables where helpful.`
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Profile saved</div>
               </div>
             </div>
+
+            {/* UNLIMITED ANNUAL */}
+            <div className={`tier-card popular-tier ${tier==="annual"?"active":""}`} onClick={() => handleTierSelect("annual")} style={{borderTop:"3px solid var(--acid)"}}>
+              <div className="tier-popular-tag" style={{background:"var(--acid)",color:"var(--black)"}}>BEST VALUE</div>
+              <div className="tier-name">Unlimited Annual</div>
+              <div className="tier-price"><sup>$</sup>249.99</div>
+              <div className="tier-price-note">per year · <em>2 months free!</em></div>
+              <div className="tier-features">
+                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Everything in Unlimited</div>
+                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> 2 months free vs monthly</div>
+                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Priority support</div>
+                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Locked-in rate for a year</div>
+              </div>
+            </div>
+
           </div>
 
         </section>
