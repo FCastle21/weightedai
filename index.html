@@ -147,10 +147,10 @@
     /* ── STATS ── */
     .stats {
       display: grid; grid-template-columns: repeat(3, 1fr);
-      border-top: 1px solid #1a1a1a; border-bottom: 1px solid #1a1a1a;
+      border-top: none; border-bottom: none;
     }
     .stat {
-      padding: 24px; border-right: 1px solid #1a1a1a;
+      padding: 24px; border-right: none;
     }
     .stat:last-child { border-right: none; }
     .stat-number {
@@ -186,7 +186,7 @@
     /* ── FEATURE SPLIT ── */
     .feature-split {
       display: grid; grid-template-columns: 1fr 1fr;
-      border-top: 1px solid #1a1a1a;
+      border-top: none;
     }
     .feature-text { padding: 60px 24px; }
 
@@ -205,7 +205,7 @@
 
 
     /* ── TESTIMONIALS ── */
-    .testimonials { padding: 80px 24px; border-top: 1px solid #1a1a1a; }
+    .testimonials { padding: 80px 24px; border-top: none; }
     .testimonial-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: #141414; margin-top: 64px; }
     .testimonial { background: var(--black); padding: 40px 32px; }
     .testimonial-stars { color: var(--mint); font-size: 14px; letter-spacing: 4px; margin-bottom: 20px; }
@@ -245,7 +245,7 @@
     .footer-links a:hover { color: var(--muted); }
 
     /* ── APP SECTION ── */
-    .app-section { padding: 0 0 20px 0; border-top: 1px solid #1a1a1a; }
+    .app-section { padding: 0 0 20px 0; border-top: none; }
 
 
     @media (max-width: 768px) {
@@ -254,11 +254,11 @@
       .hero { padding: 0 20px 60px; }
       .hero-number { display: none; }
       .stats { grid-template-columns: 1fr; }
-      .stat { border-right: none; border-bottom: 1px solid #1a1a1a; padding: 36px 20px; }
+      .stat { border-right: none; border-bottom: none; padding: 36px 20px; }
       .section, .pricing-section, .testimonials, .app-section { padding: 80px 20px; }
       .steps, .pricing-grid, .testimonial-grid { grid-template-columns: 1fr; }
       .feature-split { grid-template-columns: 1fr; }
-      .feature-visual { border-left: none; border-top: 1px solid #1a1a1a; }
+      .feature-visual { border-left: none; border-top: none; }
       .feature-text { padding: 60px 20px; }
       .feature-visual { padding: 40px 20px; }
       .cta-strip { flex-direction: column; padding: 60px 20px; }
