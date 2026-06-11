@@ -112,6 +112,10 @@
       margin-top: 44px;
       animation: fadeUp 0.8s ease 0.65s both;
     }
+    @media (max-width: 768px) {
+      .hero-actions { flex-direction: column; align-items: stretch; }
+      .hero-actions a { text-align: center; }
+    }
 
     .btn-primary {
       background: var(--mint); color: var(--black);
@@ -293,7 +297,7 @@
   <!-- STATS -->
   <div class="stats">
     <div class="stat">
-      <div class="stat-number">30s</div>
+      <div class="stat-number">60s</div>
       <div class="stat-label">To generate your plan</div>
     </div>
     <div class="stat">
@@ -316,7 +320,7 @@
         <div class="step-num">01</div>
         <div class="step-icon">📋</div>
         <h3>Tell Us About You</h3>
-        <p>Share your goals, experience level, available equipment, and any limitations. Takes under two minutes.</p>
+        <p>Share your goals, experience level, available equipment, and any limitations. Takes about 45 seconds.</p>
       </div>
       <div class="step">
         <div class="step-num">02</div>
