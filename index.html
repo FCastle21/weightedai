@@ -608,6 +608,26 @@ const styles = `
   .regen-submit { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; padding: 10px 20px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; border-radius: 500px; }
   .regen-submit:hover { opacity: 0.85; }
 
+  /* WORKOUT RATING */
+  .rating-section { border-top: 1px solid #1e1e1e; padding-top: 28px; margin-top: 28px; }
+  .rating-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--white); margin-bottom: 6px; }
+  .rating-sub { font-size: 13px; color: #555; margin-bottom: 20px; }
+  .rating-stars { display: flex; gap: 10px; margin-bottom: 20px; }
+  .rating-star { width: 44px; height: 44px; border: 1px solid #2a2a2a; background: transparent; color: #444; font-family: 'Bebas Neue', sans-serif; font-size: 18px; cursor: pointer; transition: all 0.15s; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .rating-star.selected { background: var(--acid); border-color: var(--acid); color: var(--black); }
+  .rating-star:hover { border-color: var(--acid); color: var(--acid); }
+  .rating-labels { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 1px; color: #444; text-transform: uppercase; margin-bottom: 20px; }
+  .rating-submit { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 3px; padding: 14px 28px; cursor: pointer; border-radius: 500px; transition: opacity 0.2s; }
+  .rating-submit:hover { opacity: 0.85; }
+  .rating-submit:disabled { background: #333; color: #555; cursor: not-allowed; }
+  .rating-done { background: #0f1a00; border: 1px solid #2a3a00; border-left: 3px solid var(--acid); padding: 14px 20px; font-size: 14px; color: #aaa; border-radius: 4px; }
+  .rating-done strong { color: var(--acid); }
+
+  /* PROGRESSIVE OVERLOAD BANNER */
+  .overload-banner { background: #0a0f00; border: 1px solid #1a2a00; border-left: 3px solid var(--acid); padding: 16px 20px; margin-bottom: 24px; }
+  .overload-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--acid); margin-bottom: 6px; font-weight: 500; }
+  .overload-text { font-size: 14px; color: #aaa; line-height: 1.6; }
+
   /* PROGRESS TRACKING */
   .progress-section { border-top: 1px solid #1e1e1e; padding-top: 32px; margin-top: 32px; }
   .progress-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; color: var(--white); margin-bottom: 20px; }
@@ -909,6 +929,9 @@ function WeightedAI() {
   const [regenNote, setRegenNote] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [workoutLog, setWorkoutLog] = useState([]);
+  const [difficulty, setDifficulty] = useState(0);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [workoutHistory, setWorkoutHistory] = useState([]);
 
   useEffect(() => {
     window.__showExercise = (name) => setVideoExercise(name);
@@ -1003,6 +1026,16 @@ PROFILE:
 - Days/week: ${currentForm.days}
 - Injuries: ${currentForm.injuries||"None"}
 - Notes: ${currentForm.notes||"None"}
+${workoutHistory.length > 0 ? `
+PREVIOUS WORKOUT HISTORY (last ${Math.min(workoutHistory.length, 3)} sessions):
+${workoutHistory.slice(0,3).map((h,i) => `Session ${i+1} (${h.date}): ${h.muscles} — Difficulty rated ${h.difficulty}/5${h.difficulty >= 4 ? " (found it very hard)" : h.difficulty <= 2 ? " (found it easy)" : " (moderate)"}`).join("\n")}
+
+PROGRESSIVE OVERLOAD INSTRUCTION: Based on the history above, adjust this workout accordingly:
+- If last session difficulty was 4-5: keep or slightly reduce volume, focus on form
+- If last session difficulty was 1-2: increase reps by 2, add a set, or increase intensity
+- If last session difficulty was 3: progress normally — add small overload
+- Vary exercises from previous sessions to avoid repetition
+- Note any muscle groups that haven't been trained recently` : ""}
 
 Start with: FOCUS: [1-2 sentence stoic or science-based insight. Reference exercise science, progressive overload, protein synthesis, or mental discipline. No hollow motivation. Relevant to their goal.]
 
@@ -1031,6 +1064,16 @@ PROFILE:
 - Days/week: ${currentForm.days}
 - Injuries: ${currentForm.injuries||"None"}
 - Notes: ${currentForm.notes||"None"}
+${workoutHistory.length > 0 ? `
+PREVIOUS WORKOUT HISTORY (last ${Math.min(workoutHistory.length, 3)} sessions):
+${workoutHistory.slice(0,3).map((h,i) => `Session ${i+1} (${h.date}): ${h.muscles} — Difficulty rated ${h.difficulty}/5${h.difficulty >= 4 ? " (found it very hard)" : h.difficulty <= 2 ? " (found it easy)" : " (moderate)"}`).join("\n")}
+
+PROGRESSIVE OVERLOAD INSTRUCTION: Based on the history above, adjust this workout accordingly:
+- If last session difficulty was 4-5: keep or slightly reduce volume, focus on form
+- If last session difficulty was 1-2: increase reps by 2, add a set, or increase intensity
+- If last session difficulty was 3: progress normally — add small overload
+- Vary exercises from previous sessions to avoid repetition
+- Note any muscle groups that haven't been trained recently` : ""}
 
 Start with: FOCUS: [1-2 sentence stoic or science-based insight. Reference exercise science, progressive overload, protein synthesis, or mental discipline. No hollow motivation. Relevant to their specific goal.]
 
@@ -1118,7 +1161,7 @@ Be specific. Use tables where helpful.`
 
   const handleReset = () => {
     setPlan(null); setLead(null); setUnlocked(false); setInspo(null);
-    setBlocked(false); setProfileLoaded(false); setEditingProfile(false); setMusicVibe(""); setVideoExercise(null); setInfoExercise(null); setThirtyDayPlan(false); setRegenNote(""); setIsStreaming(false);
+    setBlocked(false); setProfileLoaded(false); setEditingProfile(false); setMusicVibe(""); setVideoExercise(null); setInfoExercise(null); setThirtyDayPlan(false); setRegenNote(""); setIsStreaming(false); setDifficulty(0); setRatingSubmitted(false);
     setStep("home"); setTier(null); setForm(BLANK_FORM);
     window.scrollTo({top:0,behavior:"smooth"});
   };
@@ -1133,17 +1176,28 @@ Be specific. Use tables where helpful.`
     await generatePlan(lead, null, updatedForm);
   };
 
-  const handleMarkDone = async () => {
+  const handleMarkDone = async (difficultyRating) => {
     const entry = {
       date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
       muscles: form.muscles.length > 0 ? form.muscles.join(", ") : "Full Body",
+      difficulty: difficultyRating,
       tier
     };
     const newLog = [entry, ...workoutLog].slice(0, 20);
     setWorkoutLog(newLog);
+    // Save history for AI context
+    const histEntry = {
+      date: entry.date,
+      muscles: entry.muscles,
+      difficulty: difficultyRating
+    };
+    const newHistory = [histEntry, ...workoutHistory].slice(0, 5);
+    setWorkoutHistory(newHistory);
     if (lead) {
       try { await window.storage.set("log:" + lead.email.toLowerCase().trim(), JSON.stringify(newLog)); } catch(e) {}
+      try { await window.storage.set("history:" + lead.email.toLowerCase().trim(), JSON.stringify(newHistory)); } catch(e) {}
     }
+    setRatingSubmitted(true);
   };
 
   const handleEditProfile = () => {
@@ -1424,6 +1478,14 @@ Be specific. Use tables where helpful.`
                         </div>
                       </div>
                     </div>
+                    {workoutHistory.length > 0 && (
+                      <div className="overload-banner">
+                        <div className="overload-label">⚡ Progressive Overload Active</div>
+                        <div className="overload-text">
+                          Based on your last session ({workoutHistory[0].muscles} — difficulty {workoutHistory[0].difficulty}/5), this workout has been adjusted for optimal progression.
+                        </div>
+                      </div>
+                    )}
                     {inspo && (
                       <div className="inspo-card">
                         <span className="inspo-icon">⚡</span>
@@ -1470,7 +1532,29 @@ Be specific. Use tables where helpful.`
                             ))}
                           </div>
                         )}
-                        <button className="mark-done-btn" onClick={handleMarkDone}>✓ MARK THIS WORKOUT AS COMPLETE</button>
+                        {!ratingSubmitted ? (
+                          <div className="rating-section">
+                            <div className="rating-title">HOW WAS THIS WORKOUT?</div>
+                            <div className="rating-sub">Rate the difficulty so we can adjust your next session.</div>
+                            <div className="rating-stars">
+                              {[1,2,3,4,5].map(n => (
+                                <button key={n} className={`rating-star ${difficulty===n?"selected":""}`} onClick={()=>setDifficulty(n)}>{n}</button>
+                              ))}
+                            </div>
+                            <div className="rating-labels">
+                              <span>Too Easy</span>
+                              <span>Perfect</span>
+                              <span>Very Hard</span>
+                            </div>
+                            <button className="rating-submit" onClick={()=>handleMarkDone(difficulty)} disabled={difficulty===0}>
+                              {difficulty===0 ? "SELECT A RATING" : "MARK COMPLETE ✓"}
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="rating-done">
+                            <strong>✓ Workout logged!</strong> Your next plan will be adjusted based on today's difficulty rating of {difficulty}/5.
+                          </div>
+                        )}
                       </div>
                     )}
 
