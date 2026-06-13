@@ -1904,6 +1904,7 @@ Be specific. Use tables where helpful.`
       if (btn) { btn.textContent = 'LOADING...'; btn.disabled = true; }
 
       try {
+        alert("Starting sign in for: " + email);
         // Load from Supabase via Netlify function
         const res = await fetch('/.netlify/functions/generate', {
           method: 'POST',
