@@ -1213,14 +1213,22 @@ PROFILE:
 - Notes: ${currentForm.notes||"None"}
 ${workoutHistory.length > 0 ? `
 PREVIOUS WORKOUT HISTORY (last ${Math.min(workoutHistory.length, 3)} sessions):
-${workoutHistory.slice(0,3).map((h,i) => `Session ${i+1} (${h.date}): ${h.muscles} — Difficulty rated ${h.difficulty}/5${h.difficulty >= 4 ? " (found it very hard)" : h.difficulty <= 2 ? " (found it easy)" : " (moderate)"}`).join("\n")}
+${workoutHistory.slice(0,3).map((h,i) => {
+  const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : [];
+  return `Session ${i+1} (${h.date}): ${h.muscles} — Difficulty ${h.difficulty}/5${h.difficulty >= 4 ? " (very hard)" : h.difficulty <= 2 ? " (easy)" : " (moderate)"}${exList.length > 0 ? `\nExercises used: ${exList.join(", ")}` : ""}`;
+}).join("\n\n")}
 
-PROGRESSIVE OVERLOAD INSTRUCTION: Based on the history above, adjust this workout accordingly:
-- If last session difficulty was 4-5: keep or slightly reduce volume, focus on form
-- If last session difficulty was 1-2: increase reps by 2, add a set, or increase intensity
-- If last session difficulty was 3: progress normally — add small overload
-- Vary exercises from previous sessions to avoid repetition
-- Note any muscle groups that haven't been trained recently` : ""}
+CRITICAL EXERCISE ROTATION RULES:
+1. DO NOT use any exercise listed above from the last 2 sessions
+2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session
+3. If an exercise appears in only session 1 or only session 2, avoid it if possible
+4. The goal is NO repeated exercises until at least 3 sessions have passed
+5. Choose completely different movement variations — if Romanian Deadlift was used, use Conventional Deadlift or Good Mornings instead; if Barbell Squat was used, use Goblet Squat, Bulgarian Split Squat or Hack Squat instead
+
+PROGRESSIVE OVERLOAD: 
+- Difficulty 4-5 last session: maintain volume, focus on form
+- Difficulty 1-2 last session: increase reps by 2-3 or add a set
+- Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)` : ""}
 
 Start with: FOCUS: [1-2 sentence stoic or science-based insight. Reference exercise science, progressive overload, protein synthesis, or mental discipline. No hollow motivation. Relevant to their goal.]
 
@@ -1270,14 +1278,22 @@ PROFILE:
 - Notes: ${currentForm.notes||"None"}
 ${workoutHistory.length > 0 ? `
 PREVIOUS WORKOUT HISTORY (last ${Math.min(workoutHistory.length, 3)} sessions):
-${workoutHistory.slice(0,3).map((h,i) => `Session ${i+1} (${h.date}): ${h.muscles} — Difficulty rated ${h.difficulty}/5${h.difficulty >= 4 ? " (found it very hard)" : h.difficulty <= 2 ? " (found it easy)" : " (moderate)"}`).join("\n")}
+${workoutHistory.slice(0,3).map((h,i) => {
+  const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : [];
+  return `Session ${i+1} (${h.date}): ${h.muscles} — Difficulty ${h.difficulty}/5${h.difficulty >= 4 ? " (very hard)" : h.difficulty <= 2 ? " (easy)" : " (moderate)"}${exList.length > 0 ? `\nExercises used: ${exList.join(", ")}` : ""}`;
+}).join("\n\n")}
 
-PROGRESSIVE OVERLOAD INSTRUCTION: Based on the history above, adjust this workout accordingly:
-- If last session difficulty was 4-5: keep or slightly reduce volume, focus on form
-- If last session difficulty was 1-2: increase reps by 2, add a set, or increase intensity
-- If last session difficulty was 3: progress normally — add small overload
-- Vary exercises from previous sessions to avoid repetition
-- Note any muscle groups that haven't been trained recently` : ""}
+CRITICAL EXERCISE ROTATION RULES:
+1. DO NOT use any exercise listed above from the last 2 sessions
+2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session
+3. If an exercise appears in only session 1 or only session 2, avoid it if possible
+4. The goal is NO repeated exercises until at least 3 sessions have passed
+5. Choose completely different movement variations — if Romanian Deadlift was used, use Conventional Deadlift or Good Mornings instead; if Barbell Squat was used, use Goblet Squat, Bulgarian Split Squat or Hack Squat instead
+
+PROGRESSIVE OVERLOAD: 
+- Difficulty 4-5 last session: maintain volume, focus on form
+- Difficulty 1-2 last session: increase reps by 2-3 or add a set
+- Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)` : ""}
 
 Start with: FOCUS: [1-2 sentence stoic or science-based insight. Reference exercise science, progressive overload, protein synthesis, or mental discipline. No hollow motivation. Relevant to their specific goal.]
 
@@ -1385,12 +1401,22 @@ Be specific. Use tables where helpful.`
     };
     const newLog = [entry, ...workoutLog].slice(0, 20);
     setWorkoutLog(newLog);
-    const histEntry = { date: entry.date, muscles: entry.muscles, difficulty: difficultyRating };
+    // Extract exercise names from the current plan
+    let exerciseList = [];
+    try {
+      const planText = plan || "";
+      const boldMatches = planText.match(/\*\*([^*]+)\*\*/g) || [];
+      exerciseList = boldMatches
+        .map(m => m.replace(/\*\*/g, "").split("—")[0].split("-")[0].trim())
+        .filter(e => e.length > 3 && e.length < 50)
+        .slice(0, 15);
+    } catch(e) {}
+    const histEntry = { date: entry.date, muscles: entry.muscles, difficulty: difficultyRating, exercises: exerciseList.join("|") };
     const newHistory = [histEntry, ...workoutHistory].slice(0, 5);
     setWorkoutHistory(newHistory);
     if (lead) {
       try { await dbRequest("saveLog", { email: lead.email, logEntry: entry }); } catch(e) {}
-      try { await dbRequest("saveHistory", { email: lead.email, historyEntry: histEntry }); } catch(e) {}
+      try { await dbRequest("saveHistory", { email: lead.email, historyEntry: { ...histEntry, exercises: histEntry.exercises || "" } }); } catch(e) {}
     }
     setRatingSubmitted(true);
     // Clear active workout from localStorage
