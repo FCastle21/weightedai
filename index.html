@@ -1914,14 +1914,16 @@ Be specific. Use tables where helpful.`
         
         if (btn) { btn.textContent = 'SIGN IN →'; btn.disabled = false; }
         
-        if (!profile || !profile.email) { 
+        // Handle both direct object and wrapped responses
+        const profileData = profile && profile.email ? profile : (profile && profile[0] ? profile[0] : null);
+        if (!profileData || !profileData.email) { 
           alert('No profile found for that email. Please choose a plan below.');
           document.getElementById('signin-overlay').style.display = 'none';
           document.getElementById('app').scrollIntoView({behavior:'smooth'});
           return; 
         }
         document.getElementById('signin-overlay').style.display = 'none';
-        window.dispatchEvent(new CustomEvent('weightedai-signin', { detail: { email, profile } }));
+        window.dispatchEvent(new CustomEvent('weightedai-signin', { detail: { email, profile: profileData } }));
         document.getElementById('app').scrollIntoView({behavior:'smooth'});
       } catch(e) {
         if (btn) { btn.textContent = 'SIGN IN →'; btn.disabled = false; }
