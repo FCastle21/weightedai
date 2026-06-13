@@ -287,7 +287,7 @@
   <!-- NAV -->
   <nav>
     <a href="#" class="nav-logo">WEIGHTED<span>AI</span></a>
-    <button onclick="document.getElementById('signin-overlay').style.display='flex'" style="background:#3ddc84;border:none;color:#0a0a0a;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 20px;cursor:pointer;border-radius:500px;font-weight:500;">Sign In</button>
+    <button onclick="document.getElementById('signin-overlay').style.display='flex'" id="signin-nav-btn" style="background:#3ddc84;border:none;color:#0a0a0a;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 20px;cursor:pointer;border-radius:500px;font-weight:500;">Sign In</button>
   </nav>
 
   <!-- HERO -->
@@ -950,11 +950,22 @@ function WeightedAI() {
   const [regenNote, setRegenNote] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [workoutLog, setWorkoutLog] = useState([]);
+  const [signedInName, setSignedInName] = useState("");
   const [difficulty, setDifficulty] = useState(0);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [workoutHistory, setWorkoutHistory] = useState([]);
 
   useEffect(() => {
+    window.__setSignedIn = (name) => {
+      const btn = document.getElementById("signin-nav-btn");
+      if (btn) {
+        btn.textContent = "Hi, " + name.split(" ")[0];
+        btn.style.background = "transparent";
+        btn.style.border = "1px solid #3ddc84";
+        btn.style.color = "#3ddc84";
+      }
+    };
+    if (signedInName) window.__setSignedIn(signedInName);
     window.__showExercise = (name) => setVideoExercise(name);
     window.__showInfo = (name, desc, muscles, tip) => setInfoExercise({name, desc, muscles, tip});
     
@@ -963,6 +974,7 @@ function WeightedAI() {
       const savedTier = profile.tier || "unlimited";
       setTier(savedTier);
       setLead({ name: profile.name || "", email });
+      setSignedInName(profile.name || email);
       setForm(f => ({ ...f, ...profile, muscles: [] }));
       setProfileLoaded(true);
       setStep("form");
@@ -975,7 +987,7 @@ function WeightedAI() {
       delete window.__showInfo;
       window.removeEventListener('weightedai-signin', handleNavSignIn);
     };
-  }, []);
+  }, [signedInName]);
 
   const set = (k,v) => setForm(f => ({...f,[k]:v}));
   const toggle = (key,val) => setForm(f => ({...f,[key]:f[key]===val?"":val}));
