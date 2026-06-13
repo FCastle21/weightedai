@@ -269,11 +269,25 @@
 </head>
 <body>
 
+  <!-- SIGN IN MODAL -->
+  <div id="signin-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:500;align-items:center;justify-content:center;padding:20px;">
+    <div style="background:#111;border:1px solid #2a2a2a;border-top:3px solid #3ddc84;padding:40px;width:100%;max-width:440px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;">SIGN IN</div>
+        <button onclick="document.getElementById('signin-overlay').style.display='none'" style="background:transparent;border:1px solid #2a2a2a;color:#666;width:32px;height:32px;cursor:pointer;font-size:16px;border-radius:50%;">✕</button>
+      </div>
+      <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#3ddc84;margin-bottom:8px;font-weight:500;">Returning Member</div>
+      <div style="font-size:14px;color:#666;margin-bottom:24px;">Enter your email to reload your profile and jump back in.</div>
+      <input id="signin-email" type="email" placeholder="your@email.com" style="background:#0a0a0a;border:1px solid #2a2a2a;color:#f5f3ef;font-family:'DM Sans',sans-serif;font-size:15px;padding:14px 16px;outline:none;width:100%;margin-bottom:14px;border-radius:500px;"/>
+      <button onclick="handleSignIn()" style="width:100%;background:#3ddc84;border:none;color:#0a0a0a;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:4px;padding:18px;cursor:pointer;border-radius:500px;">SIGN IN →</button>
+      <div style="font-size:11px;color:#333;text-align:center;margin-top:12px;letter-spacing:0.5px;">No account yet? Choose a plan below.</div>
+    </div>
+  </div>
+
   <!-- NAV -->
   <nav>
     <a href="#" class="nav-logo">WEIGHTED<span>AI</span></a>
-
-    
+    <button onclick="document.getElementById('signin-overlay').style.display='flex'" style="background:#3ddc84;border:none;color:#0a0a0a;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 20px;cursor:pointer;border-radius:500px;font-weight:500;">Sign In</button>
   </nav>
 
   <!-- HERO -->
@@ -943,8 +957,24 @@ function WeightedAI() {
   useEffect(() => {
     window.__showExercise = (name) => setVideoExercise(name);
     window.__showInfo = (name, desc, muscles, tip) => setInfoExercise({name, desc, muscles, tip});
-    return () => { delete window.__showExercise;
-      delete window.__showInfo; };
+    
+    const handleNavSignIn = async (e) => {
+      const { email, profile } = e.detail;
+      const savedTier = profile.tier || "unlimited";
+      setTier(savedTier);
+      setLead({ name: profile.name || "", email });
+      setForm(f => ({ ...f, ...profile, muscles: [] }));
+      setProfileLoaded(true);
+      setStep("form");
+      setTimeout(()=>{ const el=document.getElementById("form-top"); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:"smooth"}); }}, 100);
+    };
+    window.addEventListener('weightedai-signin', handleNavSignIn);
+
+    return () => { 
+      delete window.__showExercise;
+      delete window.__showInfo;
+      window.removeEventListener('weightedai-signin', handleNavSignIn);
+    };
   }, []);
 
   const set = (k,v) => setForm(f => ({...f,[k]:v}));
@@ -1229,40 +1259,6 @@ Be specific. Use tables where helpful.`
         </section>
 
         {/* TIER SELECTOR */}
-        {/* RETURNING USER */}
-        <section className="tier-section" style={{paddingBottom:0}}>
-          <div style={{background:"#0f0f0f",border:"1px solid #1e1e1e",borderLeft:"3px solid var(--acid)",padding:"20px 24px",marginBottom:24,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
-            <div>
-              <div style={{fontSize:10,letterSpacing:3,textTransform:"uppercase",color:"var(--acid)",marginBottom:6,fontWeight:500}}>Already a Member?</div>
-              <div style={{fontSize:14,color:"#888"}}>Enter your email to pick up where you left off.</div>
-            </div>
-            <div style={{display:"flex",gap:8,flexWrap:"wrap",flex:1,minWidth:0,justifyContent:"flex-end"}}>
-              <input
-                type="email"
-                placeholder="your@email.com"
-                id="returning-email"
-                style={{background:"#0a0a0a",border:"1px solid #2a2a2a",color:"var(--white)",fontFamily:"DM Sans, sans-serif",fontSize:14,padding:"10px 16px",outline:"none",borderRadius:500,flex:1,minWidth:180,maxWidth:280}}
-              />
-              <button style={{background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"Bebas Neue, sans-serif",fontSize:14,letterSpacing:3,padding:"10px 20px",cursor:"pointer",borderRadius:500,whiteSpace:"nowrap"}}
-                onClick={async () => {
-                  const emailEl = document.getElementById("returning-email");
-                  const email = emailEl?.value?.trim();
-                  if (!email || !email.includes("@")) { alert("Please enter a valid email."); return; }
-                  const profile = await loadProfile(email);
-                  if (!profile) { alert("No profile found for that email. Please choose a plan below."); return; }
-                  const savedTier = profile.tier || "unlimited";
-                  setTier(savedTier);
-                  setLead({ name: profile.name || "", email });
-                  setForm(f => ({ ...f, ...profile, muscles: [] }));
-                  setProfileLoaded(true);
-                  setStep("form");
-                  setTimeout(()=>{ const el=document.getElementById("form-top"); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:"smooth"}); }}, 100);
-                }}
-              >SIGN IN →</button>
-            </div>
-          </div>
-        </section>
-
         <section className="tier-section">
           <p className="tier-label">Choose Your Plan</p>
           <div className="tier-grid">
@@ -1638,6 +1634,34 @@ Be specific. Use tables where helpful.`
 
     const root = ReactDOM.createRoot(document.getElementById('app-root'));
     root.render(<WeightedAI />);
+
+    // Sign in handler for landing page nav
+    async function handleSignIn() {
+      const email = document.getElementById('signin-email')?.value?.trim();
+      if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
+      
+      // Init storage
+      if (!window.storage) { alert('Storage not available. Please try again.'); return; }
+      
+      try {
+        const val = await window.storage.get('user:' + email.toLowerCase());
+        if (!val) { 
+          alert('No profile found for that email. Please choose a plan below.');
+          document.getElementById('signin-overlay').style.display = 'none';
+          document.getElementById('app').scrollIntoView({behavior:'smooth'});
+          return; 
+        }
+        const profile = JSON.parse(val.value);
+        document.getElementById('signin-overlay').style.display = 'none';
+        // Trigger React sign in by dispatching a custom event
+        window.dispatchEvent(new CustomEvent('weightedai-signin', { detail: { email, profile } }));
+        document.getElementById('app').scrollIntoView({behavior:'smooth'});
+      } catch(e) {
+        alert('No profile found for that email. Please choose a plan below.');
+        document.getElementById('signin-overlay').style.display = 'none';
+        document.getElementById('app').scrollIntoView({behavior:'smooth'});
+      }
+    }
   </script>
 
 </body>
