@@ -1,4 +1,4 @@
-const CACHE_NAME = "weightedai-v4";
+const CACHE_NAME = "weightedai-v5";
 const CACHED_URLS = [
   "/",
   "/index.html",
