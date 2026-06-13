@@ -804,19 +804,44 @@ const MUSCLES   = ["Full Body", "Back", "Chest", "Shoulders", "Biceps", "Triceps
 const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"" };
 
 
-// ── Storage helpers ────────────────────────────────────────────────────────────
-const storageKey = (email) => `user:${email.toLowerCase().trim()}`;
+// ── Supabase helpers via Netlify Function ──────────────────────────────────────
+async function dbRequest(action, payload) {
+  try {
+    const res = await fetch("/.netlify/functions/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, ...payload })
+    });
+    return await res.json();
+  } catch(e) { return null; }
+}
 
 async function loadProfile(email) {
   try {
-    const res = await window.storage.get(storageKey(email));
-    return res ? JSON.parse(res.value) : null;
+    const data = await dbRequest("loadProfile", { email });
+    return data || null;
   } catch { return null; }
 }
 
 async function saveProfile(email, data) {
   try {
-    await window.storage.set(storageKey(email), JSON.stringify(data));
+    // Map form fields to DB columns
+    const profileData = {
+      name: data.name,
+      tier: data.tier,
+      age: data.age,
+      gender: data.gender,
+      weight: data.weight,
+      height: data.height,
+      goal: data.goal,
+      level: data.level,
+      equipment: data.equipment,
+      days: data.days,
+      injuries: data.injuries,
+      notes: data.notes,
+      free_week_used: data.freeWeekUsed || null
+    };
+    await dbRequest("saveProfile", { email, profileData });
   } catch {}
 }
 
@@ -975,7 +1000,20 @@ function WeightedAI() {
       setTier(savedTier);
       setLead({ name: profile.name || "", email });
       setSignedInName(profile.name || email);
-      setForm(f => ({ ...f, ...profile, muscles: [] }));
+      // Map DB columns back to form fields
+      const mappedProfile = {
+        age: profile.age || "",
+        gender: profile.gender || "",
+        weight: profile.weight || "",
+        height: profile.height || "",
+        goal: profile.goal || "",
+        level: profile.level || "",
+        equipment: profile.equipment || "",
+        days: profile.days || "4",
+        injuries: profile.injuries || "",
+        notes: profile.notes || ""
+      };
+      setForm(f => ({ ...f, ...mappedProfile, muscles: [] }));
       setProfileLoaded(true);
       setStep("form");
       setTimeout(()=>{ const el=document.getElementById("form-top"); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:"smooth"}); }}, 100);
@@ -1014,7 +1052,7 @@ function WeightedAI() {
     // FREE TIER: weekly limit disabled for testing
     // if (tier === "free") {
     //   const profile = existingProfile || {};
-    //   const usedWeek = profile.freeWeekUsed;
+    //   const usedWeek = profile.freeWeekUsed || profile.free_week_used;
     //   if (usedWeek === getWeekKey()) {
     //     setBlocked(true);
     //     setStep("plan");
@@ -1299,17 +1337,12 @@ Be specific. Use tables where helpful.`
     };
     const newLog = [entry, ...workoutLog].slice(0, 20);
     setWorkoutLog(newLog);
-    // Save history for AI context
-    const histEntry = {
-      date: entry.date,
-      muscles: entry.muscles,
-      difficulty: difficultyRating
-    };
+    const histEntry = { date: entry.date, muscles: entry.muscles, difficulty: difficultyRating };
     const newHistory = [histEntry, ...workoutHistory].slice(0, 5);
     setWorkoutHistory(newHistory);
     if (lead) {
-      try { await window.storage.set("log:" + lead.email.toLowerCase().trim(), JSON.stringify(newLog)); } catch(e) {}
-      try { await window.storage.set("history:" + lead.email.toLowerCase().trim(), JSON.stringify(newHistory)); } catch(e) {}
+      try { await dbRequest("saveLog", { email: lead.email, logEntry: entry }); } catch(e) {}
+      try { await dbRequest("saveHistory", { email: lead.email, historyEntry: histEntry }); } catch(e) {}
     }
     setRatingSubmitted(true);
   };
