@@ -1178,15 +1178,17 @@ Be specific. Use tables where helpful.`
       const cleanPlan = raw.replace(/FOCUS:\s*.+\n?/, "").trim();
       setPlan(cleanPlan);
 
-      if (isFree) {
-        // Mark free workout used this week
-        const profile = existingProfile || {};
-        await saveProfile(leadData.email, { ...profile, name: leadData.name, freeWeekUsed: getWeekKey() });
-      } else {
-        // Save profile for returning users (excluding muscles — those change each session)
-        const { muscles, ...toSave } = currentForm;
-        await saveProfile(leadData.email, { ...toSave, name: leadData.name, tier });
-      }
+      // Save profile for ALL tiers (muscles excluded — they change each session)
+      const { muscles: _m, ...toSave } = currentForm;
+      const baseProfile = existingProfile || {};
+      await saveProfile(leadData.email, {
+        ...baseProfile,
+        ...toSave,
+        name: leadData.name,
+        tier,
+        ...(isFree ? { freeWeekUsed: getWeekKey() } : {})
+      });
+      if (isFree) setUnlocked(true);
       setStep("plan");
     } catch(err) {
       console.error("Generation error:", err);
