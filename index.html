@@ -846,6 +846,7 @@ async function saveProfile(email, data) {
 }
 
 function parseMarkdown(text) {
+  if (!text) return "";
   var html = text
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
@@ -1243,53 +1244,18 @@ Be specific. Use tables where helpful.`
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 60000);
-      const res = await fetch("/.netlify/functions/generate", {
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ prompt, stream: true }),
-        signal: controller.signal
-      });
+      const data = await dbRequest("generate", { prompt });
       clearTimeout(timeout);
-      if (!res.ok) throw new Error("API error");
+      if (!data || data.error) throw new Error(data?.error || "API error");
 
-      // Stream the response
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let raw = "";
-      setStep("plan");
-      setUnlocked(tier === "free");
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
-        // Parse SSE chunks
-        const lines = chunk.split("\n");
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const data = line.slice(6);
-            if (data === "[DONE]") break;
-            try {
-              const parsed = JSON.parse(data);
-              const delta = parsed.delta?.text || "";
-              if (delta) {
-                raw += delta;
-                // Extract focus message if we have it
-                const focusMatch = raw.match(/FOCUS:\s*(.+?)\n/);
-                if (focusMatch && !inspo) setInspo(focusMatch[1]);
-                const cleanPlan = raw.replace(/FOCUS:\s*.+\n?/, "").trim();
-                setPlan(cleanPlan);
-              }
-            } catch(e) {}
-          }
-        }
-      }
-
-      // Final cleanup
+      const raw = data.content?.find(b => b.type === "text")?.text || "";
       setIsStreaming(false);
       const focusMatch = raw.match(/FOCUS:\s*(.+?)\n/);
       if (focusMatch) setInspo(focusMatch[1]);
       const cleanPlan = raw.replace(/FOCUS:\s*.+\n?/, "").trim();
       setPlan(cleanPlan);
+      setStep("plan");
+      setUnlocked(tier === "free");
 
       // Save profile for ALL tiers (muscles excluded — they change each session)
       const { muscles: _m, ...toSave } = currentForm;
