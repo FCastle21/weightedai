@@ -289,6 +289,9 @@
     .workout-mode-footer {
       padding-bottom: calc(20px + env(safe-area-inset-bottom, 34px)) !important;
     }
+    .workout-mode-header {
+      padding-top: calc(16px + env(safe-area-inset-top, 44px)) !important;
+    }
   }
 </style>
 
@@ -688,7 +691,7 @@ const styles = `
 
   /* WORKOUT MODE */
   .workout-mode { position: fixed; inset: 0; background: var(--black); z-index: 400; overflow-y: auto; display: flex; flex-direction: column; animation: fadeIn 0.3s ease; padding-bottom: env(safe-area-inset-bottom, 0); }
-  .workout-mode-header { position: sticky; top: 0; background: var(--black); border-bottom: 1px solid #1e1e1e; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 10; }
+  .workout-mode-header { position: sticky; top: 0; background: var(--black); border-bottom: 1px solid #1e1e1e; padding: 16px 20px; padding-top: calc(16px + env(safe-area-inset-top, 44px)); display: flex; align-items: center; justify-content: space-between; z-index: 10; }
   .workout-mode-logo { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 3px; color: var(--white); }
   .workout-mode-logo span { color: var(--acid); }
   .workout-mode-close { background: transparent; border: 1px solid #2a2a2a; color: #666; font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 8px 16px; cursor: pointer; border-radius: 500px; transition: all 0.2s; }
