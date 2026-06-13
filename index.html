@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WeightedAI — Your AI Personal Trainer</title>
+  <meta name="application-name" content="WeightedAI" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="WeightedAI" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icon-192.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
@@ -1014,6 +1022,29 @@ function WeightedAI() {
   const [workoutHistory, setWorkoutHistory] = useState([]);
 
   useEffect(() => {
+    // Screen wake lock in workout mode
+    let wakeLock = null;
+    const requestWakeLock = async () => {
+      try {
+        if ("wakeLock" in navigator) {
+          wakeLock = await navigator.wakeLock.request("screen");
+        }
+      } catch(e) {}
+    };
+    const releaseWakeLock = () => {
+      if (wakeLock) { wakeLock.release(); wakeLock = null; }
+    };
+    window.__requestWakeLock = requestWakeLock;
+    window.__releaseWakeLock = releaseWakeLock;
+
+    // PWA install prompt
+    let deferredPrompt = null;
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      window.__deferredPrompt = deferredPrompt;
+    });
+
     // Check for saved active workout
     try {
       const saved = localStorage.getItem("weightedai_active_workout");
@@ -1389,6 +1420,18 @@ Be specific. Use tables where helpful.`
 
         {/* TIER SELECTOR */}
         <section className="tier-section">
+          {typeof window !== "undefined" && window.__deferredPrompt && (
+            <div style={{background:"#0a0f00",border:"1px solid #1a2a00",borderLeft:"3px solid var(--acid)",padding:"14px 20px",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+              <div>
+                <div style={{fontSize:10,letterSpacing:3,textTransform:"uppercase",color:"var(--acid)",marginBottom:4,fontWeight:500}}>Install App</div>
+                <div style={{fontSize:13,color:"#666"}}>Add WeightedAI to your home screen for the best experience.</div>
+              </div>
+              <button style={{background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"Bebas Neue, sans-serif",fontSize:14,letterSpacing:2,padding:"10px 20px",cursor:"pointer",borderRadius:500,whiteSpace:"nowrap"}}
+                onClick={() => { if(window.__deferredPrompt){ window.__deferredPrompt.prompt(); window.__deferredPrompt=null; }}}>
+                INSTALL →
+              </button>
+            </div>
+          )}
           {savedWorkout && (
             <div className="resume-banner">
               <div className="resume-banner-text">
@@ -1637,7 +1680,7 @@ Be specific. Use tables where helpful.`
                         <div className="inspo-text">{inspo}</div>
                       </div>
                     )}
-                    <button className="start-workout-btn" onClick={() => setWorkoutMode(true)}>
+                    <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }}>
                       ▶ START WORKOUT MODE
                     </button>
                     <div className={`plan-content${isStreaming?" streaming-cursor":""}`} dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
@@ -1723,7 +1766,7 @@ Be specific. Use tables where helpful.`
                     <div className="plan-preview">
                       <div className="plan-preview-inner">
                         
-                    <button className="start-workout-btn" onClick={() => setWorkoutMode(true)}>
+                    <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }}>
                       ▶ START WORKOUT MODE
                     </button>
                     <div className={`plan-content${isStreaming?" streaming-cursor":""}`} dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
@@ -1760,7 +1803,7 @@ Be specific. Use tables where helpful.`
           <div className="workout-mode">
             <div className="workout-mode-header">
               <div className="workout-mode-logo">WEIGHTED<span>AI</span></div>
-              <button className="workout-mode-close" onClick={() => setWorkoutMode(false)}>← Back to Plan</button>
+              <button className="workout-mode-close" onClick={() => { setWorkoutMode(false); window.__releaseWakeLock && window.__releaseWakeLock(); }}>← Back to Plan</button>
             </div>
             <div className="workout-mode-body">
               {inspo && (
@@ -1855,5 +1898,12 @@ Be specific. Use tables where helpful.`
     }
   </script>
 
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>
