@@ -1919,7 +1919,6 @@ Be specific. Use tables where helpful.`
       if (btn) { btn.textContent = 'LOADING...'; btn.disabled = true; }
 
       try {
-        alert("Starting sign in for: " + email);
         // Load from Supabase via Netlify function
         const res = await fetch('/.netlify/functions/generate', {
           method: 'POST',
@@ -1927,9 +1926,6 @@ Be specific. Use tables where helpful.`
           body: JSON.stringify({ action: 'loadProfile', email })
         });
         const profile = await res.json();
-        console.log("Profile response:", JSON.stringify(profile));
-        alert("Debug: " + JSON.stringify(profile).slice(0, 200));
-        
         if (btn) { btn.textContent = 'SIGN IN →'; btn.disabled = false; }
         
         // Handle both direct object and wrapped responses
