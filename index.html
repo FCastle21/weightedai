@@ -1900,26 +1900,32 @@ Be specific. Use tables where helpful.`
       const email = document.getElementById('signin-email')?.value?.trim();
       if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
       
-      // Init storage
-      if (!window.storage) { alert('Storage not available. Please try again.'); return; }
-      
+      const btn = document.querySelector('#signin-overlay button:last-child');
+      if (btn) { btn.textContent = 'LOADING...'; btn.disabled = true; }
+
       try {
-        const val = await window.storage.get('user:' + email.toLowerCase());
-        if (!val) { 
+        // Load from Supabase via Netlify function
+        const res = await fetch('/.netlify/functions/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'loadProfile', email })
+        });
+        const profile = await res.json();
+        
+        if (btn) { btn.textContent = 'SIGN IN →'; btn.disabled = false; }
+        
+        if (!profile || !profile.email) { 
           alert('No profile found for that email. Please choose a plan below.');
           document.getElementById('signin-overlay').style.display = 'none';
           document.getElementById('app').scrollIntoView({behavior:'smooth'});
           return; 
         }
-        const profile = JSON.parse(val.value);
         document.getElementById('signin-overlay').style.display = 'none';
-        // Trigger React sign in by dispatching a custom event
         window.dispatchEvent(new CustomEvent('weightedai-signin', { detail: { email, profile } }));
         document.getElementById('app').scrollIntoView({behavior:'smooth'});
       } catch(e) {
-        alert('No profile found for that email. Please choose a plan below.');
-        document.getElementById('signin-overlay').style.display = 'none';
-        document.getElementById('app').scrollIntoView({behavior:'smooth'});
+        if (btn) { btn.textContent = 'SIGN IN →'; btn.disabled = false; }
+        alert('Something went wrong. Please try again.');
       }
     }
   </script>
