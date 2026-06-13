@@ -998,7 +998,13 @@ function WeightedAI() {
   const handleFormSubmit = () => {
     if (!form.goal||!form.level||!form.equipment) { setError("Please select your goal, level, and equipment."); return; }
     setError(null);
-    setStep("email-gate");
+    // Skip email gate if already signed in
+    if (lead && lead.email) {
+      setStep("loading");
+      generatePlan(lead, null);
+    } else {
+      setStep("email-gate");
+    }
   };
 
   // Called after email gate — profile may be pre-loaded
