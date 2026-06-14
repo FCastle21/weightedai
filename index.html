@@ -1651,7 +1651,7 @@ Be specific. Use tables where helpful.`
     }
 
     const banText = banList.length > 0 
-      ? \`\n\nBANNED EXERCISES — THIS IS A STRICT REQUIREMENT, NOT A SUGGESTION:\n\${banList.map(b => "• " + b).join("\n")}\n\nDo NOT include ANY of the above or ANY movement that resembles them in name or function. Inverted rows ARE rows. Australian pull-ups ARE pull-ups. Any horizontal pulling movement IS a row. Replace banned exercises with completely different movement patterns.\`
+      ? "\n\nBANNED EXERCISES — THIS IS A STRICT REQUIREMENT, NOT A SUGGESTION:\n" + banList.map(b => "• " + b).join("\n") + "\n\nDo NOT include ANY of the above or ANY variation. Inverted rows ARE rows. Australian pull-ups ARE pull-ups. Any horizontal pulling movement IS a row. Replace banned exercises with completely different movement patterns."
       : "";
 
     const updatedForm = note ? { 
