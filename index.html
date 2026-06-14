@@ -1210,8 +1210,31 @@ PROFILE:
 - Level: ${currentForm.level}
 - Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}
 - Goal: ${currentForm.goal}
-- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not include exercises for any other muscle groups.
+- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not include exercises for any other muscle groups. BALANCE: if multiple muscle groups are selected, distribute exercises EQUALLY across all selected groups. For example, if Chest, Triceps, and Shoulders are selected with 6 exercises total, include exactly 2 exercises per muscle group. Never over-represent one group at the expense of others.
 - Injuries: ${currentForm.injuries||"None"}
+
+TRAINING LEVEL DEFINITIONS — apply these strictly based on the user's selected level:
+
+BEGINNER (0-2 years training):
+- Simple compound movements only — no Olympic lifts, no advanced unilateral work
+- Sets: 3 per exercise | Exercises: 5-6 total
+- Rep ranges by goal: Lose Fat: 12-15 reps, 45s rest | Build Muscle: 10-12 reps, 60s rest | Build Strength: 8-10 reps, 90s rest | Improve Fitness: 12-15 reps, 45s rest | Increase Flexibility: 12-15 reps, 60s rest | Athletic Performance: 10-12 reps, 60s rest
+- No: plyometrics, tempo work, drop sets, supersets, advanced variations
+- Focus: movement quality, consistency, building base
+
+INTERMEDIATE (2-4 years training):
+- Compound + isolation mix, some unilateral work, supersets acceptable
+- Sets: 3-4 per exercise | Exercises: 6-8 total
+- Rep ranges by goal: Lose Fat: 10-15 reps, 30-45s rest, circuit-style | Build Muscle: 8-12 reps, 60-90s rest | Build Strength: 5-8 reps, 90-120s rest | Improve Fitness: 12-15 reps, 30s rest | Increase Flexibility: 10-12 reps, 60s rest | Athletic Performance: 6-10 reps, 60-90s rest
+- Can include: drop sets, tempo variations, moderate plyometrics, supersets
+- Focus: progressive overload, mind-muscle connection
+
+ADVANCED (5+ years training):
+- Full exercise library, complex unilateral movements, Olympic variations acceptable
+- Sets: 4-5 per exercise | Exercises: 8-10 total
+- Rep ranges by goal: Lose Fat: varied 10-20 reps, minimal rest, HIIT elements | Build Muscle: varied 6-15 reps across exercises, 60-90s rest | Build Strength: 3-6 heavy reps, 2-3 min rest, periodized | Improve Fitness: 15-20 reps, 20-30s rest, metabolic | Increase Flexibility: 12-15 reps, 45s rest | Athletic Performance: 3-8 reps explosive, 90s rest
+- Can include: cluster sets, rest-pause, advanced plyometrics, complex periodization
+- Focus: specificity, peak performance, advanced techniques
 
 VARIETY: Every session MUST feel distinctly different from the last. Follow these strict rules:
 
@@ -1266,7 +1289,7 @@ PROFILE:
 - Goal: ${currentForm.goal}
 - Level: ${currentForm.level}
 - Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":""}
-- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not program exercises for muscles not listed here.
+- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not program exercises for muscles not listed here. BALANCE: if multiple muscle groups are selected, distribute exercises EQUALLY — divide total exercises by number of muscle groups and allocate evenly. If 3 groups are selected with 9 exercises, that is 3 exercises per group. Never give more exercises to one group than another.
 - Days/week: ${currentForm.days}
 - Injuries: ${currentForm.injuries||"None"}
 - Notes: ${currentForm.notes||"None"}
@@ -1290,6 +1313,29 @@ PROGRESSIVE OVERLOAD:
 - Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)` : ""}
 
 Then create a complete 30-DAY plan:
+TRAINING LEVEL DEFINITIONS — apply these strictly based on the user's selected level:
+
+BEGINNER (0-2 years training):
+- Simple compound movements only — no Olympic lifts, no advanced unilateral work
+- Sets: 3 per exercise | Exercises: 5-6 total
+- Rep ranges by goal: Lose Fat: 12-15 reps, 45s rest | Build Muscle: 10-12 reps, 60s rest | Build Strength: 8-10 reps, 90s rest | Improve Fitness: 12-15 reps, 45s rest | Increase Flexibility: 12-15 reps, 60s rest | Athletic Performance: 10-12 reps, 60s rest
+- No: plyometrics, tempo work, drop sets, supersets, advanced variations
+- Focus: movement quality, consistency, building base
+
+INTERMEDIATE (2-4 years training):
+- Compound + isolation mix, some unilateral work, supersets acceptable
+- Sets: 3-4 per exercise | Exercises: 6-8 total
+- Rep ranges by goal: Lose Fat: 10-15 reps, 30-45s rest, circuit-style | Build Muscle: 8-12 reps, 60-90s rest | Build Strength: 5-8 reps, 90-120s rest | Improve Fitness: 12-15 reps, 30s rest | Increase Flexibility: 10-12 reps, 60s rest | Athletic Performance: 6-10 reps, 60-90s rest
+- Can include: drop sets, tempo variations, moderate plyometrics, supersets
+- Focus: progressive overload, mind-muscle connection
+
+ADVANCED (5+ years training):
+- Full exercise library, complex unilateral movements, Olympic variations acceptable
+- Sets: 4-5 per exercise | Exercises: 8-10 total
+- Rep ranges by goal: Lose Fat: varied 10-20 reps, minimal rest, HIIT elements | Build Muscle: varied 6-15 reps across exercises, 60-90s rest | Build Strength: 3-6 heavy reps, 2-3 min rest, periodized | Improve Fitness: 15-20 reps, 20-30s rest, metabolic | Increase Flexibility: 12-15 reps, 45s rest | Athletic Performance: 3-8 reps explosive, 90s rest
+- Can include: cluster sets, rest-pause, advanced plyometrics, complex periodization
+- Focus: specificity, peak performance, advanced techniques
+
 VARIETY: Every session MUST feel distinctly different from the last. Follow these strict rules:
 
 1. NEVER repeat the same exercise two sessions in a row for any muscle group
@@ -1329,7 +1375,7 @@ PROFILE:
 - Goal: ${currentForm.goal}
 - Level: ${currentForm.level}
 - Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":""}
-- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not program exercises for muscles not listed here.
+- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not program exercises for muscles not listed here. BALANCE: if multiple muscle groups are selected, distribute exercises EQUALLY — divide total exercises by number of muscle groups and allocate evenly. If 3 groups are selected with 9 exercises, that is 3 exercises per group. Never give more exercises to one group than another.
 - Days/week: ${currentForm.days}
 - Injuries: ${currentForm.injuries||"None"}
 - Notes: ${currentForm.notes||"None"}
@@ -1351,6 +1397,29 @@ PROGRESSIVE OVERLOAD:
 - Difficulty 4-5 last session: maintain volume, focus on form
 - Difficulty 1-2 last session: increase reps by 2-3 or add a set
 - Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)` : ""}
+
+TRAINING LEVEL DEFINITIONS — apply these strictly based on the user's selected level:
+
+BEGINNER (0-2 years training):
+- Simple compound movements only — no Olympic lifts, no advanced unilateral work
+- Sets: 3 per exercise | Exercises: 5-6 total
+- Rep ranges by goal: Lose Fat: 12-15 reps, 45s rest | Build Muscle: 10-12 reps, 60s rest | Build Strength: 8-10 reps, 90s rest | Improve Fitness: 12-15 reps, 45s rest | Increase Flexibility: 12-15 reps, 60s rest | Athletic Performance: 10-12 reps, 60s rest
+- No: plyometrics, tempo work, drop sets, supersets, advanced variations
+- Focus: movement quality, consistency, building base
+
+INTERMEDIATE (2-4 years training):
+- Compound + isolation mix, some unilateral work, supersets acceptable
+- Sets: 3-4 per exercise | Exercises: 6-8 total
+- Rep ranges by goal: Lose Fat: 10-15 reps, 30-45s rest, circuit-style | Build Muscle: 8-12 reps, 60-90s rest | Build Strength: 5-8 reps, 90-120s rest | Improve Fitness: 12-15 reps, 30s rest | Increase Flexibility: 10-12 reps, 60s rest | Athletic Performance: 6-10 reps, 60-90s rest
+- Can include: drop sets, tempo variations, moderate plyometrics, supersets
+- Focus: progressive overload, mind-muscle connection
+
+ADVANCED (5+ years training):
+- Full exercise library, complex unilateral movements, Olympic variations acceptable
+- Sets: 4-5 per exercise | Exercises: 8-10 total
+- Rep ranges by goal: Lose Fat: varied 10-20 reps, minimal rest, HIIT elements | Build Muscle: varied 6-15 reps across exercises, 60-90s rest | Build Strength: 3-6 heavy reps, 2-3 min rest, periodized | Improve Fitness: 15-20 reps, 20-30s rest, metabolic | Increase Flexibility: 12-15 reps, 45s rest | Athletic Performance: 3-8 reps explosive, 90s rest
+- Can include: cluster sets, rest-pause, advanced plyometrics, complex periodization
+- Focus: specificity, peak performance, advanced techniques
 
 VARIETY: Every session MUST feel distinctly different from the last. Follow these strict rules:
 
