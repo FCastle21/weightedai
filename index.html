@@ -1199,6 +1199,14 @@ function WeightedAI() {
 
   // Called after email gate — profile may be pre-loaded
   const handleEmailSubmit = async (leadData, existingProfile) => {
+    // Show waiver for brand new users only
+    const isExistingUser = existingProfile && existingProfile.name;
+    const hasAcceptedWaiver = existingProfile && existingProfile.waiver_accepted;
+    if (!isExistingUser && !hasAcceptedWaiver) {
+      setPendingEmailSubmit({ leadData, existingProfile });
+      setShowWaiver(true);
+      return;
+    }
     setLead(leadData);
 
     // FREE TIER: weekly limit disabled for testing
@@ -1530,17 +1538,17 @@ Be specific. Use tables where helpful.`
     window.scrollTo({top:0,behavior:"smooth"});
   };
 
-  const handleWaiverAccept = () => {
+  const handleWaiverAccept = async () => {
     if (!pendingEmailSubmit) return;
-    const { name, email } = pendingEmailSubmit;
+    const { leadData, existingProfile } = pendingEmailSubmit;
     // Save waiver acceptance to Supabase
     await dbRequest("saveProfile", { 
-      email, 
-      profileData: { name, waiver_accepted: new Date().toISOString() } 
+      email: leadData.email, 
+      profileData: { name: leadData.name, waiver_accepted: new Date().toISOString() } 
     });
     setShowWaiver(false);
     setPendingEmailSubmit(null);
-    handleEmailSubmit(name, email);
+    handleEmailSubmit(leadData, existingProfile);
   };
 
   const handleRegenerate = async () => {
