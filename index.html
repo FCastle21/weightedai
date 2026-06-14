@@ -1358,7 +1358,7 @@ STRICT BALANCE RULE — THIS IS MANDATORY:
 - Violating this balance rule is the #1 error to avoid.
 - Days/week: ${currentForm.days}
 - Injuries: ${currentForm.injuries||"None"}
-- Notes: ${currentForm.notes||"None"}
+- Notes / Hard Constraints: ${currentForm.notes||"None"}${currentForm.notes && currentForm.notes.includes("HARD CONSTRAINT") ? " ← THESE ARE MANDATORY REQUIREMENTS. READ THEM CAREFULLY AND FOLLOW THEM EXACTLY. DO NOT GENERATE EXERCISES THAT VIOLATE ANY CONSTRAINT LISTED HERE." : ""}
 ${workoutHistory.length > 0 ? `
 PREVIOUS WORKOUT HISTORY (last ${Math.min(workoutHistory.length, 3)} sessions):
 ${workoutHistory.slice(0,3).map((h,i) => {
@@ -1453,7 +1453,7 @@ STRICT BALANCE RULE — THIS IS MANDATORY:
 - Violating this balance rule is the #1 error to avoid.
 - Days/week: ${currentForm.days}
 - Injuries: ${currentForm.injuries||"None"}
-- Notes: ${currentForm.notes||"None"}
+- Notes / Hard Constraints: ${currentForm.notes||"None"}${currentForm.notes && currentForm.notes.includes("HARD CONSTRAINT") ? " ← THESE ARE MANDATORY REQUIREMENTS. READ THEM CAREFULLY AND FOLLOW THEM EXACTLY. DO NOT GENERATE EXERCISES THAT VIOLATE ANY CONSTRAINT LISTED HERE." : ""}
 ${workoutHistory.length > 0 ? `
 PREVIOUS WORKOUT HISTORY (last ${Math.min(workoutHistory.length, 3)} sessions):
 ${workoutHistory.slice(0,3).map((h,i) => {
@@ -1595,7 +1595,10 @@ Be specific. Use tables where helpful.`
     setPlan(null); setInspo(null); setUnlocked(false);
     const note = regenNote.trim();
     setRegenNote("");
-    const updatedForm = note ? { ...form, notes: (form.notes ? form.notes + ". " : "") + "ADJUSTMENT: " + note } : form;
+    const updatedForm = note ? { 
+      ...form, 
+      notes: (form.notes ? form.notes + ". " : "") + "HARD CONSTRAINT — YOU MUST FOLLOW THIS EXACTLY: " + note + ". This is a non-negotiable requirement. Do NOT include any exercises that violate this constraint under any circumstances." 
+    } : form;
     setStep("loading");
     await generatePlan(lead, null, updatedForm);
   };
