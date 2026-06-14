@@ -1627,8 +1627,31 @@ Be specific. Use tables where helpful.`
       banList.push("Overhead Press, Arnold Press, Push Press, Military Press, any pressing movement");
     }
 
+    // Also extract specific exercises from current plan that match banned keywords
+    if (plan && banList.length > 0) {
+      const boldMatches = plan.match(/\*\*([^*]+)\*\*/g) || [];
+      const planExercises = boldMatches
+        .map(m => m.replace(/\*\*/g, "").split("—")[0].trim())
+        .filter(e => e.length > 3 && e.length < 60);
+      
+      // Add any exercise from the current plan that contains a banned keyword
+      const additionalBans = planExercises.filter(ex => {
+        const exLower = ex.toLowerCase();
+        return (noteLower.includes("row") && (exLower.includes("row") || exLower.includes("pull"))) ||
+               (noteLower.includes("pull up") || noteLower.includes("pull-up") || noteLower.includes("no bar")) && exLower.includes("pull") ||
+               (noteLower.includes("squat") && exLower.includes("squat")) ||
+               (noteLower.includes("lunge") && exLower.includes("lunge")) ||
+               (noteLower.includes("deadlift") && exLower.includes("deadlift")) ||
+               (noteLower.includes("bench") && exLower.includes("bench"));
+      });
+      
+      if (additionalBans.length > 0) {
+        banList.push("SPECIFICALLY from your previous workout, also ban: " + additionalBans.join(", "));
+      }
+    }
+
     const banText = banList.length > 0 
-      ? `\n\nBANNED EXERCISES — DO NOT INCLUDE THESE OR ANY VARIATION OF THEM: ${banList.join("; ")}. If you are unsure whether an exercise is a variation of a banned one, do not include it.`
+      ? \`\n\nBANNED EXERCISES — THIS IS A STRICT REQUIREMENT, NOT A SUGGESTION:\n\${banList.map(b => "• " + b).join("\n")}\n\nDo NOT include ANY of the above or ANY movement that resembles them in name or function. Inverted rows ARE rows. Australian pull-ups ARE pull-ups. Any horizontal pulling movement IS a row. Replace banned exercises with completely different movement patterns.\`
       : "";
 
     const updatedForm = note ? { 
