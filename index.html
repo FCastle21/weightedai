@@ -1409,7 +1409,7 @@ Be specific. Use tables where helpful.`
 
   const handleReset = () => {
     setPlan(null); setLead(null); setUnlocked(false); setInspo(null);
-    setBlocked(false); setProfileLoaded(false); setEditingProfile(false); setMusicVibe(""); setVideoExercise(null); setInfoExercise(null); setThirtyDayPlan(false); setRegenNote(""); setIsStreaming(false); setDifficulty(0); setRatingSubmitted(false); setWorkoutMode(false);
+    setBlocked(false); setProfileLoaded(false); setEditingProfile(false); setMusicVibe(""); setVideoExercise(null); setInfoExercise(null); setThirtyDayPlan(false); setRegenNote(""); setIsStreaming(false); setDifficulty(0); setRatingSubmitted(false); setWorkoutMode(false); setSavedWorkout(null); try { localStorage.removeItem("weightedai_active_workout"); } catch(e) {}
     setStep("home"); setTier(null); setForm(BLANK_FORM);
     window.scrollTo({top:0,behavior:"smooth"});
   };
@@ -1452,7 +1452,10 @@ Be specific. Use tables where helpful.`
     }
     setRatingSubmitted(true);
     // Clear active workout from localStorage
-    try { localStorage.removeItem("weightedai_active_workout"); setSavedWorkout(null); } catch(e) {}
+    try { 
+      localStorage.removeItem("weightedai_active_workout"); 
+      setSavedWorkout(null);
+    } catch(e) {}
   };
 
   const handleEditProfile = () => {
@@ -1498,7 +1501,7 @@ Be specific. Use tables where helpful.`
               </div>
             </div>
           )}
-          {lead && savedWorkout && ratingSubmitted === false && (
+          {lead && savedWorkout && (
             <div className="resume-banner" style={{borderLeftColor:"var(--acid)"}}>
               <div className="resume-banner-text">
                 <strong>⚡ Active Workout</strong> — {savedWorkout.muscles} · {new Date(savedWorkout.savedAt).toLocaleDateString()}
@@ -1885,7 +1888,7 @@ Be specific. Use tables where helpful.`
           <div className="workout-mode">
             <div className="workout-mode-header">
               <div className="workout-mode-logo">WEIGHTED<span>AI</span></div>
-              <button className="workout-mode-close" onClick={() => { setWorkoutMode(false); window.__releaseWakeLock && window.__releaseWakeLock(); }}>← Back to Plan</button>
+              <button className="workout-mode-close" onClick={() => { setWorkoutMode(false); setSavedWorkout(null); try { localStorage.removeItem("weightedai_active_workout"); } catch(e) {} window.__releaseWakeLock && window.__releaseWakeLock(); }}>← Back to Plan</button>
             </div>
             <div className="workout-mode-body">
               {inspo && (
