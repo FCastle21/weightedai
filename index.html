@@ -1213,9 +1213,6 @@ PROFILE:
 - Muscle Focus: ${isFree ? "Full Body" : currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not include exercises for any other muscle groups.
 - Injuries: ${currentForm.injuries||"None"}
 
-Start your response with a single line:
-FOCUS: [1-2 sentence stoic or science-based insight to prime their mindset. Reference exercise science, neuromuscular adaptation, or mental discipline. No hollow motivation. Relevant to their goal.]
-
 VARIETY: Every session MUST feel distinctly different from the last. Follow these strict rules:
 
 1. NEVER repeat the same exercise two sessions in a row for any muscle group
@@ -1292,8 +1289,6 @@ PROGRESSIVE OVERLOAD:
 - Difficulty 1-2 last session: increase reps by 2-3 or add a set
 - Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)` : ""}
 
-Start with: FOCUS: [1-2 sentence stoic or science-based insight. Reference exercise science, progressive overload, protein synthesis, or mental discipline. No hollow motivation. Relevant to their goal.]
-
 Then create a complete 30-DAY plan:
 VARIETY: Every session MUST feel distinctly different from the last. Follow these strict rules:
 
@@ -1357,8 +1352,6 @@ PROGRESSIVE OVERLOAD:
 - Difficulty 1-2 last session: increase reps by 2-3 or add a set
 - Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)` : ""}
 
-Start with: FOCUS: [1-2 sentence stoic or science-based insight. Reference exercise science, progressive overload, protein synthesis, or mental discipline. No hollow motivation. Relevant to their specific goal.]
-
 VARIETY: Every session MUST feel distinctly different from the last. Follow these strict rules:
 
 1. NEVER repeat the same exercise two sessions in a row for any muscle group
@@ -1400,10 +1393,7 @@ Be specific. Use tables where helpful.`
 
       const raw = data.content?.find(b => b.type === "text")?.text || "";
       setIsStreaming(false);
-      const focusMatch = raw.match(/FOCUS:\s*(.+?)\n/);
-      if (focusMatch) setInspo(focusMatch[1]);
-      const cleanPlan = raw.replace(/FOCUS:\s*.+\n?/, "").trim();
-      setPlan(cleanPlan);
+      setPlan(raw.trim());
       setStep("plan");
       setUnlocked(tier === "free");
       // Save active workout to localStorage for persistence
@@ -1533,7 +1523,7 @@ Be specific. Use tables where helpful.`
               </div>
             </div>
           )}
-          {lead && savedWorkout && (
+          {lead && savedWorkout && !workoutLog.some(w => new Date(w.date).toDateString() === new Date(savedWorkout.savedAt).toDateString()) && (
             <div className="resume-banner" style={{borderLeftColor:"var(--acid)"}}>
               <div className="resume-banner-text">
                 <strong>⚡ Active Workout</strong> — {savedWorkout.muscles} · {new Date(savedWorkout.savedAt).toLocaleDateString()}
@@ -1791,14 +1781,9 @@ Be specific. Use tables where helpful.`
                         </div>
                       </div>
                     )}
-                    {inspo && (
-                      <div className="inspo-card">
-                        <span className="inspo-icon">⚡</span>
-                        <div className="inspo-text">{inspo}</div>
-                      </div>
-                    )}
-                    <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }}>
-                      ▶ START WORKOUT MODE
+      
+                    <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:12}}>
+                      <span style={{width:36,height:36,borderRadius:"50%",background:"var(--acid)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{color:"var(--black)",fontSize:14,marginLeft:3}}>▶</span></span><span>START WORKOUT MODE</span>
                     </button>
                     <div className={`plan-content${isStreaming?" streaming-cursor":""}`} dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
                     {/* REGENERATE */}
@@ -1883,8 +1868,8 @@ Be specific. Use tables where helpful.`
                     <div className="plan-preview">
                       <div className="plan-preview-inner">
                         
-                    <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }}>
-                      ▶ START WORKOUT MODE
+                    <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:12}}>
+                      <span style={{width:36,height:36,borderRadius:"50%",background:"var(--acid)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{color:"var(--black)",fontSize:14,marginLeft:3}}>▶</span></span><span>START WORKOUT MODE</span>
                     </button>
                     <div className={`plan-content${isStreaming?" streaming-cursor":""}`} dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
                       </div>
@@ -1923,12 +1908,7 @@ Be specific. Use tables where helpful.`
               <button className="workout-mode-close" onClick={() => { setWorkoutMode(false); setSavedWorkout(null); try { localStorage.removeItem("weightedai_active_workout"); } catch(e) {} window.__releaseWakeLock && window.__releaseWakeLock(); }}>← Back to Plan</button>
             </div>
             <div className="workout-mode-body">
-              {inspo && (
-                <div className="workout-mode-focus">
-                  <span style={{fontSize:18,flexShrink:0}}>⚡</span>
-                  <div style={{fontSize:14,color:"var(--acid)",fontStyle:"italic",lineHeight:1.6}}>{inspo}</div>
-                </div>
-              )}
+  
               <div className="workout-mode-content" dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
             </div>
             <div className="workout-mode-footer">
