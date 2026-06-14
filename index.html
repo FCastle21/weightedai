@@ -1490,10 +1490,18 @@ Be specific. Use tables where helpful.`
               </button>
             </div>
           )}
-          {savedWorkout && (
+          {/* Only show workout banner when signed in */}
+          {lead && workoutLog.length > 0 && (
             <div className="resume-banner">
               <div className="resume-banner-text">
-                <strong>⚡ Active Workout</strong> — {savedWorkout.muscles} · saved {new Date(savedWorkout.savedAt).toLocaleDateString()}
+                <strong>✓ Last Workout</strong> — {workoutLog[0].muscles} · {workoutLog[0].date}
+              </div>
+            </div>
+          )}
+          {lead && savedWorkout && ratingSubmitted === false && (
+            <div className="resume-banner" style={{borderLeftColor:"var(--acid)"}}>
+              <div className="resume-banner-text">
+                <strong>⚡ Active Workout</strong> — {savedWorkout.muscles} · {new Date(savedWorkout.savedAt).toLocaleDateString()}
               </div>
               <button className="resume-btn" onClick={() => {
                 setPlan(savedWorkout.plan);
@@ -1502,7 +1510,7 @@ Be specific. Use tables where helpful.`
                 setStep("plan");
                 setWorkoutMode(true);
                 setTimeout(() => window.scrollTo({top:0,behavior:"smooth"}), 100);
-              }}>RESUME WORKOUT →</button>
+              }}>RESUME →</button>
             </div>
           )}
           <p className="tier-label">Choose Your Plan</p>
