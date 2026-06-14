@@ -1595,9 +1595,45 @@ Be specific. Use tables where helpful.`
     setPlan(null); setInspo(null); setUnlocked(false);
     const note = regenNote.trim();
     setRegenNote("");
+
+    // Build banned exercise list based on keywords in the note
+    const noteLower = note.toLowerCase();
+    const banList = [];
+    if (noteLower.includes("pull up") || noteLower.includes("pull-up") || noteLower.includes("pullup") || noteLower.includes("pull up bar") || noteLower.includes("no bar")) {
+      banList.push("Pull-Up, Chin-Up, Commando Pull-Up, L-Sit Pull-Up, Negative Pull-Up, Mixed Grip Pull-Up, Scapular Pull-Up, any pull-up variation");
+    }
+    if (noteLower.includes("row")) {
+      banList.push("Barbell Row, Dumbbell Row, Cable Row, Inverted Row, Australian Pull-Up, Seated Row, Bent Over Row, Chest Supported Row, any rowing movement or variation");
+    }
+    if (noteLower.includes("deadlift")) {
+      banList.push("Deadlift, Romanian Deadlift, Sumo Deadlift, Trap Bar Deadlift, Single-Leg Deadlift, any deadlift variation");
+    }
+    if (noteLower.includes("squat")) {
+      banList.push("Squat, Barbell Squat, Goblet Squat, Bulgarian Split Squat, Hack Squat, Front Squat, any squat variation");
+    }
+    if (noteLower.includes("bench") || noteLower.includes("bench press")) {
+      banList.push("Bench Press, Incline Bench Press, Decline Bench Press, any bench press variation");
+    }
+    if (noteLower.includes("lunge")) {
+      banList.push("Lunge, Reverse Lunge, Walking Lunge, Lateral Lunge, any lunge variation");
+    }
+    if (noteLower.includes("dumbbell") || noteLower.includes("no dumbbells")) {
+      banList.push("any dumbbell exercise");
+    }
+    if (noteLower.includes("barbell") || noteLower.includes("no barbell")) {
+      banList.push("any barbell exercise");
+    }
+    if (noteLower.includes("press") && noteLower.includes("no")) {
+      banList.push("Overhead Press, Arnold Press, Push Press, Military Press, any pressing movement");
+    }
+
+    const banText = banList.length > 0 
+      ? `\n\nBANNED EXERCISES — DO NOT INCLUDE THESE OR ANY VARIATION OF THEM: ${banList.join("; ")}. If you are unsure whether an exercise is a variation of a banned one, do not include it.`
+      : "";
+
     const updatedForm = note ? { 
       ...form, 
-      notes: (form.notes ? form.notes + ". " : "") + "HARD CONSTRAINT — YOU MUST FOLLOW THIS EXACTLY: " + note + ". This is a non-negotiable requirement. Do NOT include any exercises that violate this constraint under any circumstances." 
+      notes: (form.notes ? form.notes + ". " : "") + "HARD CONSTRAINT: " + note + banText
     } : form;
     setStep("loading");
     await generatePlan(lead, null, updatedForm);
