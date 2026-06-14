@@ -952,9 +952,14 @@ function EmailGate({ tier, onSubmit, onClose }) {
     if (!name.trim()) { setError("Please enter your name."); return; }
     if (!email.trim() || !email.includes("@")) { setError("Please enter a valid email."); return; }
     setLoading(true);
-    const profile = await loadProfile(email.trim());
-    setLoading(false);
-    onSubmit({ name: name.trim(), email: email.trim() }, profile);
+    try {
+      const profile = await loadProfile(email.trim());
+      setLoading(false);
+      onSubmit({ name: name.trim(), email: email.trim() }, profile);
+    } catch(e) {
+      setLoading(false);
+      setError("Something went wrong: " + e.message);
+    }
   };
 
   return (
