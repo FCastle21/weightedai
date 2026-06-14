@@ -1067,12 +1067,21 @@ function WeightedAI() {
       window.__deferredPrompt = deferredPrompt;
     });
 
-    // Check for saved active workout
+    // Check for saved active workout - clear it if already logged
     try {
       const saved = localStorage.getItem("weightedai_active_workout");
       if (saved) {
         const parsed = JSON.parse(saved);
-        setSavedWorkout(parsed);
+        const savedDate = new Date(parsed.savedAt).toLocaleDateString();
+        // Check if this workout was already logged in workoutLog
+        // We clear it if it's older than 24 hours or already logged
+        const savedTime = new Date(parsed.savedAt).getTime();
+        const hoursSinceSaved = (Date.now() - savedTime) / (1000 * 60 * 60);
+        if (hoursSinceSaved > 24) {
+          localStorage.removeItem("weightedai_active_workout");
+        } else {
+          setSavedWorkout(parsed);
+        }
       }
     } catch(e) {}
 
@@ -1456,6 +1465,8 @@ Be specific. Use tables where helpful.`
       localStorage.removeItem("weightedai_active_workout"); 
       setSavedWorkout(null);
     } catch(e) {}
+    // Also clear from state immediately
+    setSavedWorkout(null);
   };
 
   const handleEditProfile = () => {
