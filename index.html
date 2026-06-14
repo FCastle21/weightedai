@@ -1210,7 +1210,7 @@ PROFILE:
 - Level: ${currentForm.level}
 - Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}
 - Goal: ${currentForm.goal}
-- Muscle Focus: ${isFree ? "Full Body" : currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not include exercises for any other muscle groups.
+- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body"} — STRICTLY limit all exercises to ONLY these muscle groups. Do not include exercises for any other muscle groups.
 - Injuries: ${currentForm.injuries||"None"}
 
 VARIETY: Every session MUST feel distinctly different from the last. Follow these strict rules:
@@ -1659,13 +1659,9 @@ Be specific. Use tables where helpful.`
                 </div>
               </div>
               <div className="field full">
-                <label>Muscle Groups{tier==="free" && <span style={{fontSize:11,color:"#555",letterSpacing:1,marginLeft:8,textTransform:"none"}}>Free plan is always full body</span>}</label>
+                <label>Muscle Groups</label>
                 <div className="toggle-group">
-                  {tier==="free" ? (
-                    <button className="toggle active" style={{cursor:"default"}}>Full Body</button>
-                  ) : (
-                    MUSCLES.map(m=><button key={m} className={`toggle ${form.muscles.includes(m)?"active":""}`} onClick={()=>toggleMuscle(m)}>{m}</button>)
-                  )}
+                  {MUSCLES.map(m=><button key={m} className={`toggle ${form.muscles.includes(m)?"active":""}`} onClick={()=>toggleMuscle(m)}>{m}</button>)}
                 </div>
               </div>
               {tier==="unlimited" && (
