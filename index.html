@@ -491,6 +491,15 @@ const styles = `
   * { box-sizing: border-box; }
   img, video, iframe { max-width: 100%; }
 
+  /* WAIVER */
+  .waiver-box { background: #0a0a0a; border: 1px solid #1e1e1e; padding: 16px; margin-bottom: 16px; border-radius: 4px; }
+  .waiver-text { font-size: 11px; color: #555; line-height: 1.7; letter-spacing: 0.3px; margin-bottom: 14px; }
+  .waiver-text strong { color: #888; }
+  .waiver-check { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+  .waiver-check input[type="checkbox"] { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; accent-color: var(--acid); cursor: pointer; }
+  .waiver-check-label { font-size: 13px; color: #888; line-height: 1.5; cursor: pointer; }
+  .waiver-check-label a { color: var(--acid); text-decoration: none; }
+
   /* GLOBAL ROUNDED CORNERS */
   button, input, a.btn-primary, a.btn-dark, a.nav-cta, a.pricing-btn { border-radius: 500px !important; }
   textarea { border-radius: 12px !important; }
@@ -972,7 +981,21 @@ function EmailGate({ tier, onSubmit, onClose }) {
         <div className="gate-field"><label>First Name</label><input placeholder="John" value={name} onChange={e => { setName(e.target.value); setError(""); }} /></div>
         <div className="gate-field"><label>Email Address</label><input type="email" placeholder="john@email.com" value={email} onChange={e => { setEmail(e.target.value); setError(""); }} /></div>
         {error && <p style={{ color: "#ff5c00", fontSize: 13, marginTop: 4 }}>{error}</p>}
-        <button className="gate-submit" onClick={handle} disabled={loading}>
+
+        {!existingProfile && (
+          <div className="waiver-box">
+            <div className="waiver-text">
+              <strong>Health &amp; Liability Disclaimer</strong><br/>
+              WeightedAI provides AI-generated fitness plans for informational purposes only. This is not medical advice. Consult a qualified physician before beginning any exercise program, especially if you have pre-existing health conditions or injuries. Exercise carries inherent risk of injury. By proceeding, you acknowledge these risks and assume full personal responsibility for your health and safety. WeightedAI and its creators are not liable for any injury or adverse outcome resulting from use of this service.
+            </div>
+            <label className="waiver-check">
+              <input type="checkbox" checked={waiverAccepted} onChange={e=>setWaiverAccepted(e.target.checked)} />
+              <span className="waiver-check-label">I have read and agree to the above disclaimer. I understand this is not medical advice and I assume all risk associated with exercise.</span>
+            </label>
+          </div>
+        )}
+
+        <button className="gate-submit" onClick={handle} disabled={loading || (!existingProfile && !waiverAccepted)}>
           {loading ? "LOADING..." : isFree ? "GET MY FREE WORKOUT →" : "CONTINUE →"}
         </button>
         <p className="gate-privacy">🔒 No spam. Unsubscribe anytime.</p>
@@ -1037,6 +1060,10 @@ function WeightedAI() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [workoutLog, setWorkoutLog] = useState([]);
   const [signedInName, setSignedInName] = useState("");
+  const [showWaiver, setShowWaiver] = useState(false);
+  const [waiverAccepted, setWaiverAccepted] = useState(false);
+  const [pendingEmailSubmit, setPendingEmailSubmit] = useState(null);
+  const [waiverAccepted, setWaiverAccepted] = useState(false);
   const [workoutMode, setWorkoutMode] = useState(false);
   const [savedWorkout, setSavedWorkout] = useState(null);
   const [difficulty, setDifficulty] = useState(0);
@@ -1503,6 +1530,19 @@ Be specific. Use tables where helpful.`
     window.scrollTo({top:0,behavior:"smooth"});
   };
 
+  const handleWaiverAccept = () => {
+    if (!pendingEmailSubmit) return;
+    const { name, email } = pendingEmailSubmit;
+    // Save waiver acceptance to Supabase
+    await dbRequest("saveProfile", { 
+      email, 
+      profileData: { name, waiver_accepted: new Date().toISOString() } 
+    });
+    setShowWaiver(false);
+    setPendingEmailSubmit(null);
+    handleEmailSubmit(name, email);
+  };
+
   const handleRegenerate = async () => {
     if (!regenNote.trim() && !window.confirm("Regenerate with the same settings?")) return;
     setPlan(null); setInspo(null); setUnlocked(false);
@@ -1955,6 +1995,31 @@ Be specific. Use tables where helpful.`
               </div>
             )}
           </section>
+        )}
+
+        {/* WAIVER MODAL */}
+        {showWaiver && (
+          <div className="waiver-overlay">
+            <div className="waiver-modal">
+              <div className="waiver-title">Before You Begin</div>
+              <div className="waiver-subtitle">Liability Waiver & Health Disclaimer</div>
+              <div className="waiver-body">
+                <p>WeightedAI provides AI-generated fitness and nutrition information for educational and informational purposes only. The workout plans, nutrition guidance, and related content generated by this application do not constitute medical advice, diagnosis, or treatment.</p>
+                <p><strong style={{color:"#aaa"}}>Health & Medical Disclaimer:</strong> Before beginning any exercise program, consult with a qualified healthcare provider, especially if you have any pre-existing medical conditions, injuries, or health concerns. The exercise programs generated by WeightedAI may not be suitable for everyone.</p>
+                <p><strong style={{color:"#aaa"}}>Assumption of Risk:</strong> Exercise involves inherent risks including but not limited to muscle soreness, strain, injury, and in rare cases more serious health events. By using WeightedAI, you voluntarily assume all risks associated with participation in exercise activities.</p>
+                <p><strong style={{color:"#aaa"}}>Limitation of Liability:</strong> WeightedAI, its creators, and affiliates shall not be liable for any injury, loss, damage, or adverse health outcome arising from your use of this application or participation in any exercise program generated herein.</p>
+                <p><strong style={{color:"#aaa"}}>Age Requirement:</strong> You must be 18 years of age or older to use WeightedAI. If you are under 18, you must have parental or guardian consent before using this service.</p>
+                <p><strong style={{color:"#aaa"}}>Not a Substitute:</strong> AI-generated workout plans are not a substitute for personalized guidance from a certified personal trainer, physical therapist, or licensed healthcare professional.</p>
+              </div>
+              <label className="waiver-check">
+                <input type="checkbox" checked={waiverAccepted} onChange={e=>setWaiverAccepted(e.target.checked)} />
+                <span className="waiver-check-label">I have read and understand the above disclaimer. I am 18 or older, I assume all risks associated with exercise, and I agree that WeightedAI is not liable for any injury or damages resulting from my use of this service.</span>
+              </label>
+              <button className="waiver-btn" disabled={!waiverAccepted} onClick={handleWaiverAccept}>
+                I AGREE — LET'S GO →
+              </button>
+            </div>
+          </div>
         )}
 
         {showModal && (
