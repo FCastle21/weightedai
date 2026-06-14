@@ -1329,7 +1329,7 @@ Then provide:
 ### Warm-Up (5 min)
 3-4 warm-up moves.
 ### Main Workout
-6-8 exercises — for each: **Exercise Name** — 3 sets x 10 reps, 60s rest (use actual numbers). Then one short sentence describing what it works and why it's in this workout.
+6-8 exercises — for each: **Exercise Name** — sets x reps, rest (use actual numbers). For exercises with 4+ sets, use pyramid progression (e.g. 4 sets: 15 reps → 12 reps → 10 reps → 8 reps, increasing weight each set). For 3 sets, use straight sets. Then one short sentence describing what it works and why it's in this workout.
 ### Cool-Down (5 min)
 3-4 stretches.
 
@@ -1426,7 +1426,7 @@ The goal is that a user could do 10 sessions in a row and never feel like they r
 ## Overview & Goals
 ## How To Use This Plan
 ## Nutrition Strategy (calorie target, macros, meal timing, food recommendations)
-## The 30-Day Schedule (4 weeks, every training day with: day number, focus, 5-6 exercises. For each: **Exercise Name** — sets x reps (use actual numbers e.g. 3 sets x 8 reps), rest period. One short sentence on what it works. One coaching note per day.)
+## The 30-Day Schedule (4 weeks, every training day with: day number, focus, 5-6 exercises. For each: **Exercise Name** — sets x reps (use actual numbers). For exercises with 4+ sets use pyramid progression (e.g. 15→12→10→8 reps, increasing weight each set). One short sentence on what it works. One coaching note per day.)
 ## Recovery Protocol
 ## End of 30 Days
 
@@ -1519,7 +1519,7 @@ The goal is that a user could do 10 sessions in a row and never feel like they r
 # ${leadData.name}'s Personalized Plan
 ## Overview
 ## Weekly Schedule
-## Workout Plans (each day: name, muscle focus, 5-7 exercises. For each: **Exercise Name** — 3 sets x 10 reps (use actual numbers), rest period. Then one short sentence describing what it works and why it's in this workout.)
+## Workout Plans (each day: name, muscle focus, 5-7 exercises. For each: **Exercise Name** — sets x reps (use actual numbers), rest period. For exercises with 4+ sets use pyramid progression (e.g. 15→12→10→8 reps, increasing weight each set). For 3 sets use straight sets. Then one short sentence describing what it works and why it's in this workout.)
 ## Nutrition Strategy (calorie target, macros, meal timing, food recommendations)
 ## Recovery Protocol
 ## 4-Week Progression
@@ -1995,9 +1995,7 @@ Be specific. Use tables where helpful.`
                       </div>
                     )}
       
-                    <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:12}}>
-                      <span style={{width:36,height:36,borderRadius:"50%",background:"var(--acid)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{color:"var(--black)",fontSize:14,marginLeft:3}}>▶</span></span><span>START WORKOUT MODE</span>
-                    </button>
+                    <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }}>START WORKOUT MODE</button>
                     <div className={`plan-content${isStreaming?" streaming-cursor":""}`} dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
                     {/* REGENERATE */}
                     {!isStreaming && (
@@ -2081,9 +2079,7 @@ Be specific. Use tables where helpful.`
                     <div className="plan-preview">
                       <div className="plan-preview-inner">
                         
-                    <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:12}}>
-                      <span style={{width:36,height:36,borderRadius:"50%",background:"var(--acid)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{color:"var(--black)",fontSize:14,marginLeft:3}}>▶</span></span><span>START WORKOUT MODE</span>
-                    </button>
+                    <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }}>START WORKOUT MODE</button>
                     <div className={`plan-content${isStreaming?" streaming-cursor":""}`} dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
                       </div>
                       <div className="plan-preview-fade" />
