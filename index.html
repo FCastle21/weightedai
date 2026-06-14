@@ -1067,6 +1067,20 @@ function WeightedAI() {
       window.__deferredPrompt = deferredPrompt;
     });
 
+    // Auto sign in if email remembered
+    const rememberedEmail = localStorage.getItem('weightedai_email');
+    if (rememberedEmail) {
+      fetch('/.netlify/functions/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'loadProfile', email: rememberedEmail })
+      }).then(r => r.json()).then(profile => {
+        if (profile && profile.email) {
+          window.dispatchEvent(new CustomEvent('weightedai-signin', { detail: { email: rememberedEmail, profile } }));
+        }
+      }).catch(() => {});
+    }
+
     // Check for saved active workout - clear it if already logged
     try {
       const saved = localStorage.getItem("weightedai_active_workout");
@@ -1092,6 +1106,13 @@ function WeightedAI() {
         btn.style.background = "transparent";
         btn.style.border = "1px solid #3ddc84";
         btn.style.color = "#3ddc84";
+        btn.onclick = () => {
+          if (confirm("Sign out of WeightedAI?")) {
+            localStorage.removeItem('weightedai_email');
+            localStorage.removeItem('weightedai_active_workout');
+            window.location.reload();
+          }
+        };
       }
     };
     if (signedInName) window.__setSignedIn(signedInName);
@@ -1991,6 +2012,7 @@ Be specific. Use tables where helpful.`
           document.getElementById('app').scrollIntoView({behavior:'smooth'});
           return; 
         }
+        localStorage.setItem('weightedai_email', email);
         document.getElementById('signin-overlay').style.display = 'none';
         window.dispatchEvent(new CustomEvent('weightedai-signin', { detail: { email, profile: profileData } }));
         document.getElementById('app').scrollIntoView({behavior:'smooth'});
