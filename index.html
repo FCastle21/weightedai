@@ -1172,6 +1172,15 @@ function WeightedAI() {
       setForm(f => ({ ...f, ...mappedProfile, muscles: [] }));
       setProfileLoaded(true);
       setStep("form");
+      // Load workout log and history from Supabase
+      try {
+        const logData = await dbRequest("loadLog", { email });
+        if (Array.isArray(logData)) setWorkoutLog(logData);
+      } catch(e) {}
+      try {
+        const histData = await dbRequest("loadHistory", { email });
+        if (Array.isArray(histData)) setWorkoutHistory(histData);
+      } catch(e) {}
       setTimeout(()=>{ const el=document.getElementById("form-top"); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:"smooth"}); }}, 100);
     };
     window.addEventListener('weightedai-signin', handleNavSignIn);
