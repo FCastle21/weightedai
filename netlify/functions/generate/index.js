@@ -50,23 +50,22 @@ exports.handler = async function(event, context) {
 
   try {
     const parsed = JSON.parse(event.body);
-    const { action, prompt, email, profileData, logEntry, historyEntry } = parsed;
+    const { action, prompt, email, profileData, logEntry, historyEntry, accessToken } = parsed;
     
     console.log("Action:", action, "Email:", email || "(none)");
     console.log("SUPABASE_URL:", process.env.SUPABASE_URL ? "SET" : "MISSING");
     console.log("SUPABASE_ANON_KEY:", process.env.SUPABASE_ANON_KEY ? "SET" : "MISSING");
 
     if (action === "getOAuthUser") {
-      const { accessToken } = body;
       const res = await new Promise((resolve, reject) => {
-        const urlObj = new URL(SUPABASE_URL);
+        const urlObj = new URL(process.env.SUPABASE_URL);
         const options = {
           hostname: urlObj.hostname,
           path: '/auth/v1/user',
           method: 'GET',
           headers: {
             'Authorization': 'Bearer ' + accessToken,
-            'apikey': SUPABASE_ANON_KEY
+            'apikey': process.env.SUPABASE_ANON_KEY
           }
         };
         const req = https.request(options, (r) => {
