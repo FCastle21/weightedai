@@ -76,7 +76,7 @@ exports.handler = async function(event, context) {
         req.on('error', reject);
         req.end();
       });
-      return callback(null, { statusCode: 200, headers, body: JSON.stringify(res) });
+      return { statusCode: 200, headers, body: JSON.stringify(res) };
     }
 
     if (action === "loadProfile") {
