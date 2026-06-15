@@ -20,8 +20,8 @@
     :root {
       --black: #080808;
       --white: #f2f0eb;
-      --mint: #5aaa85;
-      --mint-dark: #4a9975;
+      --mint: #3d9e9e;
+      --mint-dark: #2e8888;
       --orange: #ff5c00;
       --gray: #111;
       --mid: #1c1c1c;
@@ -215,15 +215,15 @@
 
   <!-- SIGN IN MODAL -->
   <div id="signin-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:500;align-items:flex-end;justify-content:center;padding:0;overflow-y:auto;">
-    <div style="background:#111;border-top:3px solid #5aaa85;padding:32px 24px;padding-bottom:calc(32px + env(safe-area-inset-bottom, 16px));width:100%;max-width:100%;border-radius:20px 20px 0 0;">
+    <div style="background:#111;border-top:3px solid #3d9e9e;padding:32px 24px;padding-bottom:calc(32px + env(safe-area-inset-bottom, 16px));width:100%;max-width:100%;border-radius:20px 20px 0 0;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
         <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;">SIGN IN</div>
         <button onclick="document.getElementById('signin-overlay').style.display='none'" style="background:transparent;border:1px solid #2a2a2a;color:#666;width:32px;height:32px;cursor:pointer;font-size:16px;border-radius:50%;">✕</button>
       </div>
-      <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#5aaa85;margin-bottom:8px;font-weight:500;">Returning Member</div>
+      <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#3d9e9e;margin-bottom:8px;font-weight:500;">Returning Member</div>
       <div style="font-size:14px;color:#666;margin-bottom:24px;">Enter your email to reload your profile and jump back in.</div>
       <input id="signin-email" type="email" placeholder="your@email.com" autocomplete="email" name="email" style="background:#0a0a0a;border:1px solid #2a2a2a;color:#f5f3ef;font-family:'DM Sans',sans-serif;font-size:15px;padding:14px 16px;outline:none;width:100%;margin-bottom:14px;border-radius:500px;"/>
-      <button onclick="handleSignIn()" style="width:100%;background:#5aaa85;border:none;color:#0a0a0a;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:4px;padding:18px;cursor:pointer;border-radius:500px;">SIGN IN →</button>
+      <button onclick="handleSignIn()" style="width:100%;background:#3d9e9e;border:none;color:#0a0a0a;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:4px;padding:18px;cursor:pointer;border-radius:500px;">SIGN IN →</button>
       <div style="font-size:11px;color:#333;text-align:center;margin-top:12px;letter-spacing:0.5px;">No account yet? Choose a plan below.</div>
     </div>
   </div>
@@ -231,7 +231,7 @@
   <!-- NAV -->
   <nav>
     <a href="#" class="nav-logo">WEIGHTED<span>AI</span></a>
-    <button onclick="document.getElementById('signin-overlay').style.display='flex'" id="signin-nav-btn" style="background:#5aaa85;border:none;color:#0a0a0a;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 20px;cursor:pointer;border-radius:500px;font-weight:500;">Sign In</button>
+    <button onclick="document.getElementById('signin-overlay').style.display='flex'" id="signin-nav-btn" style="background:#3d9e9e;border:none;color:#0a0a0a;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 20px;cursor:pointer;border-radius:500px;font-weight:500;">Sign In</button>
   </nav>
 
   <!-- HERO -->
@@ -424,7 +424,7 @@ const styles = `
   select { border-radius: 500px !important; }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root { --black: #0a0a0a; --white: #f5f3ef; --acid: #5aaa85; --orange: #ff5c00; }
+  :root { --black: #0a0a0a; --white: #f5f3ef; --acid: #3d9e9e; --orange: #ff5c00; }
   body { background: var(--black); overflow-x: hidden; }
   html { overflow-x: hidden; }
   .app { min-height: 100vh; background: var(--black); color: var(--white); font-family: 'DM Sans', sans-serif; font-weight: 300; overflow-x: hidden; }
@@ -466,7 +466,7 @@ const styles = `
   .tier-feat.on { color: #bbb; }
   .tier-feat-icon { flex-shrink: 0; margin-top: 1px; }
   .tier-cta { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 4px; padding: 20px; cursor: pointer; transition: background 0.2s;  border-radius: 500px; }
-  .tier-cta:hover { background: #4a9975; }
+  .tier-cta:hover { background: #2e8888; }
 
   /* FORM */
   .form-section { padding: 0 20px 16px; }
@@ -484,7 +484,7 @@ const styles = `
   .toggle.active { background: var(--acid); border-color: var(--acid); color: var(--black); font-weight: 500; }
   .submit-row { max-width: 900px; margin-top: 2px; }
   .submit-btn { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 4px; padding: 16px; cursor: pointer; transition: background 0.2s; border-radius: 500px; }
-  .submit-btn:hover { background: #4a9975; }
+  .submit-btn:hover { background: #2e8888; }
   .submit-btn:disabled { background: #333; color: #555; cursor: not-allowed; }
 
   /* PROFILE LOADED BANNER */
@@ -498,7 +498,7 @@ const styles = `
   .blocked-banner h3 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--orange); margin-bottom: 8px; }
   .blocked-banner p { font-size: 14px; color: #888; line-height: 1.6; margin-bottom: 20px; }
   .blocked-upgrade-btn { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 3px; padding: 14px 28px; cursor: pointer; transition: background 0.2s; border-radius: 500px; }
-  .blocked-upgrade-btn:hover { background: #4a9975; }
+  .blocked-upgrade-btn:hover { background: #2e8888; }
 
   /* EMAIL GATE */
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; animation: fadeIn 0.25s ease; }
@@ -518,7 +518,7 @@ const styles = `
   .gate-field input:focus { border-color: var(--acid); }
   .gate-field input::placeholder { color: #444; }
   .gate-submit { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 4px; padding: 20px; cursor: pointer; margin-top: 8px; transition: background 0.2s; border-radius: 500px; }
-  .gate-submit:hover { background: #4a9975; }
+  .gate-submit:hover { background: #2e8888; }
   .gate-privacy { font-size: 11px; color: #aaa; text-align: center; margin-top: 14px; letter-spacing: 0.5px; }
 
   /* LOADING */
@@ -688,7 +688,7 @@ const styles = `
   .paywall-price { font-family: 'Bebas Neue', sans-serif; font-size: 52px; color: var(--white); margin-bottom: 4px; }
   .paywall-latte { font-size: 12px; color: var(--orange); letter-spacing: 1px; margin-bottom: 24px; }
   .paywall-btn { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 4px; padding: 18px 48px; cursor: pointer; display: block; width: 100%; max-width: 400px; margin: 0 auto 12px; transition: background 0.2s; border-radius: 500px; }
-  .paywall-btn:hover { background: #4a9975; }
+  .paywall-btn:hover { background: #2e8888; }
   .paywall-note { font-size: 11px; color: #aaa; letter-spacing: 1px; }
 
   /* UPSELL */
@@ -721,7 +721,7 @@ const styles = `
   .modal-field input::placeholder { color: #444; }
   .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .modal-submit { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 19px; letter-spacing: 3px; padding: 18px; cursor: pointer; margin-top: 6px; transition: background 0.2s; border-radius: 500px; }
-  .modal-submit:hover { background: #4a9975; }
+  .modal-submit:hover { background: #2e8888; }
   .modal-submit:disabled { background: #333; color: #555; cursor: not-allowed; }
   .modal-fine { font-size: 11px; color: #aaa; text-align: center; margin-top: 10px; letter-spacing: .5px; }
   .modal-secure { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; font-size: 11px; color: #aaa; letter-spacing: 1px; }
@@ -1050,8 +1050,8 @@ function WeightedAI() {
       if (btn) {
         btn.textContent = "Hi, " + name.split(" ")[0];
         btn.style.background = "transparent";
-        btn.style.border = "1px solid #5aaa85";
-        btn.style.color = "#5aaa85";
+        btn.style.border = "1px solid #3d9e9e";
+        btn.style.color = "#3d9e9e";
         btn.onclick = () => {
           if (confirm("Sign out of WeightedAI?")) {
             localStorage.removeItem('weightedai_email');
