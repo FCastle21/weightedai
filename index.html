@@ -1055,15 +1055,14 @@ function WeightedAI() {
       // Use setTimeout to ensure React has mounted and event listeners are attached
       setTimeout(async () => {
         try {
-          console.log('[WeightedAI] Fetching user from Supabase...');
-          const res = await fetch('https://bwubjatyqyhjbsbtfusu.supabase.co/auth/v1/user', {
-            headers: { 
-              'Authorization': 'Bearer ' + accessToken,
-              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3dWJqYXR5cXloamJzYnRmdXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NDExNzksImV4cCI6MjA2NTQxNzE3OX0.mEi_oRHFBzFEDqkbujyN0MrJWNgzC7cgWLoROUEpMUE'
-            }
+          console.log('[WeightedAI] Fetching user via Netlify function...');
+          const res = await fetch('/.netlify/functions/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'getOAuthUser', accessToken })
           });
           const user = await res.json();
-          console.log('[WeightedAI] Supabase user response:', JSON.stringify(user));
+          console.log('[WeightedAI] User response:', JSON.stringify(user));
           if (user && user.email) {
             const email = user.email;
             const name = user.user_metadata?.full_name || user.email.split('@')[0];
