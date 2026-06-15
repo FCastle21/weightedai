@@ -1,6 +1,6 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <rect width="512" height="512" fill="#0a0a0a" rx="64"/>
   <text x="256" y="216" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="72" letter-spacing="4" fill="#f5f3ef" text-anchor="middle">WEIGHTED</text>
-  <rect x="80" y="232" width="352" height="3" fill="#3ddc84" opacity="0.4"/>
-  <text x="256" y="370" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="150" letter-spacing="12" fill="#3ddc84" text-anchor="middle">AI</text>
+  <rect x="80" y="232" width="352" height="3" fill="#5aaa85" opacity="0.4"/>
+  <text x="256" y="370" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="150" letter-spacing="12" fill="#5aaa85" text-anchor="middle">AI</text>
 </svg>
