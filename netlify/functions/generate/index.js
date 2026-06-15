@@ -1,6 +1,5 @@
 const https = require("https");
 
-// Helper to make HTTPS requests
 function httpsRequest(options, body) {
   return new Promise((resolve, reject) => {
     const req = https.request(options, (res) => {
@@ -14,7 +13,6 @@ function httpsRequest(options, body) {
   });
 }
 
-// Supabase helper
 async function supabase(method, path, body) {
   const url = new URL(process.env.SUPABASE_URL);
   const options = {
@@ -30,15 +28,20 @@ async function supabase(method, path, body) {
   };
   const bodyStr = body ? JSON.stringify(body) : null;
   if (bodyStr) options.headers["Content-Length"] = Buffer.byteLength(bodyStr);
-  return httpsRequest(options, bodyStr);
+  const res = await httpsRequest(options, bodyStr);
+  console.log(`Supabase ${method} ${path} → ${res.status}: ${res.body.slice(0,200)}`);
+  return res;
 }
 
 exports.handler = async function(event, context) {
+  const headers = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type"
+  };
+
   if (event.httpMethod === "OPTIONS") {
-    return {
-      statusCode: 200,
-      headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type" }
-    };
+    return { statusCode: 200, headers };
   }
 
   if (event.httpMethod !== "POST") {
@@ -46,55 +49,69 @@ exports.handler = async function(event, context) {
   }
 
   try {
-    const { action, prompt, email, profileData, logEntry, historyEntry } = JSON.parse(event.body);
+    const parsed = JSON.parse(event.body);
+    const { action, prompt, email, profileData, logEntry, historyEntry } = parsed;
+    
+    console.log("Action:", action, "Email:", email || "(none)");
+    console.log("SUPABASE_URL:", process.env.SUPABASE_URL ? "SET" : "MISSING");
+    console.log("SUPABASE_ANON_KEY:", process.env.SUPABASE_ANON_KEY ? "SET" : "MISSING");
 
-    const headers = {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*"
-    };
+    if (action === "getOAuthUser") {
+      const { accessToken } = body;
+      const res = await new Promise((resolve, reject) => {
+        const urlObj = new URL(SUPABASE_URL);
+        const options = {
+          hostname: urlObj.hostname,
+          path: '/auth/v1/user',
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer ' + accessToken,
+            'apikey': SUPABASE_ANON_KEY
+          }
+        };
+        const req = https.request(options, (r) => {
+          let data = '';
+          r.on('data', chunk => data += chunk);
+          r.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { resolve({}); } });
+        });
+        req.on('error', reject);
+        req.end();
+      });
+      return callback(null, { statusCode: 200, headers, body: JSON.stringify(res) });
+    }
 
-    // ── LOAD PROFILE ──────────────────────────────────────────────────────────
     if (action === "loadProfile") {
       const res = await supabase("GET", `profiles?email=eq.${encodeURIComponent(email)}&select=*`);
       const data = JSON.parse(res.body);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(data.length > 0 ? data[0] : null)
-      };
+      return { statusCode: 200, headers, body: JSON.stringify(data.length > 0 ? data[0] : null) };
     }
 
-    // ── SAVE PROFILE ──────────────────────────────────────────────────────────
     if (action === "saveProfile") {
-      await supabase("POST", "profiles", { ...profileData, email, updated_at: new Date().toISOString() });
-      return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
+      console.log("Saving profile for:", email, "Data keys:", Object.keys(profileData || {}).join(", "));
+      const res = await supabase("POST", "profiles", { ...profileData, email, updated_at: new Date().toISOString() });
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, status: res.status }) };
     }
 
-    // ── LOAD LOG ──────────────────────────────────────────────────────────────
     if (action === "loadLog") {
       const res = await supabase("GET", `workout_log?email=eq.${encodeURIComponent(email)}&order=created_at.desc&limit=20`);
       return { statusCode: 200, headers, body: res.body };
     }
 
-    // ── SAVE LOG ENTRY ────────────────────────────────────────────────────────
     if (action === "saveLog") {
-      await supabase("POST", "workout_log", { ...logEntry, email });
-      return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
+      const res = await supabase("POST", "workout_log", { ...logEntry, email });
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, status: res.status }) };
     }
 
-    // ── LOAD HISTORY ──────────────────────────────────────────────────────────
     if (action === "loadHistory") {
       const res = await supabase("GET", `workout_history?email=eq.${encodeURIComponent(email)}&order=created_at.desc&limit=5`);
       return { statusCode: 200, headers, body: res.body };
     }
 
-    // ── SAVE HISTORY ENTRY ────────────────────────────────────────────────────
     if (action === "saveHistory") {
-      await supabase("POST", "workout_history", { ...historyEntry, email });
-      return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
+      const res = await supabase("POST", "workout_history", { ...historyEntry, email });
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, status: res.status }) };
     }
 
-    // ── GENERATE WORKOUT ──────────────────────────────────────────────────────
     if (action === "generate" || prompt) {
       const postData = JSON.stringify({
         model: "claude-sonnet-4-5",
@@ -120,9 +137,10 @@ exports.handler = async function(event, context) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: "Unknown action" }) };
 
   } catch (err) {
+    console.error("Function error:", err.message, err.stack);
     return {
       statusCode: 500,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+      headers,
       body: JSON.stringify({ error: err.message })
     };
   }
