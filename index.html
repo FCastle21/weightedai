@@ -1047,33 +1047,48 @@ function WeightedAI() {
     const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
     const accessToken = hashParams.get('access_token');
     if (accessToken) {
-      // Get user info from Supabase using the token
-      fetch('https://bwubjatyqyhjbsbtfusu.supabase.co/auth/v1/user', {
-        headers: { 
-          'Authorization': 'Bearer ' + accessToken,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3dWJqYXR5cXloamJzYnRmdXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NDExNzksImV4cCI6MjA2NTQxNzE3OX0.mEi_oRHFBzFEDqkbujyN0MrJWNgzC7cgWLoROUEpMUE'
-        }
-      }).then(r => r.json()).then(async user => {
-        if (user && user.email) {
-          const email = user.email;
-          const name = user.user_metadata?.full_name || user.email.split('@')[0];
-          localStorage.setItem('weightedai_email', email);
-          // Clean up URL
-          window.history.replaceState({}, document.title, window.location.pathname);
-          // Load or create profile
-          const profile = await loadProfile(email) || {};
-          if (!profile.name) {
-            await saveProfile(email, { name, tier: 'free' });
-          }
-          window.dispatchEvent(new CustomEvent('weightedai-signin', { 
-            detail: { email, profile: { ...profile, name: profile.name || name, email } } 
-          }));
-          if (window.__setSignedIn) window.__setSignedIn(name);
-          document.getElementById('signin-overlay') && (document.getElementById('signin-overlay').style.display = 'none');
-        }
-      }).catch(() => {});
-      // Clear hash
+      // Store token and clean URL immediately
+      localStorage.setItem('weightedai_oauth_token', accessToken);
+      window.history.replaceState({}, document.title, window.location.pathname);
       window.location.hash = '';
+
+      // Use setTimeout to ensure React has mounted and event listeners are attached
+      setTimeout(async () => {
+        try {
+          const res = await fetch('https://bwubjatyqyhjbsbtfusu.supabase.co/auth/v1/user', {
+            headers: { 
+              'Authorization': 'Bearer ' + accessToken,
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ3dWJqYXR5cXloamJzYnRmdXN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NDExNzksImV4cCI6MjA2NTQxNzE3OX0.mEi_oRHFBzFEDqkbujyN0MrJWNgzC7cgWLoROUEpMUE'
+            }
+          });
+          const user = await res.json();
+          if (user && user.email) {
+            const email = user.email;
+            const name = user.user_metadata?.full_name || user.email.split('@')[0];
+            localStorage.setItem('weightedai_email', email);
+            localStorage.removeItem('weightedai_oauth_token');
+            // Load or create profile
+            const profile = await loadProfile(email) || {};
+            if (!profile.name) {
+              await saveProfile(email, { name, tier: 'free' });
+              profile.name = name;
+              profile.email = email;
+              profile.tier = 'free';
+            }
+            const fullProfile = { ...profile, name: profile.name || name, email };
+            window.dispatchEvent(new CustomEvent('weightedai-signin', { 
+              detail: { email, profile: fullProfile }
+            }));
+            if (window.__setSignedIn) window.__setSignedIn(fullProfile.name);
+            document.getElementById('signin-overlay') && (document.getElementById('signin-overlay').style.display = 'none');
+            // Scroll to app
+            setTimeout(() => {
+              const el = document.getElementById('app');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+          }
+        } catch(e) { console.error('OAuth callback error:', e); }
+      }, 500);
     }
 
     // Auto sign in if email remembered
@@ -2230,7 +2245,7 @@ Be specific. Use tables where helpful.`
 
     function handleGoogleSignIn() {
       const SUPABASE_URL = 'https://bwubjatyqyhjbsbtfusu.supabase.co';
-      const redirectTo = encodeURIComponent(window.location.origin);
+      const redirectTo = encodeURIComponent('https://weightedai.net');
       window.location.href = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${redirectTo}`;
     }
   </script>
