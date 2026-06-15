@@ -1055,6 +1055,7 @@ function WeightedAI() {
       // Use setTimeout to ensure React has mounted and event listeners are attached
       setTimeout(async () => {
         try {
+          console.log('[WeightedAI] Fetching user from Supabase...');
           const res = await fetch('https://bwubjatyqyhjbsbtfusu.supabase.co/auth/v1/user', {
             headers: { 
               'Authorization': 'Bearer ' + accessToken,
@@ -1062,13 +1063,16 @@ function WeightedAI() {
             }
           });
           const user = await res.json();
+          console.log('[WeightedAI] Supabase user response:', JSON.stringify(user));
           if (user && user.email) {
             const email = user.email;
             const name = user.user_metadata?.full_name || user.email.split('@')[0];
+            console.log('[WeightedAI] Got email:', email, 'name:', name);
             localStorage.setItem('weightedai_email', email);
             localStorage.removeItem('weightedai_oauth_token');
             // Load or create profile
             const profile = await loadProfile(email) || {};
+            console.log('[WeightedAI] Loaded profile:', JSON.stringify(profile));
             if (!profile.name) {
               await saveProfile(email, { name, tier: 'free' });
               profile.name = name;
@@ -1076,18 +1080,20 @@ function WeightedAI() {
               profile.tier = 'free';
             }
             const fullProfile = { ...profile, name: profile.name || name, email };
+            console.log('[WeightedAI] Dispatching signin event with:', JSON.stringify(fullProfile));
             window.dispatchEvent(new CustomEvent('weightedai-signin', { 
               detail: { email, profile: fullProfile }
             }));
             if (window.__setSignedIn) window.__setSignedIn(fullProfile.name);
             document.getElementById('signin-overlay') && (document.getElementById('signin-overlay').style.display = 'none');
-            // Scroll to app
             setTimeout(() => {
               const el = document.getElementById('app');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
             }, 300);
+          } else {
+            console.log('[WeightedAI] No email in user response:', JSON.stringify(user));
           }
-        } catch(e) { console.error('OAuth callback error:', e); }
+        } catch(e) { console.error('[WeightedAI] OAuth callback error:', e); }
       }, 500);
     }
 
