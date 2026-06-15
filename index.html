@@ -773,6 +773,24 @@ const styles = `
     .paywall { padding: 32px 20px; }
     .profile-banner { flex-direction: column; align-items: flex-start; }
   }
+  @media (max-width: 768px) {
+    /* Minimum font size on mobile */
+    .tier-feat, .tier-price-note, .feature-item p, .step p,
+    .stat-label, .section-label, .tier-label, .app-hero-label,
+    .gate-label, .gate-privacy, .modal-fine, .rating-sub,
+    .rating-labels, .overload-text, .workout-log-date,
+    .progress-stat-label, .footer-copy, .footer-links a,
+    .music-label, .regen-input, .plan-content,
+    .inspo-text, .resume-banner-text, .profile-banner,
+    .waiver-text, .tier-name { font-size: 13px !important; }
+    
+    .field label, .gate-field label, .modal-field label { font-size: 11px !important; }
+    .toggle { font-size: 13px !important; }
+    .plan-content { font-size: 15px !important; }
+    .workout-mode-content { font-size: 16px !important; }
+  }
+
+
 `;
 
 const GOALS     = ["Lose Fat", "Build Muscle", "Improve Endurance", "Gain Strength", "Body Recomp", "Athletic Performance"];
