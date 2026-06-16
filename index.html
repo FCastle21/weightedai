@@ -2121,6 +2121,7 @@ Be specific. Use tables where helpful.`
                             </button>
                           </div>
                         ) : (
+                          <>
                           <div className="rating-done">
                             <strong>✓ Workout logged!</strong> Your next plan will be adjusted based on today's difficulty rating of {difficulty}/5.
                           </div>
@@ -2152,6 +2153,7 @@ Be specific. Use tables where helpful.`
                           >
                             📲 Share Workout with Friends
                           </button> : null}
+                          </>
                         )}
                       </div>
                     )}
@@ -2258,7 +2260,7 @@ Be specific. Use tables where helpful.`
                 <div style={{textAlign:"center",padding:"8px 0"}}>
                   <div style={{color:"var(--acid)",fontFamily:"Bebas Neue, sans-serif",fontSize:22,letterSpacing:2,marginBottom:4}}>WORKOUT COMPLETE ✓</div>
                   <div style={{fontSize:13,color:"#666",marginBottom:12}}>Next plan will be adjusted based on your rating of {difficulty}/5</div>
-                  {shareWorkout ? <button
+                  {shareWorkout && <button
                     onClick={() => {
                       const muscles = form.muscles.length > 0 ? form.muscles.join(", ") : "Full Body";
                       const name = lead?.name?.split(" ")[0] || "I";
@@ -2283,7 +2285,7 @@ Be specific. Use tables where helpful.`
                     style={{width:"100%",background:"transparent",border:"1px solid #2a2a2a",color:"#888",fontFamily:"DM Sans,sans-serif",fontSize:13,letterSpacing:1,padding:"12px 20px",cursor:"pointer",borderRadius:500,transition:"all 0.2s"}}
                     onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}}
                     onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#888"}}
-                  >📲 Share Workout with Friends</button> : null}
+                  >📲 Share Workout with Friends</button>}
                 </div>
               )}
             </div>
