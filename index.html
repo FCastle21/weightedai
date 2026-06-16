@@ -865,7 +865,14 @@ function parseMarkdown(text) {
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*\*(.+?)\*\*/g, function(match, p1) {
+      // Extract just the exercise name (before any dash)
+      var exName = p1.split('—')[0].split('-')[0].trim();
+      if (exName.length > 3 && exName.length < 60) {
+        return '<strong onclick="window.__showExerciseVideo(\''+exName.replace(/'/g,'\\'')+'\')" style="cursor:pointer;border-bottom:1px dotted var(--acid);" title="Tap for demo video">'+p1+'</strong>';
+      }
+      return '<strong>'+p1+'</strong>';
+    })
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/^- (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>.*<\/li>\n?)+/g, function(m) { return '<ul>' + m + '</ul>'; })
@@ -1018,6 +1025,7 @@ function WeightedAI() {
   const [difficulty, setDifficulty] = useState(0);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [workoutHistory, setWorkoutHistory] = useState([]);
+  const [videoModal, setVideoModal] = useState(null); // { name, query }
   const [shareWorkout, setShareWorkout] = useState(() => { try { const v = localStorage.getItem("weightedai_share_workout"); return v === null ? true : v === "true"; } catch { return true; } });
 
   useEffect(() => {
@@ -1094,6 +1102,7 @@ function WeightedAI() {
     };
     if (signedInName) window.__setSignedIn(signedInName);
     window.__showExercise = (name) => setVideoExercise(name);
+    window.__showExerciseVideo = (name) => setVideoModal({ name, query: name + ' exercise tutorial how to' });
     window.__showInfo = (name, desc, muscles, tip) => setInfoExercise({name, desc, muscles, tip});
     
     const handleNavSignIn = async (e) => {
@@ -2294,6 +2303,29 @@ Be specific. Use tables where helpful.`
                   >📲 Share Workout with Friends</button>}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {videoModal && (
+          <div className="info-overlay" onClick={e => e.target===e.currentTarget && setVideoModal(null)}>
+            <div className="info-modal" style={{maxWidth:560}}>
+              <div className="info-modal-header">
+                <div className="info-modal-title">{videoModal.name}</div>
+                <button className="info-modal-close" onClick={() => setVideoModal(null)}>✕</button>
+              </div>
+              <div style={{padding:"0 0 0 0"}}>
+                <iframe
+                  width="100%"
+                  style={{aspectRatio:"16/9",border:"none",display:"block"}}
+                  src={"https://www.youtube.com/embed?listType=search&list=" + encodeURIComponent(videoModal.query) + "&autoplay=1"}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+                <div style={{padding:"10px 16px",fontSize:11,color:"#444",letterSpacing:1,textAlign:"center",borderTop:"1px solid #1e1e1e"}}>
+                  SEARCH: {videoModal.query} · Powered by YouTube
+                </div>
+              </div>
             </div>
           </div>
         )}
