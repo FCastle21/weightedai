@@ -1165,11 +1165,11 @@ function WeightedAI() {
         level: profile.level || "",
         equipment: profile.equipment || "",
         days: profile.days || "4",
-      shareWorkout: profile.share_workout !== false,
         injuries: profile.injuries || "",
         notes: profile.notes || ""
       };
       setForm(f => ({ ...f, ...mappedProfile, muscles: [] }));
+      setShareWorkout(profile.share_workout !== false);
       setProfileLoaded(true);
       setStep("form");
       // Load workout log and history from Supabase
