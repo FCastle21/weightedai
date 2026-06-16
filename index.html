@@ -2326,33 +2326,28 @@ Be specific. Use tables where helpful.`
 
         {videoModal && (
           <div className="info-overlay" onClick={e => e.target===e.currentTarget && setVideoModal(null)}>
-            <div className="info-modal" style={{maxWidth:560}}>
+            <div className="info-modal" style={{maxWidth:600,width:"95vw"}}>
               <div className="info-modal-header">
                 <div className="info-modal-title">{videoModal.name}</div>
                 <button className="info-modal-close" onClick={() => setVideoModal(null)}>✕</button>
               </div>
-              <div style={{padding:"24px"}}>
-                <p style={{fontSize:14,color:"#888",marginBottom:20,lineHeight:1.6}}>Watch a demo video for this exercise on YouTube.</p>
-                <a
-                  href={"https://www.youtube.com/results?search_query=" + encodeURIComponent(videoModal.name + " exercise tutorial")}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{display:"block",width:"100%",background:"#ff0000",color:"#fff",fontFamily:"Bebas Neue, sans-serif",fontSize:18,letterSpacing:3,padding:"14px 20px",borderRadius:500,textAlign:"center",textDecoration:"none",marginBottom:12}}
-                >
-                  ▶ WATCH ON YOUTUBE
-                </a>
-                <a
-                  href={"https://www.youtube.com/results?search_query=" + encodeURIComponent(videoModal.name + " exercise tutorial")}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{display:"block",fontSize:11,color:"#444",textAlign:"center",letterSpacing:1}}
-                >
-                  Search: {videoModal.name} exercise tutorial
-                </a>
+              <div style={{background:"#000"}}>
+                <iframe
+                  width="100%"
+                  style={{aspectRatio:"16/9",border:"none",display:"block"}}
+                  src={"https://www.youtube-nocookie.com/embed?listType=search&list=" + encodeURIComponent(videoModal.name + " exercise form tutorial") + "&autoplay=1&rel=0&modestbranding=1"}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+              <div style={{padding:"10px 16px",fontSize:11,color:"#444",letterSpacing:1,textAlign:"center",borderTop:"1px solid #1e1e1e"}}>
+                TAP OUTSIDE TO CLOSE
               </div>
             </div>
           </div>
         )}
+
+
 
         {infoExercise && (
           <div className="info-overlay" onClick={e => e.target===e.currentTarget && setInfoExercise(null)}>
