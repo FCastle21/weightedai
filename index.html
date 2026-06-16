@@ -1131,69 +1131,64 @@ function WeightedAI() {
       if (window.__setSignedIn) window.__setSignedIn(profileData.name || email);
     };
 
-    // Supabase auth state listener + session check
-    const _sb = window._supabase;
-    let subscription = null;
-
-    const _handleAuthUser = async (user) => {
-      if (!user || !user.email) return;
-      const email = user.email;
-      const name = user.user_metadata?.full_name || user.user_metadata?.name || email.split('@')[0];
+    // Clean auth handler - used by both OAuth and email signin
+    const _handleAuthUser = async (email, name) => {
+      if (!email) return;
       localStorage.setItem('weightedai_email', email);
       const profile = await loadProfile(email) || {};
       if (!profile.name) {
-        await saveProfile(email, { name, tier: 'free' });
-        profile.name = name; profile.email = email; profile.tier = 'free';
+        await saveProfile(email, { name: name || email.split('@')[0], tier: 'free' });
+        profile.name = name || email.split('@')[0];
+        profile.email = email;
+        profile.tier = 'free';
       }
-      const fullProfile = { ...profile, name: profile.name || name, email };
+      const fullProfile = { ...profile, name: profile.name || name || email.split('@')[0], email };
       await handleNavSignIn({ detail: { email, profile: fullProfile } });
       if (window.__setSignedIn) window.__setSignedIn(fullProfile.name);
       document.getElementById('signin-overlay') && (document.getElementById('signin-overlay').style.display = 'none');
-      if (window.location.hash.includes('access_token')) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
     };
+    window._handleAuthUser = _handleAuthUser;
 
-    if (_sb) {
-      const { data } = _sb.auth.onAuthStateChange(async (event, session) => {
-        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
-          await _handleAuthUser(session.user);
-        }
-      });
-      subscription = data?.subscription;
-
-      _sb.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user?.email) {
-        const email = session.user.email;
-        const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split('@')[0];
-        localStorage.setItem('weightedai_email', email);
-        const profile = await loadProfile(email) || {};
-        if (!profile.name) {
-          await saveProfile(email, { name, tier: 'free' });
-          profile.name = name; profile.email = email; profile.tier = 'free';
-        }
-        const fullProfile = { ...profile, name: profile.name || name, email };
-        await handleNavSignIn({ detail: { email, profile: fullProfile } });
-        if (window.__setSignedIn) window.__setSignedIn(fullProfile.name);
-      } else {
-        // Fall back to email-based remember me
-        const rememberedEmail = localStorage.getItem('weightedai_email');
-        if (rememberedEmail) {
-          const profile = await loadProfile(rememberedEmail);
-          if (profile && profile.email) {
-            await handleNavSignIn({ detail: { email: rememberedEmail, profile } });
-            if (window.__setSignedIn) window.__setSignedIn(profile.name || rememberedEmail);
-          }
-        }
+    // Handle OAuth callback from URL hash
+    const _hash = window.location.hash;
+    if (_hash.includes('access_token')) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      const _params = new URLSearchParams(_hash.replace('#', ''));
+      const _token = _params.get('access_token');
+      if (_token) {
+        (async () => {
+          try {
+            const r = await fetch('/.netlify/functions/generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'getOAuthUser', accessToken: _token })
+            });
+            const u = await r.json();
+            if (u && u.email) {
+              const name = u.user_metadata?.full_name || u.user_metadata?.name || u.email.split('@')[0];
+              await _handleAuthUser(u.email, name);
+            }
+          } catch(e) { console.error('OAuth error:', e); }
+        })();
       }
-    });
-    } // end if (_sb)
+    } else {
+      // Auto sign in from remembered email
+      const _remembered = localStorage.getItem('weightedai_email');
+      if (_remembered) {
+        loadProfile(_remembered).then(async profile => {
+          if (profile && profile.email) {
+            await handleNavSignIn({ detail: { email: _remembered, profile } });
+            if (window.__setSignedIn) window.__setSignedIn(profile.name || _remembered);
+          }
+        }).catch(() => {});
+      }
+    }
 
     return () => {
       delete window.__showExercise;
       delete window.__showInfo;
       delete window.__triggerSignIn;
-      subscription?.unsubscribe?.();
+      delete window._handleAuthUser;
     };
   }, [signedInName]);
 
