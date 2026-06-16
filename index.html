@@ -1018,7 +1018,7 @@ function WeightedAI() {
   const [difficulty, setDifficulty] = useState(0);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [workoutHistory, setWorkoutHistory] = useState([]);
-  const [shareWorkout, setShareWorkout] = useState(true);
+  const [shareWorkout, setShareWorkout] = useState(() => { try { const v = localStorage.getItem("weightedai_share_workout"); return v === null ? true : v === "true"; } catch { return true; } });
 
   useEffect(() => {
     // Screen wake lock in workout mode
@@ -1116,7 +1116,9 @@ function WeightedAI() {
         notes: profile.notes || ""
       };
       setForm(f => ({ ...f, ...mappedProfile, muscles: [] }));
-      setShareWorkout(profile.share_workout !== false);
+      const shareVal = profile.share_workout !== false;
+      setShareWorkout(shareVal);
+      try { localStorage.setItem("weightedai_share_workout", String(shareVal)); } catch {};
       setProfileLoaded(true);
       setStep("form");
       // Load workout log and history from Supabase
@@ -1911,6 +1913,7 @@ Be specific. Use tables where helpful.`
                           onClick={async () => {
                             const newVal = !shareWorkout;
                             setShareWorkout(newVal);
+                            try { localStorage.setItem("weightedai_share_workout", String(newVal)); } catch {}
                             if (lead) await dbRequest("saveProfile", { email: lead.email, profileData: { share_workout: newVal } });
                           }}
                           style={{width:36,height:20,borderRadius:500,background:shareWorkout?"var(--acid)":"#2a2a2a",cursor:"pointer",position:"relative",transition:"background 0.2s",flexShrink:0}}
