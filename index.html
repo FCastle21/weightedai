@@ -1131,31 +1131,38 @@ function WeightedAI() {
       if (window.__setSignedIn) window.__setSignedIn(profileData.name || email);
     };
 
-    // Supabase auth state listener - handles Google OAuth + session persistence
-    const { data: { subscription } } = (window._supabase?.auth || { onAuthStateChange: (cb) => ({ data: { subscription: null } }) }).onAuthStateChange || window._supabase.auth.onAuthStateChange(async (event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user?.email) {
-        const email = session.user.email;
-        const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split('@')[0];
-        localStorage.setItem('weightedai_email', email);
-        const profile = await loadProfile(email) || {};
-        if (!profile.name) {
-          await saveProfile(email, { name, tier: 'free' });
-          profile.name = name;
-          profile.email = email;
-          profile.tier = 'free';
-        }
-        const fullProfile = { ...profile, name: profile.name || name, email };
-        await handleNavSignIn({ detail: { email, profile: fullProfile } });
-        if (window.__setSignedIn) window.__setSignedIn(fullProfile.name);
-        document.getElementById('signin-overlay') && (document.getElementById('signin-overlay').style.display = 'none');
-        // Clean up URL if OAuth callback
-        if (window.location.hash.includes('access_token')) {
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      }
-    });
+    // Supabase auth state listener + session check
+    const _sb = window._supabase;
+    let subscription = null;
 
-    window._supabase ? window._supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const _handleAuthUser = async (user) => {
+      if (!user || !user.email) return;
+      const email = user.email;
+      const name = user.user_metadata?.full_name || user.user_metadata?.name || email.split('@')[0];
+      localStorage.setItem('weightedai_email', email);
+      const profile = await loadProfile(email) || {};
+      if (!profile.name) {
+        await saveProfile(email, { name, tier: 'free' });
+        profile.name = name; profile.email = email; profile.tier = 'free';
+      }
+      const fullProfile = { ...profile, name: profile.name || name, email };
+      await handleNavSignIn({ detail: { email, profile: fullProfile } });
+      if (window.__setSignedIn) window.__setSignedIn(fullProfile.name);
+      document.getElementById('signin-overlay') && (document.getElementById('signin-overlay').style.display = 'none');
+      if (window.location.hash.includes('access_token')) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    };
+
+    if (_sb) {
+      const { data } = _sb.auth.onAuthStateChange(async (event, session) => {
+        if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+          await _handleAuthUser(session.user);
+        }
+      });
+      subscription = data?.subscription;
+
+      _sb.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user?.email) {
         const email = session.user.email;
         const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split('@')[0];
@@ -1180,6 +1187,7 @@ function WeightedAI() {
         }
       }
     });
+    } // end if (_sb)
 
     return () => {
       delete window.__showExercise;
