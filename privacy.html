@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — WeightedAI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --black: #080808; --white: #f2f0eb; --mint: #3d9e9e; --muted: #555; }
+    body { background: var(--black); color: var(--white); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; }
+
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px; border-bottom: 1px solid #151515;
+      position: sticky; top: 0; background: rgba(8,8,8,0.95);
+      backdrop-filter: blur(12px); z-index: 10;
+    }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 3px; color: var(--white); text-decoration: none; }
+    .nav-logo span { color: var(--mint); }
+    .nav-back { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .nav-back:hover { color: var(--mint); }
+
+    .container { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+
+    .page-label { font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: var(--mint); margin-bottom: 12px; }
+    .page-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px, 8vw, 56px); letter-spacing: 1px; line-height: 0.95; margin-bottom: 8px; }
+    .page-date { font-size: 12px; color: var(--muted); letter-spacing: 1px; margin-bottom: 40px; padding-bottom: 24px; border-bottom: 1px solid #151515; }
+
+    h2 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--mint); margin: 36px 0 12px; }
+    p { font-size: 15px; color: #aaa; margin-bottom: 14px; }
+    ul { padding-left: 20px; margin-bottom: 14px; }
+    li { font-size: 15px; color: #aaa; margin-bottom: 8px; line-height: 1.7; }
+    a { color: var(--mint); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    strong { color: var(--white); font-weight: 500; }
+
+    .highlight-box {
+      background: #0d1a0d; border: 1px solid #1a2e1a; border-left: 3px solid var(--mint);
+      padding: 20px 24px; margin: 24px 0; border-radius: 4px;
+    }
+    .highlight-box p { margin-bottom: 0; }
+
+    footer { border-top: 1px solid #111; padding: 20px 24px; text-align: center; }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 3px; color: #333; margin-bottom: 6px; }
+    .footer-logo span { color: var(--mint); }
+    .footer-copy { font-size: 11px; color: #333; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">WEIGHTED<span>AI</span></a>
+  <a href="/" class="nav-back">← Back to App</a>
+</nav>
+
+<div class="container">
+  <p class="page-label">Legal</p>
+  <h1 class="page-title">PRIVACY POLICY</h1>
+  <div class="page-date">Last updated: June 2026</div>
+
+  <div class="highlight-box">
+    <p>WeightedAI is built to be simple and transparent. We collect only what we need to generate your workouts and save your profile. We do not sell your data. Ever.</p>
+  </div>
+
+  <h2>Who We Are</h2>
+  <p>WeightedAI ("we", "us", "our") is an AI-powered fitness platform available at <a href="https://weightedai.net">weightedai.net</a>. We generate personalized workout and nutrition plans using artificial intelligence based on the information you provide.</p>
+
+  <h2>What Information We Collect</h2>
+  <p>We collect only the information necessary to provide our service:</p>
+  <ul>
+    <li><strong>Account information</strong> — Your name and email address, provided either directly or via Google Sign In (OAuth).</li>
+    <li><strong>Profile data</strong> — Age, gender, weight, height, fitness goal, experience level, available equipment, days per week, injuries, and any additional notes you provide.</li>
+    <li><strong>Workout history</strong> — Records of completed workouts including date, muscle groups trained, difficulty rating, and exercise names. This is used to personalize future workouts.</li>
+    <li><strong>Google account data</strong> — If you sign in with Google, we receive your name, email address, and profile picture from Google. We do not receive your password or payment information.</li>
+    <li><strong>Usage preferences</strong> — Settings such as whether you have enabled workout sharing.</li>
+  </ul>
+
+  <h2>How We Use Your Information</h2>
+  <p>Your information is used exclusively to:</p>
+  <ul>
+    <li>Generate personalized AI workout and nutrition plans tailored to your profile</li>
+    <li>Save and auto-load your profile so you don't have to re-enter details each visit</li>
+    <li>Track your workout history and apply progressive overload to future sessions</li>
+    <li>Improve exercise variety by avoiding recently used exercises</li>
+    <li>Remember your app preferences (e.g. workout sharing settings)</li>
+  </ul>
+  <p>We do <strong>not</strong> use your data for advertising, profiling, or any purpose beyond delivering the WeightedAI service.</p>
+
+  <h2>How Your Data Is Stored</h2>
+  <p>Your data is stored securely using <strong>Supabase</strong>, a hosted database platform with industry-standard security practices including encryption at rest and in transit. Your profile and workout history are stored in our Supabase database and associated with your email address.</p>
+  <p>Workout plans are generated via the <strong>Anthropic Claude API</strong>. The prompts sent to generate your plan include your profile details (age, goal, level, equipment, etc.) but do not include your name or email. Anthropic's data handling practices are governed by their own privacy policy at <a href="https://www.anthropic.com/privacy" target="_blank">anthropic.com/privacy</a>.</p>
+  <p>Our application is hosted on <strong>Netlify</strong>. Netlify's privacy policy is available at <a href="https://www.netlify.com/privacy/" target="_blank">netlify.com/privacy</a>.</p>
+
+  <h2>Google Sign In</h2>
+  <p>We offer Google OAuth as a sign-in option for convenience. When you sign in with Google:</p>
+  <ul>
+    <li>Google authenticates your identity and shares your name and email with us</li>
+    <li>We do not access your Google contacts, calendar, Gmail, or any other Google services</li>
+    <li>Your Google password is never shared with or visible to WeightedAI</li>
+    <li>You can revoke WeightedAI's access to your Google account at any time via your Google Account settings</li>
+  </ul>
+
+  <h2>Workout Sharing</h2>
+  <p>WeightedAI includes an optional feature to share your completed workout via SMS or your device's native share sheet. This feature:</p>
+  <ul>
+    <li>Is entirely opt-in and can be turned on or off in your profile at any time</li>
+    <li>Does not access your contacts — you choose who to send it to</li>
+    <li>Uses your device's native sharing functionality (iOS Share Sheet, Android Share Dialog)</li>
+    <li>Shares only your name, workout muscle groups, exercise list, and a link to weightedai.net</li>
+  </ul>
+
+  <h2>Data Retention</h2>
+  <p>We retain your profile and workout history for as long as your account is active. If you would like your data deleted, contact us at <a href="mailto:privacy@weightedai.net">privacy@weightedai.net</a> and we will remove your data from our systems within 30 days.</p>
+
+  <h2>Cookies & Local Storage</h2>
+  <p>WeightedAI uses your browser's <strong>localStorage</strong> (not cookies) to remember your signed-in state and preferences between sessions. No third-party tracking cookies are used. We do not run advertising and do not use any ad tracking technology.</p>
+
+  <h2>Children's Privacy</h2>
+  <p>WeightedAI is intended for users 18 years of age and older. We do not knowingly collect personal information from anyone under 18. If you believe a minor has provided us with personal information, please contact us and we will delete it promptly.</p>
+
+  <h2>Your Rights</h2>
+  <p>You have the right to:</p>
+  <ul>
+    <li>Access the personal data we hold about you</li>
+    <li>Request correction of inaccurate data</li>
+    <li>Request deletion of your data</li>
+    <li>Withdraw consent at any time by deleting your account</li>
+  </ul>
+  <p>To exercise any of these rights, contact us at <a href="mailto:privacy@weightedai.net">privacy@weightedai.net</a>.</p>
+
+  <h2>Changes to This Policy</h2>
+  <p>We may update this privacy policy from time to time. When we do, we will update the "Last updated" date at the top of this page. Continued use of WeightedAI after changes constitutes acceptance of the updated policy.</p>
+
+  <h2>Contact</h2>
+  <p>If you have any questions about this privacy policy or how we handle your data, please contact us at <a href="mailto:privacy@weightedai.net">privacy@weightedai.net</a>.</p>
+
+</div>
+
+<footer>
+  <div class="footer-logo">WEIGHTED<span>AI</span></div>
+  <div class="footer-copy">© 2026 WeightedAI. All rights reserved.</div>
+</footer>
+
+</body>
+</html>
