@@ -1044,59 +1044,6 @@ function WeightedAI() {
       window.__deferredPrompt = deferredPrompt;
     });
 
-    // Handle OAuth callback - check for access token in URL hash
-    const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
-    const accessToken = hashParams.get('access_token');
-    if (accessToken) {
-      // Store token and clean URL immediately
-      localStorage.setItem('weightedai_oauth_token', accessToken);
-      window.history.replaceState({}, document.title, window.location.pathname);
-      window.location.hash = '';
-
-      // Use setTimeout to ensure React has mounted and event listeners are attached
-      setTimeout(async () => {
-        try {
-          console.log('[WeightedAI] Fetching user via Netlify function...');
-          const res = await fetch('/.netlify/functions/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'getOAuthUser', accessToken })
-          });
-          const user = await res.json();
-          console.log('[WeightedAI] User response:', JSON.stringify(user));
-          if (user && user.email) {
-            const email = user.email;
-            const name = user.user_metadata?.full_name || user.email.split('@')[0];
-            console.log('[WeightedAI] Got email:', email, 'name:', name);
-            localStorage.setItem('weightedai_email', email);
-            localStorage.removeItem('weightedai_oauth_token');
-            // Load or create profile
-            const profile = await loadProfile(email) || {};
-            console.log('[WeightedAI] Loaded profile:', JSON.stringify(profile));
-            if (!profile.name) {
-              await saveProfile(email, { name, tier: 'free' });
-              profile.name = name;
-              profile.email = email;
-              profile.tier = 'free';
-            }
-            const fullProfile = { ...profile, name: profile.name || name, email };
-            console.log('[WeightedAI] Dispatching signin event with:', JSON.stringify(fullProfile));
-            window.dispatchEvent(new CustomEvent('weightedai-signin', { 
-              detail: { email, profile: fullProfile }
-            }));
-            if (window.__setSignedIn) window.__setSignedIn(fullProfile.name);
-            document.getElementById('signin-overlay') && (document.getElementById('signin-overlay').style.display = 'none');
-            setTimeout(() => {
-              const el = document.getElementById('app');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }, 300);
-          } else {
-            console.log('[WeightedAI] No email in user response:', JSON.stringify(user));
-          }
-        } catch(e) { console.error('[WeightedAI] OAuth callback error:', e); }
-      }, 500);
-    }
-
     // Auto sign in if email remembered
     const rememberedEmail = localStorage.getItem('weightedai_email');
     if (rememberedEmail) {
@@ -1184,6 +1131,41 @@ function WeightedAI() {
       setTimeout(()=>{ const el=document.getElementById("form-top"); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:"smooth"}); }}, 100);
     };
     window.addEventListener('weightedai-signin', handleNavSignIn);
+
+    // Handle OAuth callback AFTER listener is registered
+    const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+    const accessToken = hashParams.get('access_token');
+    if (accessToken) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      window.location.hash = '';
+      (async () => {
+        try {
+          const res = await fetch('/.netlify/functions/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'getOAuthUser', accessToken })
+          });
+          const user = await res.json();
+          if (user && user.email) {
+            const email = user.email;
+            const name = user.user_metadata?.full_name || user.email.split('@')[0];
+            localStorage.setItem('weightedai_email', email);
+            const profile = await loadProfile(email) || {};
+            if (!profile.name) {
+              await saveProfile(email, { name, tier: 'free' });
+              profile.name = name;
+              profile.email = email;
+              profile.tier = 'free';
+            }
+            const fullProfile = { ...profile, name: profile.name || name, email };
+            window.dispatchEvent(new CustomEvent('weightedai-signin', { detail: { email, profile: fullProfile } }));
+            if (window.__setSignedIn) window.__setSignedIn(fullProfile.name);
+            document.getElementById('signin-overlay') && (document.getElementById('signin-overlay').style.display = 'none');
+            setTimeout(() => { const el = document.getElementById('app'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 300);
+          }
+        } catch(e) { console.error('OAuth error:', e); }
+      })();
+    }
 
     return () => { 
       delete window.__showExercise;
