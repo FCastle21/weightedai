@@ -2325,20 +2325,24 @@ Be specific. Use tables where helpful.`
         )}
 
         {videoModal && (
-          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.95)",zIndex:500,display:"flex",flexDirection:"column"}} onClick={e => e.target===e.currentTarget && setVideoModal(null)}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 20px",borderBottom:"1px solid #1e1e1e",background:"#0a0a0a",paddingTop:"calc(14px + env(safe-area-inset-top, 0px))"}}>
-              <div style={{fontFamily:"Bebas Neue, sans-serif",fontSize:18,letterSpacing:2,color:"var(--acid)"}}>{videoModal.name}</div>
-              <button onClick={() => setVideoModal(null)} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#666",width:32,height:32,borderRadius:"50%",cursor:"pointer",fontSize:16}}>✕</button>
-            </div>
-            <iframe
-              src={"https://www.youtube.com/embed?listType=search&list=" + encodeURIComponent(videoModal.name + " exercise tutorial form") + "&autoplay=1&rel=0"}
-              style={{flex:1,border:"none",width:"100%"}}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-            <div style={{padding:"10px 20px",paddingBottom:"calc(10px + env(safe-area-inset-bottom, 0px))",background:"#0a0a0a",borderTop:"1px solid #1e1e1e",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <div style={{fontSize:11,color:"#444",letterSpacing:1}}>TAP ✕ TO CLOSE</div>
-              <a href={"https://www.youtube.com/results?search_query=" + encodeURIComponent(videoModal.name + " exercise tutorial")} target="_blank" rel="noopener noreferrer" style={{fontSize:11,color:"var(--acid)",letterSpacing:1,textDecoration:"none"}}>OPEN IN YOUTUBE →</a>
+          <div className="info-overlay" onClick={e => e.target===e.currentTarget && setVideoModal(null)}>
+            <div className="info-modal" style={{maxWidth:480}}>
+              <div className="info-modal-header">
+                <div className="info-modal-title">{videoModal.name}</div>
+                <button className="info-modal-close" onClick={() => setVideoModal(null)}>✕</button>
+              </div>
+              <div style={{padding:"24px"}}>
+                <p style={{fontSize:13,color:"#666",marginBottom:20,lineHeight:1.6}}>Watch a tutorial for this exercise on YouTube.</p>
+                <a
+                  href={"https://www.youtube.com/results?search_query=" + encodeURIComponent(videoModal.name + " exercise tutorial form")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setVideoModal(null)}
+                  style={{display:"block",width:"100%",background:"#ff0000",color:"#fff",fontFamily:"Bebas Neue, sans-serif",fontSize:18,letterSpacing:3,padding:"14px 20px",borderRadius:500,textAlign:"center",textDecoration:"none"}}
+                >
+                  ▶ SEARCH ON YOUTUBE
+                </a>
+              </div>
             </div>
           </div>
         )}
