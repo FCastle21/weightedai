@@ -682,7 +682,7 @@ const styles = `
   .plan-content p { margin-bottom: 14px; }
   .plan-content ul, .plan-content ol { padding-left: 24px; margin-bottom: 16px; }
   .plan-content li { margin-bottom: 8px; color: var(--white); }
-  .plan-content strong { color: var(--acid); font-weight: 500; }
+  .plan-content strong { color: var(--acid); font-weight: 500; cursor: pointer; border-bottom: 1px dotted var(--acid); }
   .plan-content em { color: var(--white); font-style: italic; }
   .plan-content table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
   .plan-content th { background: #1a1a1a; color: var(--acid); text-align: left; padding: 12px 16px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 500; }
@@ -865,14 +865,7 @@ function parseMarkdown(text) {
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
     .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g, function(match, p1) {
-      // Extract just the exercise name (before any dash)
-      var exName = p1.split('—')[0].split('-')[0].trim();
-      if (exName.length > 3 && exName.length < 60) {
-        return '<strong onclick="window.__showExerciseVideo(\''+exName.replace(/'/g,'\\'')+'\')" style="cursor:pointer;border-bottom:1px dotted var(--acid);" title="Tap for demo video">'+p1+'</strong>';
-      }
-      return '<strong>'+p1+'</strong>';
-    })
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
     .replace(/^- (.+)$/gm, '<li>$1</li>')
     .replace(/(<li>.*<\/li>\n?)+/g, function(m) { return '<ul>' + m + '</ul>'; })
@@ -2077,7 +2070,17 @@ Be specific. Use tables where helpful.`
                     )}
       
                     <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }}>START WORKOUT MODE</button>
-                    <div className={`plan-content${isStreaming?" streaming-cursor":""}`} dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
+                    <div 
+  className={`plan-content${isStreaming?" streaming-cursor":""}`} 
+  dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}}
+  onClick={e => {
+    if (e.target.tagName === 'STRONG') {
+      const exName = e.target.textContent.split('—')[0].split('–')[0].trim();
+      if (exName.length > 3 && exName.length < 60) setVideoModal({ name: exName, query: exName + ' exercise tutorial how to' });
+    }
+  }}
+  style={{cursor:'default'}}
+/>
                     {/* REGENERATE */}
                     {!isStreaming && (
                       <div className="regen-row">
@@ -2191,7 +2194,17 @@ Be specific. Use tables where helpful.`
                       <div className="plan-preview-inner">
                         
                     <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }}>START WORKOUT MODE</button>
-                    <div className={`plan-content${isStreaming?" streaming-cursor":""}`} dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
+                    <div 
+  className={`plan-content${isStreaming?" streaming-cursor":""}`} 
+  dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}}
+  onClick={e => {
+    if (e.target.tagName === 'STRONG') {
+      const exName = e.target.textContent.split('—')[0].split('–')[0].trim();
+      if (exName.length > 3 && exName.length < 60) setVideoModal({ name: exName, query: exName + ' exercise tutorial how to' });
+    }
+  }}
+  style={{cursor:'default'}}
+/>
                       </div>
                       <div className="plan-preview-fade" />
                     </div>
