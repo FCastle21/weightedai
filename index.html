@@ -1258,6 +1258,21 @@ STRICT BALANCE RULE — THIS IS MANDATORY:
 - Label each exercise with its muscle group in your planning so you can verify the count before outputting.
 - Violating this balance rule is the #1 error to avoid.
 - Injuries: ${currentForm.injuries||"None"}
+${workoutHistory.length > 0 ? `
+PREVIOUS WORKOUT HISTORY (last ${Math.min(workoutHistory.length, 3)} sessions):
+${workoutHistory.slice(0,3).map((h,i) => {
+  const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : [];
+  return `Session ${i+1} (${h.date}): ${h.muscles} — Difficulty ${h.difficulty}/5${exList.length > 0 ? `
+Exercises used: ${exList.join(", ")}` : ""}`;
+}).join("
+
+")}
+
+CRITICAL EXERCISE ROTATION RULES:
+1. DO NOT use any exercise listed above from the last 2 sessions
+2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session
+3. Choose completely different movement variations each session
+4. The goal is NO repeated exercises until at least 3 sessions have passed` : ""}
 
 TRAINING LEVEL DEFINITIONS — apply these strictly based on the user's selected level:
 
@@ -1306,7 +1321,9 @@ TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
 VARIETY — THIS IS CRITICAL. Every session MUST be meaningfully different. You are a creative fitness programmer, not a template filler.
 
-RANDOMIZATION SEED: Use this timestamp to randomize your exercise selection: ${Date.now()}. Start your selection from a different point in each exercise pool every time.
+RANDOMIZATION SEED: ${Date.now()} — use this number to pick a unique starting point in the exercise pool. If the seed ends in 0-2 start with HINGE movements, 3-4 start with PULL, 5-6 start with LEGS, 7-8 start with PUSH, 9 start with CORE. This ensures every workout begins differently.
+
+CRITICAL ANTI-REPETITION: Before writing any exercise, ask yourself "did I include this in a previous response today?" If yes, choose a different one. The following are OVERUSED defaults that you must actively avoid unless no alternative exists: Push-Up, Squat, Plank, Burpee, Jumping Jack, Mountain Climber, Lunge, Glute Bridge. These are last resorts only.
 
 HARD RULES:
 1. NEVER use the same exercise twice in the same workout
@@ -1335,6 +1352,8 @@ CORE: Plank, Side Plank, Hollow Hold, Dead Bug, Ab Wheel Rollout, Dragon Flag (a
 FULL BODY: Burpee, Man Maker, Turkish Get-Up, Bear Crawl, Inchworm, Sprawl, Devil Press, Tuck Jump
 
 USE RANDOM SELECTION — do not default to the same 8 exercises every time. Imagine you are drawing exercises randomly from this pool.
+
+SELF-CHECK BEFORE WRITING: Look at your planned exercise list. If more than 2 of these appear: Push-Up, Squat, Plank, Burpee, Mountain Climber, Lunge, Glute Bridge — replace the extras with less common variations. A user doing this app daily should NEVER get the same workout twice in a row.
 
 Then provide:
 ## This Week's Full-Body Workout
@@ -1438,7 +1457,9 @@ TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
 VARIETY — THIS IS CRITICAL. Every session MUST be meaningfully different. You are a creative fitness programmer, not a template filler.
 
-RANDOMIZATION SEED: Use this timestamp to randomize your exercise selection: ${Date.now()}. Start your selection from a different point in each exercise pool every time.
+RANDOMIZATION SEED: ${Date.now()} — use this number to pick a unique starting point in the exercise pool. If the seed ends in 0-2 start with HINGE movements, 3-4 start with PULL, 5-6 start with LEGS, 7-8 start with PUSH, 9 start with CORE. This ensures every workout begins differently.
+
+CRITICAL ANTI-REPETITION: Before writing any exercise, ask yourself "did I include this in a previous response today?" If yes, choose a different one. The following are OVERUSED defaults that you must actively avoid unless no alternative exists: Push-Up, Squat, Plank, Burpee, Jumping Jack, Mountain Climber, Lunge, Glute Bridge. These are last resorts only.
 
 HARD RULES:
 1. NEVER use the same exercise twice in the same workout
@@ -1555,7 +1576,9 @@ TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
 VARIETY — THIS IS CRITICAL. Every session MUST be meaningfully different. You are a creative fitness programmer, not a template filler.
 
-RANDOMIZATION SEED: Use this timestamp to randomize your exercise selection: ${Date.now()}. Start your selection from a different point in each exercise pool every time.
+RANDOMIZATION SEED: ${Date.now()} — use this number to pick a unique starting point in the exercise pool. If the seed ends in 0-2 start with HINGE movements, 3-4 start with PULL, 5-6 start with LEGS, 7-8 start with PUSH, 9 start with CORE. This ensures every workout begins differently.
+
+CRITICAL ANTI-REPETITION: Before writing any exercise, ask yourself "did I include this in a previous response today?" If yes, choose a different one. The following are OVERUSED defaults that you must actively avoid unless no alternative exists: Push-Up, Squat, Plank, Burpee, Jumping Jack, Mountain Climber, Lunge, Glute Bridge. These are last resorts only.
 
 HARD RULES:
 1. NEVER use the same exercise twice in the same workout
