@@ -1045,19 +1045,7 @@ function WeightedAI() {
       window.__deferredPrompt = deferredPrompt;
     });
 
-    // Auto sign in if email remembered
-    const rememberedEmail = localStorage.getItem('weightedai_email');
-    if (rememberedEmail) {
-      fetch('/.netlify/functions/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'loadProfile', email: rememberedEmail })
-      }).then(r => r.json()).then(profile => {
-        if (profile && profile.email) {
-          window.dispatchEvent(new CustomEvent('weightedai-signin', { detail: { email: rememberedEmail, profile } }));
-        }
-      }).catch(() => {});
-    }
+    // Auto sign in handled by supabase.auth.getSession() below
 
     // Check for saved active workout - clear it if already logged
     try {
@@ -1137,47 +1125,68 @@ function WeightedAI() {
       } catch(e) {}
       setTimeout(()=>{ const el=document.getElementById("form-top"); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:"smooth"}); }}, 100);
     };
-    window.addEventListener('weightedai-signin', handleNavSignIn);
+    // Register trigger for email sign in
+    window.__triggerSignIn = async (email, profileData) => {
+      await handleNavSignIn({ detail: { email, profile: profileData } });
+      if (window.__setSignedIn) window.__setSignedIn(profileData.name || email);
+    };
 
-    // Handle OAuth callback AFTER listener is registered
-    const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
-    const accessToken = hashParams.get('access_token');
-    if (accessToken) {
-      window.history.replaceState({}, document.title, window.location.pathname);
-      window.location.hash = '';
-      (async () => {
-        try {
-          const res = await fetch('/.netlify/functions/generate', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'getOAuthUser', accessToken })
-          });
-          const user = await res.json();
-          if (user && user.email) {
-            const email = user.email;
-            const name = user.user_metadata?.full_name || user.email.split('@')[0];
-            localStorage.setItem('weightedai_email', email);
-            const profile = await loadProfile(email) || {};
-            if (!profile.name) {
-              await saveProfile(email, { name, tier: 'free' });
-              profile.name = name;
-              profile.email = email;
-              profile.tier = 'free';
-            }
-            const fullProfile = { ...profile, name: profile.name || name, email };
-            window.dispatchEvent(new CustomEvent('weightedai-signin', { detail: { email, profile: fullProfile } }));
-            if (window.__setSignedIn) window.__setSignedIn(fullProfile.name);
-            document.getElementById('signin-overlay') && (document.getElementById('signin-overlay').style.display = 'none');
-            setTimeout(() => { const el = document.getElementById('app'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 300);
+    // Supabase auth state listener - handles Google OAuth + session persistence
+    const { data: { subscription } } = window._supabase.auth.onAuthStateChange(async (event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user?.email) {
+        const email = session.user.email;
+        const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split('@')[0];
+        localStorage.setItem('weightedai_email', email);
+        const profile = await loadProfile(email) || {};
+        if (!profile.name) {
+          await saveProfile(email, { name, tier: 'free' });
+          profile.name = name;
+          profile.email = email;
+          profile.tier = 'free';
+        }
+        const fullProfile = { ...profile, name: profile.name || name, email };
+        await handleNavSignIn({ detail: { email, profile: fullProfile } });
+        if (window.__setSignedIn) window.__setSignedIn(fullProfile.name);
+        document.getElementById('signin-overlay') && (document.getElementById('signin-overlay').style.display = 'none');
+        // Clean up URL if OAuth callback
+        if (window.location.hash.includes('access_token')) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+    });
+
+    // Also check for existing session on load
+    window._supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user?.email) {
+        const email = session.user.email;
+        const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split('@')[0];
+        localStorage.setItem('weightedai_email', email);
+        const profile = await loadProfile(email) || {};
+        if (!profile.name) {
+          await saveProfile(email, { name, tier: 'free' });
+          profile.name = name; profile.email = email; profile.tier = 'free';
+        }
+        const fullProfile = { ...profile, name: profile.name || name, email };
+        await handleNavSignIn({ detail: { email, profile: fullProfile } });
+        if (window.__setSignedIn) window.__setSignedIn(fullProfile.name);
+      } else {
+        // Fall back to email-based remember me
+        const rememberedEmail = localStorage.getItem('weightedai_email');
+        if (rememberedEmail) {
+          const profile = await loadProfile(rememberedEmail);
+          if (profile && profile.email) {
+            await handleNavSignIn({ detail: { email: rememberedEmail, profile } });
+            if (window.__setSignedIn) window.__setSignedIn(profile.name || rememberedEmail);
           }
-        } catch(e) { console.error('OAuth error:', e); }
-      })();
-    }
+        }
+      }
+    });
 
-    return () => { 
+    return () => {
       delete window.__showExercise;
       delete window.__showInfo;
-      window.removeEventListener('weightedai-signin', handleNavSignIn);
+      delete window.__triggerSignIn;
+      subscription?.unsubscribe?.();
     };
   }, [signedInName]);
 
