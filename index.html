@@ -1132,7 +1132,7 @@ function WeightedAI() {
     };
 
     // Supabase auth state listener - handles Google OAuth + session persistence
-    const { data: { subscription } } = window._supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = (window._supabase?.auth || { onAuthStateChange: (cb) => ({ data: { subscription: null } }) }).onAuthStateChange || window._supabase.auth.onAuthStateChange(async (event, session) => {
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user?.email) {
         const email = session.user.email;
         const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split('@')[0];
@@ -1155,8 +1155,7 @@ function WeightedAI() {
       }
     });
 
-    // Also check for existing session on load
-    window._supabase.auth.getSession().then(async ({ data: { session } }) => {
+    window._supabase ? window._supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user?.email) {
         const email = session.user.email;
         const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split('@')[0];
