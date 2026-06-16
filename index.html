@@ -1116,9 +1116,12 @@ function WeightedAI() {
         notes: profile.notes || ""
       };
       setForm(f => ({ ...f, ...mappedProfile, muscles: [] }));
-      const shareVal = profile.share_workout !== false;
-      setShareWorkout(shareVal);
-      try { localStorage.setItem("weightedai_share_workout", String(shareVal)); } catch {};
+      // Only update shareWorkout from profile if explicitly set in Supabase
+      if (profile.share_workout !== undefined && profile.share_workout !== null) {
+        const shareVal = profile.share_workout !== false;
+        setShareWorkout(shareVal);
+        try { localStorage.setItem("weightedai_share_workout", String(shareVal)); } catch {}
+      }
       setProfileLoaded(true);
       setStep("form");
       // Load workout log and history from Supabase
