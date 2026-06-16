@@ -809,7 +809,7 @@ const GOALS     = ["Burn Fat", "Build Muscle", "Improve Endurance", "Gain Streng
 const EQUIPMENT = ["Full Gym", "Home Gym", "Dumbbells Only", "Bodyweight Only", "TRX", "Kettlebells"];
 const LEVELS    = ["Beginner", "Intermediate", "Advanced"];
 const DAYS      = ["3", "4", "5", "6"];
-const MUSCLES   = ["Full Body", "Back", "Chest", "Shoulders", "Biceps", "Triceps", "Legs / Glutes", "Core / Abs"];
+const MUSCLES   = ["Full Body", "Back", "Biceps", "Chest", "Core / Abs", "Legs / Glutes", "Shoulders", "Triceps"];
 
 const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"" };
 
@@ -1339,7 +1339,7 @@ Then provide:
 ### Warm-Up (5 min)
 3-4 warm-up moves.
 ### Main Workout
-6-8 exercises — for each: **Exercise Name** — sets x reps, rest (use actual numbers). For exercises with 4+ sets, use pyramid progression (e.g. 4 sets: 15 reps → 12 reps → 10 reps → 8 reps, increasing weight each set). For 3 sets, use straight sets. Then one short sentence describing what it works and why it's in this workout.
+6-8 exercises — for each: **Exercise Name** — sets x reps, rest (use actual numbers). PYRAMID RULE — MANDATORY: Any exercise with 4 or more sets MUST use pyramid progression with increasing weight each set. Format MUST be written as "4 sets x 15-12-10-8 reps" NOT "4 sets x 10 reps". For 3 sets use straight sets written as "3 sets x 10 reps". No exceptions — every 4+ set exercise must show descending rep numbers separated by dashes. Then one short sentence describing what it works and why it's in this workout.
 ### Cool-Down (5 min)
 3-4 stretches.
 
@@ -1459,7 +1459,7 @@ The goal: a user doing daily workouts for 30 days should feel like they have a d
 ## Overview & Goals
 ## How To Use This Plan
 ## Nutrition Strategy (calorie target, macros, meal timing, food recommendations)
-## The 30-Day Schedule (4 weeks, every training day with: day number, focus, 5-6 exercises. For each: **Exercise Name** — sets x reps (use actual numbers). For exercises with 4+ sets use pyramid progression (e.g. 15→12→10→8 reps, increasing weight each set). One short sentence on what it works. One coaching note per day.)
+## The 30-Day Schedule (4 weeks, every training day with: day number, focus, 5-6 exercises. For each: **Exercise Name** — sets x reps (use actual numbers). PYRAMID RULE — MANDATORY: Any exercise with 4 or more sets MUST use pyramid progression, written as "4 sets x 15-12-10-8 reps". No exceptions. One short sentence on what it works. One coaching note per day.)
 ## Recovery Protocol
 ## End of 30 Days
 
@@ -1575,7 +1575,7 @@ The goal: a user doing daily workouts for 30 days should feel like they have a d
 # ${leadData.name}'s Personalized Plan
 ## Overview
 ## Weekly Schedule
-## Workout Plans (each day: name, muscle focus, 5-7 exercises. For each: **Exercise Name** — sets x reps (use actual numbers), rest period. For exercises with 4+ sets use pyramid progression (e.g. 15→12→10→8 reps, increasing weight each set). For 3 sets use straight sets. Then one short sentence describing what it works and why it's in this workout.)
+## Workout Plans (each day: name, muscle focus, 5-7 exercises. For each: **Exercise Name** — sets x reps (use actual numbers), rest period. PYRAMID RULE — MANDATORY: Any exercise with 4 or more sets MUST use pyramid progression with increasing weight each set. Format MUST be written as "4 sets x 15-12-10-8 reps" NOT "4 sets x 10 reps". For 3 sets use straight sets written as "3 sets x 10 reps". No exceptions — every 4+ set exercise must show descending rep numbers separated by dashes. Then one short sentence describing what it works and why it's in this workout.)
 ## Nutrition Strategy (calorie target, macros, meal timing, food recommendations)
 ## Recovery Protocol
 ## 4-Week Progression
