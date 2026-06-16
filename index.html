@@ -1018,6 +1018,7 @@ function WeightedAI() {
   const [difficulty, setDifficulty] = useState(0);
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [workoutHistory, setWorkoutHistory] = useState([]);
+  const [shareWorkout, setShareWorkout] = useState(true);
 
   useEffect(() => {
     // Screen wake lock in workout mode
@@ -1164,6 +1165,7 @@ function WeightedAI() {
         level: profile.level || "",
         equipment: profile.equipment || "",
         days: profile.days || "4",
+      shareWorkout: profile.share_workout !== false,
         injuries: profile.injuries || "",
         notes: profile.notes || ""
       };
@@ -1920,7 +1922,22 @@ Be specific. Use tables where helpful.`
                         {[form.age && `Age: ${form.age}`, form.gender && form.gender !== "Prefer not to say" && form.gender, form.weight && `${form.weight}`, form.height && form.height].filter(Boolean).join(" · ")}
                       </div>
                     </div>
-                    <button onClick={handleEditProfile} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#666",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:2,textTransform:"uppercase",padding:"8px 16px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap"}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#666"}}>Edit Profile</button>
+                    <div style={{display:"flex",alignItems:"center",gap:12}}>
+                      <div style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:"#555"}}>
+                        <span style={{letterSpacing:1}}>Share workouts</span>
+                        <div 
+                          onClick={async () => {
+                            const newVal = !shareWorkout;
+                            setShareWorkout(newVal);
+                            if (lead) await dbRequest("saveProfile", { email: lead.email, profileData: { share_workout: newVal } });
+                          }}
+                          style={{width:36,height:20,borderRadius:500,background:shareWorkout?"var(--acid)":"#2a2a2a",cursor:"pointer",position:"relative",transition:"background 0.2s",flexShrink:0}}
+                        >
+                          <div style={{position:"absolute",top:3,left:shareWorkout?18:3,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
+                        </div>
+                      </div>
+                      <button onClick={handleEditProfile} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#666",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:2,textTransform:"uppercase",padding:"8px 16px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap"}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#666"}}>Edit Profile</button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -2125,6 +2142,36 @@ Be specific. Use tables where helpful.`
                           <div className="rating-done">
                             <strong>✓ Workout logged!</strong> Your next plan will be adjusted based on today's difficulty rating of {difficulty}/5.
                           </div>
+                          {shareWorkout && (
+                          <button
+                            onClick={() => {
+                              const muscles = form.muscles.length > 0 ? form.muscles.join(", ") : "Full Body";
+                              const name = lead?.name?.split(" ")[0] || "I";
+                              const boldMatches = (plan || "").match(/\*\*([^*]+)\*\*/g) || [];
+                              const exercises = boldMatches
+                                .map(m => {
+                                  const parts = m.replace(/\*\*/g, "").split("—");
+                                  const exName = parts[0].trim();
+                                  const sets = parts[1] ? parts[1].trim().split(",")[0].trim() : "";
+                                  return sets ? `• ${exName} — ${sets}` : `• ${exName}`;
+                                })
+                                .filter(e => e.length > 3 && e.length < 80)
+                                .slice(0, 10)
+                                .join("\n");
+                              const shareText = `${name} shared a WeightedAI ${muscles} workout:\n\n${exercises}\n\nTry it free → weightedai.net`;
+                              if (navigator.share) {
+                                navigator.share({ title: "WeightedAI Workout", text: shareText, url: "https://weightedai.net" });
+                              } else {
+                                window.open("sms:?body=" + encodeURIComponent(shareText));
+                              }
+                            }}
+                            style={{width:"100%",background:"transparent",border:"1px solid #2a2a2a",color:"#888",fontFamily:"DM Sans,sans-serif",fontSize:13,letterSpacing:1,padding:"12px 20px",cursor:"pointer",borderRadius:500,marginTop:12,transition:"all 0.2s",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}
+                            onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}}
+                            onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#888"}}
+                          >
+                            📲 Share Workout with Friends
+                          </button>
+                          )}
                         )}
                       </div>
                     )}
@@ -2230,7 +2277,35 @@ Be specific. Use tables where helpful.`
               ) : (
                 <div style={{textAlign:"center",padding:"8px 0"}}>
                   <div style={{color:"var(--acid)",fontFamily:"Bebas Neue, sans-serif",fontSize:22,letterSpacing:2,marginBottom:4}}>WORKOUT COMPLETE ✓</div>
-                  <div style={{fontSize:13,color:"#666"}}>Next plan will be adjusted based on your rating of {difficulty}/5</div>
+                  <div style={{fontSize:13,color:"#666",marginBottom:12}}>Next plan will be adjusted based on your rating of {difficulty}/5</div>
+                  {shareWorkout && (
+                  <button
+                    onClick={() => {
+                      const muscles = form.muscles.length > 0 ? form.muscles.join(", ") : "Full Body";
+                      const name = lead?.name?.split(" ")[0] || "I";
+                      const boldMatches = (plan || "").match(/\*\*([^*]+)\*\*/g) || [];
+                      const exercises = boldMatches
+                        .map(m => {
+                          const parts = m.replace(/\*\*/g, "").split("—");
+                          const exName = parts[0].trim();
+                          const sets = parts[1] ? parts[1].trim().split(",")[0].trim() : "";
+                          return sets ? `• ${exName} — ${sets}` : `• ${exName}`;
+                        })
+                        .filter(e => e.length > 3 && e.length < 80)
+                        .slice(0, 10)
+                        .join("\n");
+                      const shareText = `${name} shared a WeightedAI ${muscles} workout:\n\n${exercises}\n\nTry it free → weightedai.net`;
+                      if (navigator.share) {
+                        navigator.share({ title: "WeightedAI Workout", text: shareText, url: "https://weightedai.net" });
+                      } else {
+                        window.open("sms:?body=" + encodeURIComponent(shareText));
+                      }
+                    }}
+                    style={{width:"100%",background:"transparent",border:"1px solid #2a2a2a",color:"#888",fontFamily:"DM Sans,sans-serif",fontSize:13,letterSpacing:1,padding:"12px 20px",cursor:"pointer",borderRadius:500,transition:"all 0.2s"}}
+                    onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}}
+                    onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#888"}}
+                  >📲 Share Workout with Friends</button>
+                  )}
                 </div>
               )}
             </div>
