@@ -79,6 +79,20 @@ exports.handler = async function(event, context) {
       return { statusCode: 200, headers, body: JSON.stringify(res) };
     }
 
+    if (action === "deleteAccount") {
+      const { email } = parsed;
+      if (!email) return { statusCode: 400, headers, body: JSON.stringify({ error: "Email required" }) };
+      
+      // Delete from workout_history
+      await supabaseRequest("DELETE", `/workout_history?email=eq.${encodeURIComponent(email)}`);
+      // Delete from workout_log
+      await supabaseRequest("DELETE", `/workout_log?email=eq.${encodeURIComponent(email)}`);
+      // Delete from profiles
+      await supabaseRequest("DELETE", `/profiles?email=eq.${encodeURIComponent(email)}`);
+      
+      return { statusCode: 200, headers, body: JSON.stringify({ success: true }) };
+    }
+
     if (action === "loadProfile") {
       const res = await supabase("GET", `profiles?email=eq.${encodeURIComponent(email)}&select=*`);
       const data = JSON.parse(res.body);
@@ -114,7 +128,7 @@ exports.handler = async function(event, context) {
     if (action === "generate" || prompt) {
       const postData = JSON.stringify({
         model: "claude-sonnet-4-5",
-        max_tokens: 2000,
+        max_tokens: 4000,
         messages: [{ role: "user", content: prompt }]
       });
 
