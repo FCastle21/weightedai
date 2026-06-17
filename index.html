@@ -1947,6 +1947,20 @@ Be specific. Use tables where helpful.`
                         </div>
                       </div>
                       <button onClick={handleEditProfile} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#666",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:2,textTransform:"uppercase",padding:"8px 16px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap"}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#666"}}>Edit Profile</button>
+                      <button onClick={async () => {
+                        if (!window.confirm("Delete your account? This will permanently remove your profile and all workout history. This cannot be undone.")) return;
+                        if (!window.confirm("Are you sure? All your data will be deleted permanently.")) return;
+                        try {
+                          await dbRequest("deleteAccount", { email: lead.email });
+                          localStorage.removeItem("weightedai_email");
+                          localStorage.removeItem("weightedai_active_workout");
+                          localStorage.removeItem("weightedai_share_workout");
+                          alert("Your account has been deleted.");
+                          window.location.reload();
+                        } catch(e) {
+                          alert("Something went wrong. Please try again.");
+                        }
+                      }} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#555",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"8px 14px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap"}} onMouseOver={e=>{e.currentTarget.style.borderColor="#ff4444";e.currentTarget.style.color="#ff4444"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#555"}}>Delete Account</button>
                     </div>
                   </div>
                 </div>
