@@ -644,7 +644,7 @@ const styles = `
   .workout-mode-content p { margin-bottom: 12px; color: #ccc; font-size: 15px; }
   .workout-mode-content ul { padding-left: 20px; margin-bottom: 16px; }
   .workout-mode-content li { margin-bottom: 10px; font-size: 16px; color: var(--white); }
-  .workout-mode-content strong { color: var(--acid); font-weight: 600; font-size: 17px; }
+  .workout-mode-content strong { color: var(--acid); font-weight: 600; font-size: 17px; cursor: pointer; border-bottom: 1px dotted var(--acid); }
   .workout-mode-content table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 15px; }
   .workout-mode-content th { background: #1a1a1a; color: var(--acid); text-align: left; padding: 10px 14px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
   .workout-mode-content td { padding: 12px 14px; border-bottom: 1px solid #1a1a1a; color: var(--white); }
@@ -2305,7 +2305,16 @@ Be specific. Use tables where helpful.`
             </div>
             <div className="workout-mode-body">
   
-              <div className="workout-mode-content" dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}} />
+              <div 
+                className="workout-mode-content" 
+                dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}}
+                onClick={e => {
+                  if (e.target.tagName === 'STRONG') {
+                    const exName = e.target.textContent.split('—')[0].split('–')[0].trim();
+                    if (exName.length > 3 && exName.length < 60) setVideoModal({ name: exName, query: exName + ' exercise tutorial how to' });
+                  }
+                }}
+              />
             </div>
             <div className="workout-mode-footer">
               {!ratingSubmitted ? (
