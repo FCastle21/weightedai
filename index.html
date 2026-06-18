@@ -1019,6 +1019,7 @@ function WeightedAI() {
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [workoutHistory, setWorkoutHistory] = useState([]);
   const [videoModal, setVideoModal] = useState(null); // { name, query }
+  const [regenCount, setRegenCount] = useState(0);
   const [shareWorkout, setShareWorkout] = useState(() => { try { const v = localStorage.getItem("weightedai_share_workout"); return v === null ? true : v === "true"; } catch { return true; } });
 
   useEffect(() => {
@@ -1685,6 +1686,7 @@ Be specific. Use tables where helpful.`
   };
 
   const handleReset = () => {
+    setRegenCount(0);
     setPlan(null); setLead(null); setUnlocked(false); setInspo(null);
     setBlocked(false); setProfileLoaded(false); setEditingProfile(false); setMusicVibe(""); setVideoExercise(null); setInfoExercise(null); setThirtyDayPlan(false); setRegenNote(""); setIsStreaming(false); setDifficulty(0); setRatingSubmitted(false); setWorkoutMode(false); setSavedWorkout(null); try { localStorage.removeItem("weightedai_active_workout"); } catch(e) {}
     setStep("home"); setTier(null); setForm(BLANK_FORM);
@@ -1705,6 +1707,11 @@ Be specific. Use tables where helpful.`
   };
 
   const handleRegenerate = async () => {
+    if (tier === "individual" && regenCount >= 1) {
+      alert("Single workouts include one free regeneration. Upgrade to Unlimited for unlimited regenerations on every workout.");
+      return;
+    }
+    setRegenCount(c => c + 1);
     setPlan(null); setInspo(null); setUnlocked(false);
     const note = regenNote.trim();
     setRegenNote("");
@@ -1712,7 +1719,18 @@ Be specific. Use tables where helpful.`
     if (!note) {
       // No note entered - generate an entirely new/different workout
       setStep("loading");
-      const freshForm = { ...form, notes: (form.notes ? form.notes + ". " : "") + "REGENERATION REQUEST: Generate a COMPLETELY DIFFERENT workout than before. Use different exercises, different order, different rep schemes. Do not repeat the structure of the previous workout in any way." };
+      // Extract exercise names from current plan to explicitly ban them
+      let prevExercises = [];
+      try {
+        const boldMatches = (plan || "").match(/\*\*([^*]+)\*\*/g) || [];
+        prevExercises = boldMatches
+          .map(m => m.replace(/\*\*/g, "").split("—")[0].split("–")[0].trim())
+          .filter(e => e.length > 3 && e.length < 60);
+      } catch(e) {}
+      const banText = prevExercises.length > 0 
+        ? " The following exercises were JUST used and are STRICTLY BANNED from this regeneration: " + prevExercises.join(", ") + ". Choose completely different exercises for every single slot."
+        : "";
+      const freshForm = { ...form, notes: (form.notes ? form.notes + ". " : "") + "REGENERATION REQUEST: Generate a COMPLETELY DIFFERENT workout than before. Use different exercises, different order, different rep schemes." + banText };
       await generatePlan(lead, null, freshForm);
       return;
     }
@@ -2161,10 +2179,15 @@ Be specific. Use tables where helpful.`
   style={{cursor:'default'}}
 />
                     {/* REGENERATE */}
-                    {!isStreaming && (
+                    {!isStreaming && (tier !== "individual" || regenCount < 1) && (
                       <div className="regen-row">
                         <input className="regen-input" placeholder='Adjust: "make it harder", "no deadlifts", "shorter rest"...' value={regenNote} onChange={e=>setRegenNote(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleRegenerate()} />
                         <button className="regen-submit" onClick={handleRegenerate}>REGENERATE →</button>
+                      </div>
+                    )}
+                    {!isStreaming && tier === "individual" && regenCount >= 1 && (
+                      <div style={{background:"#0f0f0f",border:"1px solid #1e1e1e",borderLeft:"3px solid var(--acid)",padding:"14px 20px",marginBottom:24,fontSize:13,color:"#888"}}>
+                        You've used your free regeneration for this workout. <a href="#" onClick={(e)=>{e.preventDefault(); setTier("unlimited"); setStep("form"); setUnlocked(false); setPlan(null); setTimeout(()=>{ const el=document.getElementById("form-top"); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:"smooth"}); }}, 50);}} style={{color:"var(--acid)",textDecoration:"underline"}}>Upgrade to Unlimited</a> for unlimited regenerations.
                       </div>
                     )}
 
