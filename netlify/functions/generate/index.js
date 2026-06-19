@@ -80,7 +80,6 @@ exports.handler = async function(event, context) {
     }
 
     if (action === "deleteAccount") {
-      const { email } = parsed;
       if (!email) return { statusCode: 400, headers, body: JSON.stringify({ error: "Email required" }) };
       
       // Delete from workout_history
@@ -117,4 +116,95 @@ exports.handler = async function(event, context) {
         }
       }, postData);
 
-      const sessio
+      const sessionData = JSON.parse(res.body);
+      if (sessionData.error) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: sessionData.error.message }) };
+      }
+      return { statusCode: 200, headers, body: JSON.stringify({ url: sessionData.url, id: sessionData.id }) };
+    }
+
+    if (action === "verifyCheckoutSession") {
+      const { sessionId } = parsed;
+      if (!sessionId) return { statusCode: 400, headers, body: JSON.stringify({ error: "sessionId required" }) };
+
+      const res = await httpsRequest({
+        hostname: "api.stripe.com",
+        path: "/v1/checkout/sessions/" + sessionId,
+        method: "GET",
+        headers: {
+          "Authorization": "Bearer " + process.env.STRIPE_SECRET_KEY
+        }
+      });
+
+      const sessionData = JSON.parse(res.body);
+      return { statusCode: 200, headers, body: JSON.stringify({ 
+        paid: sessionData.payment_status === "paid" || sessionData.status === "complete",
+        customerEmail: sessionData.customer_details?.email || sessionData.customer_email
+      }) };
+    }
+
+    if (action === "loadProfile") {
+      const res = await supabase("GET", `profiles?email=eq.${encodeURIComponent(email)}&select=*`);
+      const data = JSON.parse(res.body);
+      return { statusCode: 200, headers, body: JSON.stringify(data.length > 0 ? data[0] : null) };
+    }
+
+    if (action === "saveProfile") {
+      console.log("Saving profile for:", email, "Data keys:", Object.keys(profileData || {}).join(", "));
+      const res = await supabase("POST", "profiles", { ...profileData, email, updated_at: new Date().toISOString() });
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, status: res.status }) };
+    }
+
+    if (action === "loadLog") {
+      const res = await supabase("GET", `workout_log?email=eq.${encodeURIComponent(email)}&order=created_at.desc&limit=20`);
+      return { statusCode: 200, headers, body: res.body };
+    }
+
+    if (action === "saveLog") {
+      const res = await supabase("POST", "workout_log", { ...logEntry, email });
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, status: res.status }) };
+    }
+
+    if (action === "loadHistory") {
+      const res = await supabase("GET", `workout_history?email=eq.${encodeURIComponent(email)}&order=created_at.desc&limit=5`);
+      return { statusCode: 200, headers, body: res.body };
+    }
+
+    if (action === "saveHistory") {
+      const res = await supabase("POST", "workout_history", { ...historyEntry, email });
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, status: res.status }) };
+    }
+
+    if (action === "generate" || prompt) {
+      const postData = JSON.stringify({
+        model: "claude-sonnet-4-5",
+        max_tokens: 4000,
+        messages: [{ role: "user", content: prompt }]
+      });
+
+      const res = await httpsRequest({
+        hostname: "api.anthropic.com",
+        path: "/v1/messages",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "Content-Length": Buffer.byteLength(postData)
+        }
+      }, postData);
+
+      return { statusCode: 200, headers, body: res.body };
+    }
+
+    return { statusCode: 400, headers, body: JSON.stringify({ error: "Unknown action" }) };
+
+  } catch (err) {
+    console.error("Function error:", err.message, err.stack);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ error: err.message })
+    };
+  }
+};
