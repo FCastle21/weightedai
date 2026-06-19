@@ -1263,16 +1263,20 @@ function WeightedAI() {
     }
     setLead(leadData);
 
-    // FREE TIER: weekly limit disabled for testing
-    // if (tier === "free") {
-    //   const profile = existingProfile || {};
-    //   const usedWeek = profile.freeWeekUsed || profile.free_week_used;
-    //   if (usedWeek === getWeekKey()) {
-    //     setBlocked(true);
-    //     setStep("plan");
-    //     return;
-    //   }
-    // }
+    // FREE TIER: enforce 1 workout every 7 days (rolling window, not calendar week)
+    if (tier === "free") {
+      const profile = existingProfile || {};
+      const lastUsed = profile.freeWeekUsed || profile.free_week_used;
+      if (lastUsed) {
+        const lastUsedDate = new Date(lastUsed);
+        const daysSince = (Date.now() - lastUsedDate.getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSince < 7) {
+          setBlocked(true);
+          setStep("plan");
+          return;
+        }
+      }
+    }
 
     // PAID TIERS: if returning user with saved profile, auto-fill (muscles reset each session)
     if ((tier === "unlimited" || tier === "annual" || tier === "individual") && existingProfile && !editingProfile) {
@@ -1811,7 +1815,7 @@ Be specific. Use tables where helpful.`
         ...toSave,
         name: leadData.name,
         tier,
-        ...(isFree ? { freeWeekUsed: getWeekKey() } : {})
+        ...(isFree ? { freeWeekUsed: new Date().toISOString() } : {})
       });
     } catch(err) {
       console.error("Generation error:", err);
@@ -2251,7 +2255,7 @@ Be specific. Use tables where helpful.`
             {blocked ? (
               <div className="blocked-banner">
                 <h3>YOU'VE USED YOUR FREE WORKOUT THIS WEEK</h3>
-                <p>Your free workout resets every Monday. Come back then — or upgrade now to train on your schedule with a full personalized program.</p>
+                <p>Your free workout becomes available again 7 days after your last one. Come back then — or upgrade now to train on your schedule with a full personalized program.</p>
                 <button className="blocked-upgrade-btn" onClick={() => { setBlocked(false); setTier("individual"); setStep("form"); setPlan(null); setTimeout(()=>{ const el=document.getElementById('form-top'); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:'smooth'}); }}, 50); }}>
                   UPGRADE FOR $4.99 →
                 </button>
