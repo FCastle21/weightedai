@@ -1002,7 +1002,6 @@ function WeightedAI() {
   const [inspo, setInspo]       = useState(null);
   const [error, setError]       = useState(null);
   const [unlocked, setUnlocked] = useState(false);
-  const [showModal, setShowModal] = useState(false);
   const [musicVibe, setMusicVibe] = useState("");
   const [videoExercise, setVideoExercise] = useState(null);
   const [infoExercise, setInfoExercise] = useState(null);
@@ -2469,7 +2468,7 @@ Be specific. Use tables where helpful.`
                       <p className="paywall-sub">{tier==="individual"?"Unlock this workout now.":"Unlock your full program, nutrition plan, and 4-week progression."}</p>
                       <div className="paywall-price">{tier==="individual"?"$4.99":tier==="annual"?"$249.99/yr":"$24.99/mo"}</div>
                       
-                      <button className="paywall-btn" onClick={()=>setShowModal(true)}>
+                      <button className="paywall-btn" onClick={()=>startStripeCheckout(tier, lead?.email)}>
                         {tier==="individual"?"UNLOCK FOR $4.99 →":tier==="annual"?"START ANNUAL — $249.99 →":"START UNLIMITED →"}
                       </button>
                       <div className="paywall-note">🔒 Secure payment · Instant access</div>
