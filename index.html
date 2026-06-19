@@ -1294,7 +1294,9 @@ function WeightedAI() {
     const isPaid = tier === "individual" || tier === "unlimited" || tier === "annual";
 
     const prompt = isFree
-      ? `You are an elite fitness engine. Generate a single full-body workout for ${leadData.name}.
+      ? `CRITICAL OUTPUT RULE: All verification steps, self-checks, sequence labels (like A/B), randomization notes, rotation checks, balance checks, and internal reasoning described in this prompt are for YOUR INTERNAL USE ONLY when constructing the workout. NEVER include any of this meta-commentary in your actual output. The user-facing output must contain ONLY the workout content itself — exercise names, sets, reps, rest, and brief descriptions. Do not mention "Type A", "Type B", "balanced", "verified", "rotation check", "sequence", "randomization seed", or any other planning/verification language in your response.
+
+You are an elite fitness engine. Generate a single full-body workout for ${leadData.name}.
 
 PROFILE:
 - Age: ${currentForm.age || "Not specified"}
@@ -1422,7 +1424,9 @@ Exactly 3 stretches.
 
 Do NOT include nutrition plans, multi-week programs, or long-form content. This is a free single workout only.`
       : thirtyDayPlan
-      ? `You are an elite fitness engine. Create a complete 30-DAY training plan for ${leadData.name}.
+      ? `CRITICAL OUTPUT RULE: All verification steps, self-checks, sequence labels (like A/B), randomization notes, rotation checks, balance checks, and internal reasoning described in this prompt are for YOUR INTERNAL USE ONLY when constructing the workout. NEVER include any of this meta-commentary in your actual output. The user-facing output must contain ONLY the workout content itself — exercise names, sets, reps, rest, and brief descriptions. Do not mention "Type A", "Type B", "balanced", "verified", "rotation check", "sequence", "randomization seed", or any other planning/verification language in your response.
+
+You are an elite fitness engine. Create a complete 30-DAY training plan for ${leadData.name}.
 
 PROFILE:
 - Age: ${currentForm.age||"Not specified"}
@@ -1601,7 +1605,9 @@ DISCLAIMER — INCLUDE THIS VERBATIM AT THE END OF THE NUTRITION STRATEGY SECTIO
 ## End of 30 Days
 
 Be thorough and specific. Use tables where helpful.`
-      : `You are an elite fitness engine. Create a complete personalized program for ${leadData.name}.
+      : `CRITICAL OUTPUT RULE: All verification steps, self-checks, sequence labels (like A/B), randomization notes, rotation checks, balance checks, and internal reasoning described in this prompt are for YOUR INTERNAL USE ONLY when constructing the workout. NEVER include any of this meta-commentary in your actual output. The user-facing output must contain ONLY the workout content itself — exercise names, sets, reps, rest, and brief descriptions. Do not mention "Type A", "Type B", "balanced", "verified", "rotation check", "sequence", "randomization seed", or any other planning/verification language in your response.
+
+You are an elite fitness engine. Create a complete personalized program for ${leadData.name}.
 
 PROFILE:
 - Age: ${currentForm.age||"Not specified"}
