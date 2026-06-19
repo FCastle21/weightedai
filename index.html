@@ -1263,7 +1263,7 @@ PROFILE:
 - Age: ${currentForm.age || "Not specified"}
 - Gender: ${currentForm.gender || "Not specified"}
 - Level: ${currentForm.level}
-- Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}
+- Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}${currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout — use them when they fit naturally into the variety/rotation, not by default.":""}
 - Goal: ${currentForm.goal}
 - Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body")} — STRICTLY limit all exercises to ONLY these muscle groups. Do not include exercises for any other muscle groups.${currentForm.goal === "The Marla" ? " THIS IS THE MARLA WORKOUT — every single exercise must target glutes and/or hamstrings specifically. No quad-dominant exercises. Focus on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, hyperextensions, and hamstring curls." : ""}
 
@@ -1307,11 +1307,13 @@ APEX SPECIFIC RULE — APPLIES AT ALL LEVELS: Apex is built around one mission �
 
 TYPE A — MUSCLE BUILDING: Compound and isolation lifts (squat, deadlift, bench press, row, overhead press patterns, lunges) at moderate-heavy loads, 6-10 reps, 60-90s rest. Standard strength training form.
 
-TYPE B — METCON: High-intensity cardio/conditioning movements such as burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing machine sprints, or other plyometric/explosive movements. These are timed or high-rep (30-60 seconds of work, or 15-25 reps), minimal rest (15-30s).
+TYPE B — METCON: High-intensity cardio/conditioning movements such as burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing machine sprints, or other plyometric/explosive movements. These are timed or high-rep (30-60 seconds of work, or 15-25 reps), minimal rest (15-30s). Burpees and mountain climbers are excellent staple metcon exercises for Apex — include at least one of them in the workout if not already present, since they require no specialized equipment and are highly effective for this goal.
 
 STRUCTURE — THIS IS A HARD REQUIREMENT FOR THE ENTIRE WORKOUT, NO EXCEPTIONS: Exercises must alternate Muscle Building, Metcon, Muscle Building, Metcon for the ENTIRE workout from exercise 1 to the final exercise. This pattern MUST continue through every single exercise — do not let it drift into all-strength or all-metcon at any point, including the middle or end of the workout. Before finalizing your exercise list, go through it in order and label each one "A" (muscle building) or "B" (metcon) — the labels must strictly alternate A,B,A,B,A,B... for the full list. If you find two A's or two B's in a row anywhere in the list, fix it before outputting. Never two Muscle Building exercises back to back, never two Metcon exercises back to back, anywhere in the workout. The goal is simultaneous muscle growth, fat loss, and cardiovascular conditioning sustained throughout the entire session, not just the first half.
 
 MAXIMUM EXERCISE COUNT: Apex workouts must NEVER exceed 12 total exercises, regardless of level or days per week. Keep the exercise count reasonable (8-12 total) so the strict alternating pattern remains practical to complete in one session.
+
+FINAL VERIFICATION STEP — DO THIS BEFORE OUTPUTTING: Write out your exercise list as a sequence of letters only (e.g. A,B,A,B,A,B,A,B). Scan this sequence left to right. If you see "A,A" or "B,B" anywhere — even once — your workout is WRONG and violates the core Apex rule. Go back and swap or reorder exercises until the sequence is a perfect alternation with zero repeats of the same letter in a row. Do not output the workout until this sequence check passes. This check applies to the Main Workout exercises only, not warm-up or cool-down.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1374,11 +1376,11 @@ SELF-CHECK BEFORE WRITING: Look at your planned exercise list. If more than 2 of
 Then provide:
 ## This Week's Full-Body Workout
 ### Warm-Up (5 min)
-3-4 warm-up moves.
+Exactly 3 warm-up moves.
 ### Main Workout
 6-8 exercises — for each: **Exercise Name** — sets x reps, rest (use actual numbers). PYRAMID RULE — MANDATORY: Any exercise with 4 or more sets MUST use pyramid progression with increasing weight each set. Format MUST be written as "4 sets x 15-12-10-8 reps" NOT "4 sets x 10 reps". For 3 sets use straight sets written as "3 sets x 10 reps". No exceptions — every 4+ set exercise must show descending rep numbers separated by dashes. Then one short sentence describing what it works and why it's in this workout.
 ### Cool-Down (5 min)
-3-4 stretches.
+Exactly 3 stretches.
 
 
 Do NOT include nutrition plans, multi-week programs, or long-form content. This is a free single workout only.`
@@ -1392,7 +1394,7 @@ PROFILE:
 - Height: ${currentForm.height||"Not specified"}
 - Goal: ${currentForm.goal}
 - Level: ${currentForm.level}
-- Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":""}
+- Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout — use them when they fit naturally into the variety/rotation, not by default.":""}
 - Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups. Do not program exercises for muscles not listed here.${currentForm.goal === "The Marla" ? " THIS IS THE MARLA WORKOUT — every single exercise must target glutes and/or hamstrings specifically. No quad-dominant exercises (squats targeting quads, leg press, leg extensions). Focus on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, hyperextensions, and hamstring curls. This is an advanced-level muscle building workout exclusively for glutes and hamstrings." : ""}
 
 STRICT BALANCE RULE — THIS IS MANDATORY:
@@ -1455,11 +1457,13 @@ APEX SPECIFIC RULE — APPLIES AT ALL LEVELS: Apex is built around one mission �
 
 TYPE A — MUSCLE BUILDING: Compound and isolation lifts (squat, deadlift, bench press, row, overhead press patterns, lunges) at moderate-heavy loads, 6-10 reps, 60-90s rest. Standard strength training form.
 
-TYPE B — METCON: High-intensity cardio/conditioning movements such as burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing machine sprints, or other plyometric/explosive movements. These are timed or high-rep (30-60 seconds of work, or 15-25 reps), minimal rest (15-30s).
+TYPE B — METCON: High-intensity cardio/conditioning movements such as burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing machine sprints, or other plyometric/explosive movements. These are timed or high-rep (30-60 seconds of work, or 15-25 reps), minimal rest (15-30s). Burpees and mountain climbers are excellent staple metcon exercises for Apex — include at least one of them in the workout if not already present, since they require no specialized equipment and are highly effective for this goal.
 
 STRUCTURE — THIS IS A HARD REQUIREMENT FOR THE ENTIRE WORKOUT, NO EXCEPTIONS: Exercises must alternate Muscle Building, Metcon, Muscle Building, Metcon for the ENTIRE workout from exercise 1 to the final exercise. This pattern MUST continue through every single exercise — do not let it drift into all-strength or all-metcon at any point, including the middle or end of the workout. Before finalizing your exercise list, go through it in order and label each one "A" (muscle building) or "B" (metcon) — the labels must strictly alternate A,B,A,B,A,B... for the full list. If you find two A's or two B's in a row anywhere in the list, fix it before outputting. Never two Muscle Building exercises back to back, never two Metcon exercises back to back, anywhere in the workout. The goal is simultaneous muscle growth, fat loss, and cardiovascular conditioning sustained throughout the entire session, not just the first half.
 
 MAXIMUM EXERCISE COUNT: Apex workouts must NEVER exceed 12 total exercises, regardless of level or days per week. Keep the exercise count reasonable (8-12 total) so the strict alternating pattern remains practical to complete in one session.
+
+FINAL VERIFICATION STEP — DO THIS BEFORE OUTPUTTING: Write out your exercise list as a sequence of letters only (e.g. A,B,A,B,A,B,A,B). Scan this sequence left to right. If you see "A,A" or "B,B" anywhere — even once — your workout is WRONG and violates the core Apex rule. Go back and swap or reorder exercises until the sequence is a perfect alternation with zero repeats of the same letter in a row. Do not output the workout until this sequence check passes. This check applies to the Main Workout exercises only, not warm-up or cool-down.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1510,7 +1514,7 @@ The goal: a user doing daily workouts for 30 days should feel like they have a d
 ## Overview & Goals
 ## How To Use This Plan
 ## Nutrition Strategy (calorie target, macros, meal timing, food recommendations)
-## The 30-Day Schedule (4 weeks, every training day with: day number, focus, 5-6 exercises. For each: **Exercise Name** — sets x reps (use actual numbers). PYRAMID RULE — MANDATORY: Any exercise with 4 or more sets MUST use pyramid progression, written as "4 sets x 15-12-10-8 reps". No exceptions. One short sentence on what it works. One coaching note per day.)
+## The 30-Day Schedule (4 weeks, every training day with: day number, focus, exactly 3 warm-up moves, 5-6 main exercises, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers). PYRAMID RULE — MANDATORY: Any exercise with 4 or more sets MUST use pyramid progression, written as "4 sets x 15-12-10-8 reps". No exceptions. One short sentence on what it works. One coaching note per day.)
 ## Recovery Protocol
 ## End of 30 Days
 
@@ -1524,7 +1528,7 @@ PROFILE:
 - Height: ${currentForm.height||"Not specified"}
 - Goal: ${currentForm.goal}
 - Level: ${currentForm.level}
-- Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":""}
+- Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout — use them when they fit naturally into the variety/rotation, not by default.":""}
 - Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups. Do not program exercises for muscles not listed here.${currentForm.goal === "The Marla" ? " THIS IS THE MARLA WORKOUT — every single exercise must target glutes and/or hamstrings specifically. No quad-dominant exercises (squats targeting quads, leg press, leg extensions). Focus on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, hyperextensions, and hamstring curls. This is an advanced-level muscle building workout exclusively for glutes and hamstrings." : ""}
 
 STRICT BALANCE RULE — THIS IS MANDATORY:
@@ -1586,11 +1590,13 @@ APEX SPECIFIC RULE — APPLIES AT ALL LEVELS: Apex is built around one mission �
 
 TYPE A — MUSCLE BUILDING: Compound and isolation lifts (squat, deadlift, bench press, row, overhead press patterns, lunges) at moderate-heavy loads, 6-10 reps, 60-90s rest. Standard strength training form.
 
-TYPE B — METCON: High-intensity cardio/conditioning movements such as burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing machine sprints, or other plyometric/explosive movements. These are timed or high-rep (30-60 seconds of work, or 15-25 reps), minimal rest (15-30s).
+TYPE B — METCON: High-intensity cardio/conditioning movements such as burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing machine sprints, or other plyometric/explosive movements. These are timed or high-rep (30-60 seconds of work, or 15-25 reps), minimal rest (15-30s). Burpees and mountain climbers are excellent staple metcon exercises for Apex — include at least one of them in the workout if not already present, since they require no specialized equipment and are highly effective for this goal.
 
 STRUCTURE — THIS IS A HARD REQUIREMENT FOR THE ENTIRE WORKOUT, NO EXCEPTIONS: Exercises must alternate Muscle Building, Metcon, Muscle Building, Metcon for the ENTIRE workout from exercise 1 to the final exercise. This pattern MUST continue through every single exercise — do not let it drift into all-strength or all-metcon at any point, including the middle or end of the workout. Before finalizing your exercise list, go through it in order and label each one "A" (muscle building) or "B" (metcon) — the labels must strictly alternate A,B,A,B,A,B... for the full list. If you find two A's or two B's in a row anywhere in the list, fix it before outputting. Never two Muscle Building exercises back to back, never two Metcon exercises back to back, anywhere in the workout. The goal is simultaneous muscle growth, fat loss, and cardiovascular conditioning sustained throughout the entire session, not just the first half.
 
 MAXIMUM EXERCISE COUNT: Apex workouts must NEVER exceed 12 total exercises, regardless of level or days per week. Keep the exercise count reasonable (8-12 total) so the strict alternating pattern remains practical to complete in one session.
+
+FINAL VERIFICATION STEP — DO THIS BEFORE OUTPUTTING: Write out your exercise list as a sequence of letters only (e.g. A,B,A,B,A,B,A,B). Scan this sequence left to right. If you see "A,A" or "B,B" anywhere — even once — your workout is WRONG and violates the core Apex rule. Go back and swap or reorder exercises until the sequence is a perfect alternation with zero repeats of the same letter in a row. Do not output the workout until this sequence check passes. This check applies to the Main Workout exercises only, not warm-up or cool-down.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1640,7 +1646,7 @@ The goal: a user doing daily workouts for 30 days should feel like they have a d
 # ${leadData.name}'s Personalized Plan
 ## Overview
 ## Weekly Schedule
-## Workout Plans (each day: name, muscle focus, 5-7 exercises. For each: **Exercise Name** — sets x reps (use actual numbers), rest period. PYRAMID RULE — MANDATORY: Any exercise with 4 or more sets MUST use pyramid progression with increasing weight each set. Format MUST be written as "4 sets x 15-12-10-8 reps" NOT "4 sets x 10 reps". For 3 sets use straight sets written as "3 sets x 10 reps". No exceptions — every 4+ set exercise must show descending rep numbers separated by dashes. Then one short sentence describing what it works and why it's in this workout.)
+## Workout Plans (each day: name, muscle focus, exactly 3 warm-up moves, 5-7 main exercises, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers), rest period. PYRAMID RULE — MANDATORY: Any exercise with 4 or more sets MUST use pyramid progression with increasing weight each set. Format MUST be written as "4 sets x 15-12-10-8 reps" NOT "4 sets x 10 reps". For 3 sets use straight sets written as "3 sets x 10 reps". No exceptions — every 4+ set exercise must show descending rep numbers separated by dashes. Then one short sentence describing what it works and why it's in this workout.)
 ## Nutrition Strategy (calorie target, macros, meal timing, food recommendations)
 ## Recovery Protocol
 ## 4-Week Progression
