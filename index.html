@@ -1241,14 +1241,20 @@ function WeightedAI() {
         })();
       }
     } else {
-      // Auto sign in from remembered email
+      // Auto sign in from remembered email (skip if we just restored a paid plan, which already set the correct step)
       const _remembered = localStorage.getItem('weightedai_email');
-      if (_remembered) {
+      const _justPaid = _paymentStatus === "success" && _sessionId;
+      if (_remembered && !_justPaid) {
         loadProfile(_remembered).then(async profile => {
           if (profile && profile.email) {
             await handleNavSignIn({ detail: { email: _remembered, profile } });
             if (window.__setSignedIn) window.__setSignedIn(profile.name || _remembered);
           }
+        }).catch(() => {});
+      } else if (_remembered && _justPaid) {
+        // Still sign the user in for nav purposes, but don't let it reset step
+        loadProfile(_remembered).then(profile => {
+          if (profile && window.__setSignedIn) window.__setSignedIn(profile.name || _remembered);
         }).catch(() => {});
       }
     }
