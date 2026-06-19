@@ -6,4 +6,4 @@
   SECRETS_SCAN_OMIT_KEYS = "SUPABASE_URL"
 
 [functions."*"]
-  timeout = 26
+  timeout = 30
