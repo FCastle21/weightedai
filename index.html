@@ -955,38 +955,39 @@ function EmailGate({ tier, onSubmit, onClose, waiverAccepted, setWaiverAccepted,
 }
 
 // ── PAYMENT MODAL ─────────────────────────────────────────────────────────────
-function PaymentModal({ tier, onClose, onSuccess }) {
-  const [card, setCard]       = useState({ name:"", number:"", expiry:"", cvc:"" });
-  const [processing, setProc] = useState(false);
-  const isUnlimited = tier === "unlimited" || tier === "annual";
-  const price = tier === "annual" ? "$249.99" : tier === "unlimited" ? "$24.99" : "$4.99";
-  const label = tier === "annual" ? "WeightedAI Unlimited — Annual" : tier === "unlimited" ? "WeightedAI Unlimited — Monthly" : "WeightedAI — Single Workout";
-  const setF = (k,v) => setCard(c => ({...c,[k]:v}));
-  const fmtCard   = v => v.replace(/\D/g,"").slice(0,16).replace(/(.{4})/g,"$1 ").trim();
-  const fmtExpiry = v => { const d=v.replace(/\D/g,"").slice(0,4); return d.length>=3?d.slice(0,2)+"/"+d.slice(2):d; };
-  const pay = () => {
-    if (!card.name||!card.number||!card.expiry||!card.cvc) return;
-    setProc(true);
-    setTimeout(() => { setProc(false); onSuccess(); }, 2000);
-  };
-  return (
-    <div className="modal-overlay" onClick={e => e.target===e.currentTarget && onClose()}>
-      <div className="modal">
-        <div className="modal-header"><h3>COMPLETE PURCHASE</h3><button className="modal-close" onClick={onClose}>✕</button></div>
-        <div className="modal-summary"><div className="modal-summary-label">{label}</div><div className="modal-summary-price">{price}</div></div>
-        <div className="modal-field"><label>Cardholder Name</label><input placeholder="John Smith" value={card.name} onChange={e=>setF("name",e.target.value)} /></div>
-        <div className="modal-field"><label>Card Number</label><input placeholder="4242 4242 4242 4242" value={card.number} onChange={e=>setF("number",fmtCard(e.target.value))} /></div>
-        <div className="modal-row">
-          <div className="modal-field"><label>Expiry</label><input placeholder="MM/YY" value={card.expiry} onChange={e=>setF("expiry",fmtExpiry(e.target.value))} /></div>
-          <div className="modal-field"><label>CVC</label><input placeholder="123" maxLength={4} value={card.cvc} onChange={e=>setF("cvc",e.target.value.replace(/\D/g,"").slice(0,4))} /></div>
-        </div>
-        <button className="modal-submit" onClick={pay} disabled={processing}>{processing?"PROCESSING...":tier==="annual"?"START ANNUAL — $249.99 →":isUnlimited?"START UNLIMITED — $24.99/MO →":"PAY $4.99 & UNLOCK →"}</button>
-        {tier==="annual" ? <p className="modal-fine">Billed annually. Best value.</p> : isUnlimited ? <p className="modal-fine">Cancel anytime. Billed monthly.</p> : null}
-        <div className="modal-secure">🔒 SECURE CHECKOUT · SSL ENCRYPTED</div>
-      </div>
-    </div>
-  );
+const STRIPE_PRICE_IDS = {
+  individual: "price_1Tk56VHOTWRdSkL3ILLfJ1n6",
+  unlimited: "price_1Tk56ZHOTWRdSkL3fd92wRqn",
+  annual: "price_1Tk56ZHOTWRdSkL3V2zkitzL"
+};
+
+async function startStripeCheckout(tier, email) {
+  const priceId = STRIPE_PRICE_IDS[tier];
+  const mode = (tier === "unlimited" || tier === "annual") ? "subscription" : "payment";
+  try {
+    const res = await fetch("/.netlify/functions/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "createCheckoutSession",
+        priceId,
+        mode,
+        email,
+        successUrl: window.location.origin + "?payment=success&tier=" + tier + "&session_id={CHECKOUT_SESSION_ID}",
+        cancelUrl: window.location.origin + "?payment=cancelled"
+      })
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert("Payment setup failed: " + (data.error || "Unknown error"));
+    }
+  } catch(e) {
+    alert("Something went wrong starting checkout. Please try again.");
+  }
 }
+
 
 // ── MAIN APP ──────────────────────────────────────────────────────────────────
 function WeightedAI() {
@@ -1149,6 +1150,39 @@ function WeightedAI() {
       document.getElementById('signin-overlay') && (document.getElementById('signin-overlay').style.display = 'none');
     };
     window._handleAuthUser = _handleAuthUser;
+
+    // Handle Stripe payment redirect
+    const _searchParams = new URLSearchParams(window.location.search);
+    const _paymentStatus = _searchParams.get("payment");
+    const _sessionId = _searchParams.get("session_id");
+    const _paidTier = _searchParams.get("tier");
+    if (_paymentStatus === "success" && _sessionId) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      (async () => {
+        try {
+          const res = await fetch("/.netlify/functions/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "verifyCheckoutSession", sessionId: _sessionId })
+          });
+          const data = await res.json();
+          if (data.paid) {
+            setTier(_paidTier || "unlimited");
+            setUnlocked(true);
+            setStep("plan");
+            // Save tier to profile if signed in
+            const currentEmail = localStorage.getItem("weightedai_email") || data.customerEmail;
+            if (currentEmail) {
+              await saveProfile(currentEmail, { tier: _paidTier || "unlimited" });
+            }
+          } else {
+            alert("Payment could not be verified. Please contact support if you were charged.");
+          }
+        } catch(e) { console.error("Payment verification error:", e); }
+      })();
+    } else if (_paymentStatus === "cancelled") {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
     // Handle OAuth callback from URL hash
     const _hash = window.location.hash;
@@ -2461,14 +2495,6 @@ Be specific. Use tables where helpful.`
               </button>
             </div>
           </div>
-        )}
-
-        {showModal && (
-          <PaymentModal
-            tier={tier}
-            onClose={()=>setShowModal(false)}
-            onSuccess={()=>{ setShowModal(false); setUnlocked(true); }}
-          />
         )}
 
         {/* WORKOUT MODE */}
