@@ -961,10 +961,21 @@ const STRIPE_PRICE_IDS = {
   annual: "price_1Tk4rrHDBboegbiBgUvEcPxS"
 };
 
-async function startStripeCheckout(tier, email) {
+async function startStripeCheckout(tier, email, planContent, formData) {
   const priceId = STRIPE_PRICE_IDS[tier];
   const mode = (tier === "unlimited" || tier === "annual") ? "subscription" : "payment";
   try {
+    // Save current plan + form so we can restore after Stripe redirect
+    try {
+      localStorage.setItem("weightedai_pending_unlock", JSON.stringify({
+        plan: planContent || null,
+        form: formData || null,
+        tier,
+        email,
+        savedAt: new Date().toISOString()
+      }));
+    } catch(e) {}
+
     const res = await fetch("/.netlify/functions/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -1166,9 +1177,29 @@ function WeightedAI() {
           });
           const data = await res.json();
           if (data.paid) {
+            // Restore the pending plan/form that was saved before redirecting to Stripe
+            let restoredPlan = null, restoredForm = null;
+            try {
+              const pending = localStorage.getItem("weightedai_pending_unlock");
+              if (pending) {
+                const parsedPending = JSON.parse(pending);
+                restoredPlan = parsedPending.plan;
+                restoredForm = parsedPending.form;
+                localStorage.removeItem("weightedai_pending_unlock");
+              }
+            } catch(e) {}
+
             setTier(_paidTier || "unlimited");
-            setUnlocked(true);
-            setStep("plan");
+            if (restoredForm) setForm(f => ({ ...f, ...restoredForm }));
+            if (restoredPlan) {
+              setPlan(restoredPlan);
+              setUnlocked(true);
+              setStep("plan");
+            } else {
+              // No saved plan found - just unlock tier, user can generate fresh
+              setUnlocked(true);
+              setStep("form");
+            }
             // Save tier to profile if signed in
             const currentEmail = localStorage.getItem("weightedai_email") || data.customerEmail;
             if (currentEmail) {
@@ -2474,7 +2505,7 @@ Be specific. Use tables where helpful.`
                       <p className="paywall-sub">{tier==="individual"?"Unlock this workout now.":"Unlock your full program, nutrition plan, and 4-week progression."}</p>
                       <div className="paywall-price">{tier==="individual"?"$4.99":tier==="annual"?"$249.99/yr":"$24.99/mo"}</div>
                       
-                      <button className="paywall-btn" onClick={()=>startStripeCheckout(tier, lead?.email)}>
+                      <button className="paywall-btn" onClick={()=>startStripeCheckout(tier, lead?.email, plan, form)}>
                         {tier==="individual"?"UNLOCK FOR $4.99 →":tier==="annual"?"START ANNUAL — $249.99 →":"START UNLIMITED →"}
                       </button>
                       <div className="paywall-note">🔒 Secure payment · Instant access</div>
