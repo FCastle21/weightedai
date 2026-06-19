@@ -1167,6 +1167,7 @@ function WeightedAI() {
     const _sessionId = _searchParams.get("session_id");
     const _paidTier = _searchParams.get("tier");
     if (_paymentStatus === "success" && _sessionId) {
+      console.log("[WeightedAI] Payment redirect detected, sessionId:", _sessionId, "tier:", _paidTier);
       window.history.replaceState({}, document.title, window.location.pathname);
       (async () => {
         try {
@@ -1176,11 +1177,14 @@ function WeightedAI() {
             body: JSON.stringify({ action: "verifyCheckoutSession", sessionId: _sessionId })
           });
           const data = await res.json();
+          console.log("[WeightedAI] Verify session response:", JSON.stringify(data));
           if (data.paid) {
+            console.log("[WeightedAI] Payment verified as paid. Checking for pending plan...");
             // Restore the pending plan/form that was saved before redirecting to Stripe
             let restoredPlan = null, restoredForm = null;
             try {
               const pending = localStorage.getItem("weightedai_pending_unlock");
+              console.log("[WeightedAI] Pending unlock data found:", pending ? "YES" : "NO");
               if (pending) {
                 const parsedPending = JSON.parse(pending);
                 restoredPlan = parsedPending.plan;
