@@ -956,9 +956,9 @@ function EmailGate({ tier, onSubmit, onClose, waiverAccepted, setWaiverAccepted,
 
 // ── PAYMENT MODAL ─────────────────────────────────────────────────────────────
 const STRIPE_PRICE_IDS = {
-  individual: "price_1Tk56VHOTWRdSkL3ILLfJ1n6",
-  unlimited: "price_1Tk56ZHOTWRdSkL3fd92wRqn",
-  annual: "price_1Tk56ZHOTWRdSkL3V2zkitzL"
+  individual: "price_1Tk4qAHDBboegbiBBTQ54x14",
+  unlimited: "price_1Tk4rAHDBboegbiBScT68W1O",
+  annual: "price_1Tk4rrHDBboegbiBgUvEcPxS"
 };
 
 async function startStripeCheckout(tier, email) {
@@ -1262,20 +1262,20 @@ function WeightedAI() {
     }
     setLead(leadData);
 
-    // FREE TIER: enforce 1 workout every 7 days (rolling window, not calendar week)
-    if (tier === "free") {
-      const profile = existingProfile || {};
-      const lastUsed = profile.freeWeekUsed || profile.free_week_used;
-      if (lastUsed) {
-        const lastUsedDate = new Date(lastUsed);
-        const daysSince = (Date.now() - lastUsedDate.getTime()) / (1000 * 60 * 60 * 24);
-        if (daysSince < 7) {
-          setBlocked(true);
-          setStep("plan");
-          return;
-        }
-      }
-    }
+    // FREE TIER: weekly limit disabled for testing
+    // if (tier === "free") {
+    //   const profile = existingProfile || {};
+    //   const lastUsed = profile.freeWeekUsed || profile.free_week_used;
+    //   if (lastUsed) {
+    //     const lastUsedDate = new Date(lastUsed);
+    //     const daysSince = (Date.now() - lastUsedDate.getTime()) / (1000 * 60 * 60 * 24);
+    //     if (daysSince < 7) {
+    //       setBlocked(true);
+    //       setStep("plan");
+    //       return;
+    //     }
+    //   }
+    // }
 
     // PAID TIERS: if returning user with saved profile, auto-fill (muscles reset each session)
     if ((tier === "unlimited" || tier === "annual" || tier === "individual") && existingProfile && !editingProfile) {
