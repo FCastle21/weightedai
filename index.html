@@ -1199,6 +1199,10 @@ function WeightedAI() {
               setPlan(restoredPlan);
               setUnlocked(true);
               setStep("plan");
+              setTimeout(() => {
+                const el = document.getElementById("app");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+              }, 200);
             } else {
               // No saved plan found - just unlock tier, user can generate fresh
               setUnlocked(true);
@@ -1337,6 +1341,8 @@ function WeightedAI() {
     const prompt = isFree
       ? `CRITICAL OUTPUT RULE: All verification steps, self-checks, sequence labels (like A/B), randomization notes, rotation checks, balance checks, and internal reasoning described in this prompt are for YOUR INTERNAL USE ONLY when constructing the workout. NEVER include any of this meta-commentary in your actual output. The user-facing output must contain ONLY the workout content itself — exercise names, sets, reps, rest, and brief descriptions. Do not mention "Type A", "Type B", "balanced", "verified", "rotation check", "sequence", "randomization seed", or any other planning/verification language in your response.
 
+FORMATTING RULE: Do NOT include a weekly schedule table, days-per-week breakdown, rest day calendar, or "Week | Mon | Tue..." style grid anywhere in the output. Do NOT use #### (4+ hashtags) for headers — use at most ### for sub-sections. Keep formatting clean and minimal: workout day titles, exercise lists, brief notes. No calendar grids, no schedule tables.
+
 You are an elite fitness engine. Generate a single full-body workout for ${leadData.name}.
 
 PROFILE:
@@ -1466,6 +1472,8 @@ Exactly 3 stretches.
 Do NOT include nutrition plans, multi-week programs, or long-form content. This is a free single workout only.`
       : thirtyDayPlan
       ? `CRITICAL OUTPUT RULE: All verification steps, self-checks, sequence labels (like A/B), randomization notes, rotation checks, balance checks, and internal reasoning described in this prompt are for YOUR INTERNAL USE ONLY when constructing the workout. NEVER include any of this meta-commentary in your actual output. The user-facing output must contain ONLY the workout content itself — exercise names, sets, reps, rest, and brief descriptions. Do not mention "Type A", "Type B", "balanced", "verified", "rotation check", "sequence", "randomization seed", or any other planning/verification language in your response.
+
+FORMATTING RULE: Do NOT include a weekly schedule table, days-per-week breakdown, rest day calendar, or "Week | Mon | Tue..." style grid anywhere in the output. Do NOT use #### (4+ hashtags) for headers — use at most ### for sub-sections. Keep formatting clean and minimal: workout day titles, exercise lists, brief notes. No calendar grids, no schedule tables.
 
 You are an elite fitness engine. Create a complete 30-DAY training plan for ${leadData.name}.
 
@@ -1648,6 +1656,8 @@ DISCLAIMER — INCLUDE THIS VERBATIM AT THE END OF THE NUTRITION STRATEGY SECTIO
 Be thorough and specific. Use tables where helpful.`
       : `CRITICAL OUTPUT RULE: All verification steps, self-checks, sequence labels (like A/B), randomization notes, rotation checks, balance checks, and internal reasoning described in this prompt are for YOUR INTERNAL USE ONLY when constructing the workout. NEVER include any of this meta-commentary in your actual output. The user-facing output must contain ONLY the workout content itself — exercise names, sets, reps, rest, and brief descriptions. Do not mention "Type A", "Type B", "balanced", "verified", "rotation check", "sequence", "randomization seed", or any other planning/verification language in your response.
 
+FORMATTING RULE: Do NOT include a weekly schedule table, days-per-week breakdown, rest day calendar, or "Week | Mon | Tue..." style grid anywhere in the output. Do NOT use #### (4+ hashtags) for headers — use at most ### for sub-sections. Keep formatting clean and minimal: workout day titles, exercise lists, brief notes. No calendar grids, no schedule tables.
+
 You are an elite fitness engine. Create a complete personalized program for ${leadData.name}.
 
 PROFILE:
@@ -1774,7 +1784,6 @@ ANTI-REPETITION CHECK: Before finalizing your exercise list, read it back and as
 The goal: a user doing daily workouts for 30 days should feel like they have a different trainer each session.
 # ${leadData.name}'s Personalized Plan
 ## Overview
-## Weekly Schedule
 ## Workout Plans (each day: name, muscle focus, exactly 3 warm-up moves, 5-7 main exercises, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers), rest period. PYRAMID RULE — MANDATORY: Any exercise with 4 or more sets MUST use pyramid progression with increasing weight each set. Format MUST be written as "4 sets x 15-12-10-8 reps" NOT "4 sets x 10 reps". For 3 sets use straight sets written as "3 sets x 10 reps". No exceptions — every 4+ set exercise must show descending rep numbers separated by dashes. Then one short sentence describing what it works and why it's in this workout.)
 NUTRITION GUIDELINES — APPLY BASED ON THE USER'S GOAL. Use their weight (convert to kg if needed: lbs / 2.2 = kg) to calculate exact numbers, not vague ranges. Show your math briefly (e.g. "180 lb = ~82 kg").
 
