@@ -2255,7 +2255,15 @@ Be specific. Use tables where helpful.`
                             onClick={() => {
                               const muscles = form.muscles.length > 0 ? form.muscles.join(", ") : "Full Body";
                               const name = lead?.name?.split(" ")[0] || "I";
-                              const boldMatches = (plan || "").match(/\*\*([^*]+)\*\*/g) || [];
+                              // Extract only the Main Workout section, excluding Warm-Up and Cool-Down
+                              let mainSection = plan || "";
+                              const mainStart = mainSection.search(/##?#?\s*Main Workout/i);
+                              if (mainStart !== -1) {
+                                mainSection = mainSection.slice(mainStart);
+                                const nextSectionMatch = mainSection.slice(20).search(/\n##?#?\s*(Cool-?Down|Cooldown|Recovery|Nutrition)/i);
+                                if (nextSectionMatch !== -1) mainSection = mainSection.slice(0, nextSectionMatch + 20);
+                              }
+                              const boldMatches = mainSection.match(/\*\*([^*]+)\*\*/g) || [];
                               const exercises = boldMatches
                                 .map(m => {
                                   const parts = m.replace(/\*\*/g, "").split("—");
@@ -2264,7 +2272,6 @@ Be specific. Use tables where helpful.`
                                   return sets ? `• ${exName} — ${sets}` : `• ${exName}`;
                                 })
                                 .filter(e => e.length > 3 && e.length < 80)
-                                .slice(0, 10)
                                 .join("\n");
                               const shareText = `${name} shared a WeightedAI ${muscles} workout:\n\n${exercises}\n\nTry it free → weightedai.net`;
                               if (navigator.share) {
@@ -2411,7 +2418,14 @@ Be specific. Use tables where helpful.`
                     onClick={() => {
                       const muscles = form.muscles.length > 0 ? form.muscles.join(", ") : "Full Body";
                       const name = lead?.name?.split(" ")[0] || "I";
-                      const boldMatches = (plan || "").match(/\*\*([^*]+)\*\*/g) || [];
+                      let mainSection = plan || "";
+                      const mainStart = mainSection.search(/##?#?\s*Main Workout/i);
+                      if (mainStart !== -1) {
+                        mainSection = mainSection.slice(mainStart);
+                        const nextSectionMatch = mainSection.slice(20).search(/\n##?#?\s*(Cool-?Down|Cooldown|Recovery|Nutrition)/i);
+                        if (nextSectionMatch !== -1) mainSection = mainSection.slice(0, nextSectionMatch + 20);
+                      }
+                      const boldMatches = mainSection.match(/\*\*([^*]+)\*\*/g) || [];
                       const exercises = boldMatches
                         .map(m => {
                           const parts = m.replace(/\*\*/g, "").split("—");
@@ -2420,7 +2434,6 @@ Be specific. Use tables where helpful.`
                           return sets ? `• ${exName} — ${sets}` : `• ${exName}`;
                         })
                         .filter(e => e.length > 3 && e.length < 80)
-                        .slice(0, 10)
                         .join("\n");
                       const shareText = `${name} shared a WeightedAI ${muscles} workout:\n\n${exercises}\n\nTry it free → weightedai.net`;
                       if (navigator.share) {
