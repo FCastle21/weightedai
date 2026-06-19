@@ -1808,7 +1808,12 @@ Be specific. Use tables where helpful.`
       } catch(e) {}
 
       // Save profile for ALL tiers (muscles excluded — they change each session)
+      // Strip out any temporary regeneration constraint text before persisting
       const { muscles: _m, ...toSave } = currentForm;
+      if (toSave.notes && toSave.notes.includes("HARD CONSTRAINT")) {
+        const cleanNotes = toSave.notes.split(/\s*HARD CONSTRAINT/)[0].trim();
+        toSave.notes = cleanNotes;
+      }
       const baseProfile = existingProfile || {};
       await saveProfile(leadData.email, {
         ...baseProfile,
