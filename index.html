@@ -693,13 +693,16 @@ const styles = `
   .plan-preview { position: relative; overflow: hidden; max-height: 300px; }
   .plan-preview-inner { filter: blur(6px); user-select: none; pointer-events: none; opacity: 0.45; }
   .plan-preview-fade { position: absolute; bottom: 0; left: 0; right: 0; height: 180px; background: linear-gradient(to bottom, transparent, var(--black)); }
-  .paywall { background: #0f0f0f; border: 1px solid #2a2a2a; border-top: 3px solid var(--acid); padding: 44px 40px; text-align: center; margin-top: -10px; }
-  .paywall h3 { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 3px; margin-bottom: 8px; }
+  .paywall { background: linear-gradient(180deg, #0f1410 0%, #0a0a0a 100%); border: 1px solid #1e2e22; border-radius: 16px; padding: 36px 28px; text-align: center; margin-top: 4px; box-shadow: 0 0 40px rgba(93,138,122,0.06); }
+  .paywall-icon { font-size: 28px; margin-bottom: 12px; opacity: 0.9; }
+  .paywall h3 { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 2px; margin-bottom: 6px; line-height: 1.1; }
   .paywall h3 span { color: var(--acid); }
-  .paywall-sub { font-size: 14px; color: #666; max-width: 380px; margin: 0 auto 28px; line-height: 1.6; }
-  .paywall-price { font-family: 'Bebas Neue', sans-serif; font-size: 52px; color: var(--white); margin-bottom: 4px; }
-  .paywall-latte { font-size: 12px; color: var(--orange); letter-spacing: 1px; margin-bottom: 24px; }
-  .paywall-btn { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 4px; padding: 18px 48px; cursor: pointer; display: block; width: 100%; max-width: 400px; margin: 0 auto 12px; transition: background 0.2s; border-radius: 500px; }
+  .paywall-sub { font-size: 13px; color: #777; max-width: 340px; margin: 0 auto 24px; line-height: 1.6; }
+  .paywall-price-row { display: flex; align-items: baseline; justify-content: center; gap: 4px; margin-bottom: 4px; }
+  .paywall-price { font-family: 'Bebas Neue', sans-serif; font-size: 44px; color: var(--white); line-height: 1; }
+  .paywall-price-unit { font-size: 13px; color: #555; letter-spacing: 1px; }
+  .paywall-latte { font-size: 11px; color: var(--orange); letter-spacing: 1px; margin-bottom: 20px; }
+  .paywall-btn { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 3px; padding: 15px 36px; cursor: pointer; display: block; width: 100%; max-width: 320px; margin: 0 auto 14px; transition: background 0.2s; border-radius: 500px; }
   .paywall-btn:hover { background: #4a6f61; }
   .paywall-note { font-size: 11px; color: #aaa; letter-spacing: 1px; }
 
@@ -2542,12 +2545,16 @@ Be specific. Use tables where helpful.`
                       <div className="plan-preview-fade" />
                     </div>
                     <div className="paywall">
+                      <div className="paywall-icon">🔒</div>
                       <h3>YOUR PLAN IS <span>READY</span></h3>
                       <p className="paywall-sub">{tier==="individual"?"Unlock this workout now.":"Unlock your full program, nutrition plan, and 4-week progression."}</p>
-                      <div className="paywall-price">{tier==="individual"?"$4.99":tier==="annual"?"$249.99/yr":"$24.99/mo"}</div>
+                      <div className="paywall-price-row">
+                        <div className="paywall-price">{tier==="individual"?"$4.99":tier==="annual"?"$249.99":"$24.99"}</div>
+                        <div className="paywall-price-unit">{tier==="individual"?"one-time":tier==="annual"?"/year":"/month"}</div>
+                      </div>
                       
                       <button className="paywall-btn" onClick={()=>startStripeCheckout(tier, lead?.email, plan, form)}>
-                        {tier==="individual"?"UNLOCK FOR $4.99 →":tier==="annual"?"START ANNUAL — $249.99 →":"START UNLIMITED →"}
+                        {tier==="individual"?"UNLOCK WORKOUT →":tier==="annual"?"START ANNUAL PLAN →":"START UNLIMITED →"}
                       </button>
                       <div className="paywall-note">🔒 Secure payment · Instant access</div>
                     </div>
