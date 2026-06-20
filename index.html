@@ -480,10 +480,11 @@ const styles = `
 
   /* FORM */
   .form-section { padding: 0 20px 16px; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: #1a1a1a; border: 1px solid #1e1e1e; max-width: 900px; width: 100%; }
-  .field { background: var(--black); padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: transparent; border: none; max-width: 900px; width: 100%; }
+  .field { background: #101010; padding: 18px 20px; display: flex; flex-direction: column; gap: 9px; border: 1px solid #1c1c1c; border-radius: 14px; transition: border-color 0.2s; }
+  .field:hover { border-color: #2a2a2a; }
   .field.full { grid-column: 1 / -1; }
-  .field label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--acid); font-weight: 500; }
+  .field label { font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--acid); font-weight: 500; }
   .field input, .field select, .field textarea { background: transparent; border: none; border-bottom: 1px solid #2a2a2a; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 300; padding: 8px 0; outline: none; transition: border-color 0.2s; width: 100%; }
   .field select option { background: #111; }
   .field input:focus, .field select:focus, .field textarea:focus { border-bottom-color: var(--acid); }
