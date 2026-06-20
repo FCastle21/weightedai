@@ -1851,6 +1851,20 @@ Be specific. Use tables where helpful.`
       setPlan(cleanPlan);
       setStep("plan");
       setUnlocked(tier === "free");
+      // Retry scroll a few times in case DOM hasn't rendered the button yet
+      let scrollAttempts = 0;
+      const trySCroll = () => {
+        const targetEl = tier === "free" 
+          ? document.querySelector(".plan-wrapper") 
+          : document.querySelector(".paywall-btn");
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else if (scrollAttempts < 10) {
+          scrollAttempts++;
+          setTimeout(trySCroll, 100);
+        }
+      };
+      setTimeout(trySCroll, 100);
       // Save active workout to localStorage for persistence
       try {
         localStorage.setItem("weightedai_active_workout", JSON.stringify({
@@ -1887,9 +1901,17 @@ Be specific. Use tables where helpful.`
 
   const handleReset = () => {
     setRegenCount(0);
-    setPlan(null); setLead(null); setUnlocked(false); setInspo(null);
-    setBlocked(false); setProfileLoaded(false); setEditingProfile(false); setMusicVibe(""); setVideoExercise(null); setInfoExercise(null); setThirtyDayPlan(false); setRegenNote(""); setIsStreaming(false); setDifficulty(0); setRatingSubmitted(false); setWorkoutMode(false); setSavedWorkout(null); try { localStorage.removeItem("weightedai_active_workout"); } catch(e) {}
-    setStep("home"); setTier(null); setForm(BLANK_FORM);
+    setPlan(null); setUnlocked(false); setInspo(null);
+    setBlocked(false); setEditingProfile(false); setMusicVibe(""); setVideoExercise(null); setInfoExercise(null); setThirtyDayPlan(false); setRegenNote(""); setIsStreaming(false); setDifficulty(0); setRatingSubmitted(false); setWorkoutMode(false); setSavedWorkout(null); try { localStorage.removeItem("weightedai_active_workout"); } catch(e) {}
+    setStep("home"); setTier(null);
+    // Keep the user signed in - only reset muscle selection, not their saved profile
+    if (lead && lead.email) {
+      setForm(f => ({ ...f, muscles: [] }));
+      setProfileLoaded(true);
+    } else {
+      setForm(BLANK_FORM);
+      setProfileLoaded(false);
+    }
     window.scrollTo({top:0,behavior:"smooth"});
   };
 
