@@ -880,13 +880,6 @@ function parseMarkdown(text) {
 }
 
 
-function getWeekKey() {
-  const now = new Date();
-  const jan1 = new Date(now.getFullYear(), 0, 1);
-  const week = Math.ceil(((now - jan1) / 86400000 + jan1.getDay() + 1) / 7);
-  return `${now.getFullYear()}-W${week}`;
-}
-
 // ── EMAIL GATE ────────────────────────────────────────────────────────────────
 function EmailGate({ tier, onSubmit, onClose, waiverAccepted, setWaiverAccepted, existingProfile }) {
   const [name, setName]   = useState("");
@@ -1013,11 +1006,9 @@ function WeightedAI() {
   const [editingProfile, setEditingProfile] = useState(false);
   const [blocked, setBlocked]   = useState(false); // free tier weekly limit hit
   const [plan, setPlan]         = useState(null);
-  const [inspo, setInspo]       = useState(null);
   const [error, setError]       = useState(null);
   const [unlocked, setUnlocked] = useState(false);
   const [musicVibe, setMusicVibe] = useState("");
-  const [videoExercise, setVideoExercise] = useState(null);
   const [infoExercise, setInfoExercise] = useState(null);
   const [thirtyDayPlan, setThirtyDayPlan] = useState(false);
   const [regenNote, setRegenNote] = useState("");
@@ -1097,7 +1088,6 @@ function WeightedAI() {
       }
     };
     if (signedInName) window.__setSignedIn(signedInName);
-    window.__showExercise = (name) => setVideoExercise(name);
     window.__showExerciseVideo = (name) => setVideoModal({ name, query: name + ' exercise tutorial how to' });
     window.__showInfo = (name, desc, muscles, tip) => setInfoExercise({name, desc, muscles, tip});
     
@@ -1170,7 +1160,6 @@ function WeightedAI() {
     const _sessionId = _searchParams.get("session_id");
     const _paidTier = _searchParams.get("tier");
     if (_paymentStatus === "success" && _sessionId) {
-      console.log("[WeightedAI] Payment redirect detected, sessionId:", _sessionId, "tier:", _paidTier);
       window.history.replaceState({}, document.title, window.location.pathname);
       (async () => {
         try {
@@ -1180,14 +1169,11 @@ function WeightedAI() {
             body: JSON.stringify({ action: "verifyCheckoutSession", sessionId: _sessionId })
           });
           const data = await res.json();
-          console.log("[WeightedAI] Verify session response:", JSON.stringify(data));
           if (data.paid) {
-            console.log("[WeightedAI] Payment verified as paid. Checking for pending plan...");
             // Restore the pending plan/form that was saved before redirecting to Stripe
             let restoredPlan = null, restoredForm = null;
             try {
               const pending = localStorage.getItem("weightedai_pending_unlock");
-              console.log("[WeightedAI] Pending unlock data found:", pending ? "YES" : "NO");
               if (pending) {
                 const parsedPending = JSON.parse(pending);
                 restoredPlan = parsedPending.plan;
@@ -1872,7 +1858,6 @@ Be specific. Use tables where helpful.`
       try {
         localStorage.setItem("weightedai_active_workout", JSON.stringify({
           plan: cleanPlan,
-          inspo: focusMatch ? focusMatch[1] : "",
           muscles: currentForm.muscles.length > 0 ? currentForm.muscles.join(", ") : "Full Body",
           savedAt: new Date().toISOString()
         }));
@@ -1904,7 +1889,7 @@ Be specific. Use tables where helpful.`
 
   const handleReset = () => {
     setRegenCount(0);
-    setPlan(null); setUnlocked(false); setInspo(null);
+    setPlan(null); setUnlocked(false);
     setBlocked(false); setEditingProfile(false); setMusicVibe(""); setVideoExercise(null); setInfoExercise(null); setThirtyDayPlan(false); setRegenNote(""); setIsStreaming(false); setDifficulty(0); setRatingSubmitted(false); setWorkoutMode(false); setSavedWorkout(null); try { localStorage.removeItem("weightedai_active_workout"); } catch(e) {}
     setStep("home"); setTier(null);
     // Keep the user signed in - only reset muscle selection, not their saved profile
@@ -1937,7 +1922,7 @@ Be specific. Use tables where helpful.`
       return;
     }
     setRegenCount(c => c + 1);
-    setPlan(null); setInspo(null); setUnlocked(false);
+    setPlan(null); setUnlocked(false);
     const note = regenNote.trim();
     setRegenNote("");
     
@@ -2112,7 +2097,6 @@ Be specific. Use tables where helpful.`
               </div>
               <button className="resume-btn" onClick={() => {
                 setPlan(savedWorkout.plan);
-                setInspo(savedWorkout.inspo);
                 setUnlocked(true);
                 setStep("plan");
                 setWorkoutMode(true);
