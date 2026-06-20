@@ -807,7 +807,7 @@ const styles = `
 
 `;
 
-const GOALS     = ["Burn Fat", "Build Muscle", "Improve Endurance", "Gain Strength", "Apex", "Athletic Performance", "The Marla"];
+const GOALS     = ["Fat Burning", "Muscle Building", "Endurance", "Strength Gaining", "Apex", "Athletic Performance", "The Marla"];
 const EQUIPMENT = ["Full Gym", "Home Gym", "Dumbbells Only", "Bodyweight Only", "TRX", "Kettlebells"];
 const LEVELS    = ["Beginner", "Intermediate", "Advanced"];
 const DAYS      = ["3", "4", "5", "6"];
@@ -1024,6 +1024,7 @@ function WeightedAI() {
   const [workoutHistory, setWorkoutHistory] = useState([]);
   const [videoModal, setVideoModal] = useState(null); // { name, query }
   const [regenCount, setRegenCount] = useState(0);
+  const [showGoalDescriptions, setShowGoalDescriptions] = useState(false);
   const [shareWorkout, setShareWorkout] = useState(() => { try { const v = localStorage.getItem("weightedai_share_workout"); return v === null ? true : v === "true"; } catch { return true; } });
 
   useEffect(() => {
@@ -1359,21 +1360,21 @@ TRAINING LEVEL DEFINITIONS — apply these strictly based on the user's selected
 BEGINNER (0-2 years training):
 - Simple compound movements only — no Olympic lifts, no advanced unilateral work
 - Sets: 3 per exercise | Exercises: 5-6 total
-- Rep ranges by goal: Burn Fat: 12-15 reps, 45s rest | Build Muscle: 10-12 reps, 60s rest | Build Strength: 8-10 reps, 90s rest | Improve Fitness: 12-15 reps, 45s rest | Increase Flexibility: 12-15 reps, 60s rest | Athletic Performance: 10-12 reps, 60s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90s rest) and metcon sets (burpees, mountain climbers, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise
+- Rep ranges by goal: Fat Burning: 12-15 reps, 45s rest | Muscle Building: 10-12 reps, 60s rest | Build Strength: 8-10 reps, 90s rest | Improve Fitness: 12-15 reps, 45s rest | Increase Flexibility: 12-15 reps, 60s rest | Athletic Performance: 10-12 reps, 60s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90s rest) and metcon sets (burpees, mountain climbers, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise
 - No: plyometrics, tempo work, drop sets, supersets, advanced variations
 - Focus: movement quality, consistency, building base
 
 INTERMEDIATE (2-4 years training):
 - Compound + isolation mix, some unilateral work, supersets acceptable
 - Sets: 3-4 per exercise | Exercises: 6-8 total
-- Rep ranges by goal: Burn Fat: 10-15 reps, 30-45s rest, circuit-style | Build Muscle: 8-12 reps, 60-90s rest | Build Strength: 5-8 reps, 90-120s rest | Improve Fitness: 12-15 reps, 30s rest | Increase Flexibility: 10-12 reps, 60s rest | Athletic Performance: 6-10 reps, 60-90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90-120s rest) and metcon sets (burpees, mountain climbers, ski erg, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise — every other exercise should switch style
+- Rep ranges by goal: Fat Burning: 10-15 reps, 30-45s rest, circuit-style | Muscle Building: 8-12 reps, 60-90s rest | Build Strength: 5-8 reps, 90-120s rest | Improve Fitness: 12-15 reps, 30s rest | Increase Flexibility: 10-12 reps, 60s rest | Athletic Performance: 6-10 reps, 60-90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90-120s rest) and metcon sets (burpees, mountain climbers, ski erg, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise — every other exercise should switch style
 - Can include: drop sets, tempo variations, moderate plyometrics, supersets
 - Focus: progressive overload, mind-muscle connection
 
 ADVANCED (5+ years training):
 - Full exercise library, complex unilateral movements, Olympic variations acceptable
 - Sets: 4-5 per exercise | Exercises: 8-10 total
-- Rep ranges by goal: Burn Fat: varied 10-20 reps, minimal rest, HIIT elements | Build Muscle: varied 6-15 reps across exercises, 60-90s rest | Build Strength: 3-6 heavy reps, 2-3 min rest, periodized | Improve Fitness: 15-20 reps, 20-30s rest, metabolic | Increase Flexibility: 12-15 reps, 45s rest | Athletic Performance: 3-8 reps explosive, 90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 2 min rest) and metcon sets (burpees, ski erg, jump rope, box jumps, battle ropes, etc. — 30-60s of work, 20-30s rest) exercise by exercise — create a true hybrid session where every other exercise flips the training style
+- Rep ranges by goal: Fat Burning: varied 10-20 reps, minimal rest, HIIT elements | Muscle Building: varied 6-15 reps across exercises, 60-90s rest | Build Strength: 3-6 heavy reps, 2-3 min rest, periodized | Improve Fitness: 15-20 reps, 20-30s rest, metabolic | Increase Flexibility: 12-15 reps, 45s rest | Athletic Performance: 3-8 reps explosive, 90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 2 min rest) and metcon sets (burpees, ski erg, jump rope, box jumps, battle ropes, etc. — 30-60s of work, 20-30s rest) exercise by exercise — create a true hybrid session where every other exercise flips the training style
 - Can include: cluster sets, rest-pause, advanced plyometrics, complex periodization
 - Focus: specificity, peak performance, advanced techniques
 
@@ -1391,7 +1392,7 @@ FINAL VERIFICATION STEP — DO THIS BEFORE OUTPUTTING: Write out your exercise l
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
-1. CALORIC OUTPUT: Unless the goal is Build Muscle, design workouts that burn approximately 100 calories per hour minimum. Achieve this through:
+1. CALORIC OUTPUT: Unless the goal is Muscle Building, design workouts that burn approximately 100 calories per hour minimum. Achieve this through:
    - Compound multi-joint movements over isolation exercises
    - Short rest periods (30-60s) for fat loss/endurance goals
    - Supersets or circuits where appropriate for the level
@@ -1409,7 +1410,7 @@ TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
    - Standing dumbbell work over seated variations
    - Floor work (planks, deadbugs) is acceptable for core — avoid seated ab machines
    - Beginners may use more seated/lying exercises for safety and stability
-   - Build Muscle goal may include more isolation work seated/lying — this is acceptable
+   - Muscle Building goal may include more isolation work seated/lying — this is acceptable
 
 VARIETY — THIS IS CRITICAL. Every session MUST be meaningfully different. You are a creative fitness programmer, not a template filler.
 
@@ -1513,21 +1514,21 @@ TRAINING LEVEL DEFINITIONS — apply these strictly based on the user's selected
 BEGINNER (0-2 years training):
 - Simple compound movements only — no Olympic lifts, no advanced unilateral work
 - Sets: 3 per exercise | Exercises: 5-6 total
-- Rep ranges by goal: Burn Fat: 12-15 reps, 45s rest | Build Muscle: 10-12 reps, 60s rest | Build Strength: 8-10 reps, 90s rest | Improve Fitness: 12-15 reps, 45s rest | Increase Flexibility: 12-15 reps, 60s rest | Athletic Performance: 10-12 reps, 60s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90s rest) and metcon sets (burpees, mountain climbers, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise
+- Rep ranges by goal: Fat Burning: 12-15 reps, 45s rest | Muscle Building: 10-12 reps, 60s rest | Build Strength: 8-10 reps, 90s rest | Improve Fitness: 12-15 reps, 45s rest | Increase Flexibility: 12-15 reps, 60s rest | Athletic Performance: 10-12 reps, 60s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90s rest) and metcon sets (burpees, mountain climbers, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise
 - No: plyometrics, tempo work, drop sets, supersets, advanced variations
 - Focus: movement quality, consistency, building base
 
 INTERMEDIATE (2-4 years training):
 - Compound + isolation mix, some unilateral work, supersets acceptable
 - Sets: 3-4 per exercise | Exercises: 6-8 total
-- Rep ranges by goal: Burn Fat: 10-15 reps, 30-45s rest, circuit-style | Build Muscle: 8-12 reps, 60-90s rest | Build Strength: 5-8 reps, 90-120s rest | Improve Fitness: 12-15 reps, 30s rest | Increase Flexibility: 10-12 reps, 60s rest | Athletic Performance: 6-10 reps, 60-90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90-120s rest) and metcon sets (burpees, mountain climbers, ski erg, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise — every other exercise should switch style
+- Rep ranges by goal: Fat Burning: 10-15 reps, 30-45s rest, circuit-style | Muscle Building: 8-12 reps, 60-90s rest | Build Strength: 5-8 reps, 90-120s rest | Improve Fitness: 12-15 reps, 30s rest | Increase Flexibility: 10-12 reps, 60s rest | Athletic Performance: 6-10 reps, 60-90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90-120s rest) and metcon sets (burpees, mountain climbers, ski erg, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise — every other exercise should switch style
 - Can include: drop sets, tempo variations, moderate plyometrics, supersets
 - Focus: progressive overload, mind-muscle connection
 
 ADVANCED (5+ years training):
 - Full exercise library, complex unilateral movements, Olympic variations acceptable
 - Sets: 4-5 per exercise | Exercises: 8-10 total
-- Rep ranges by goal: Burn Fat: varied 10-20 reps, minimal rest, HIIT elements | Build Muscle: varied 6-15 reps across exercises, 60-90s rest | Build Strength: 3-6 heavy reps, 2-3 min rest, periodized | Improve Fitness: 15-20 reps, 20-30s rest, metabolic | Increase Flexibility: 12-15 reps, 45s rest | Athletic Performance: 3-8 reps explosive, 90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 2 min rest) and metcon sets (burpees, ski erg, jump rope, box jumps, battle ropes, etc. — 30-60s of work, 20-30s rest) exercise by exercise — create a true hybrid session where every other exercise flips the training style
+- Rep ranges by goal: Fat Burning: varied 10-20 reps, minimal rest, HIIT elements | Muscle Building: varied 6-15 reps across exercises, 60-90s rest | Build Strength: 3-6 heavy reps, 2-3 min rest, periodized | Improve Fitness: 15-20 reps, 20-30s rest, metabolic | Increase Flexibility: 12-15 reps, 45s rest | Athletic Performance: 3-8 reps explosive, 90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 2 min rest) and metcon sets (burpees, ski erg, jump rope, box jumps, battle ropes, etc. — 30-60s of work, 20-30s rest) exercise by exercise — create a true hybrid session where every other exercise flips the training style
 - Can include: cluster sets, rest-pause, advanced plyometrics, complex periodization
 - Focus: specificity, peak performance, advanced techniques
 
@@ -1545,7 +1546,7 @@ FINAL VERIFICATION STEP — DO THIS BEFORE OUTPUTTING: Write out your exercise l
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
-1. CALORIC OUTPUT: Unless the goal is Build Muscle, design workouts that burn approximately 100 calories per hour minimum. Achieve this through:
+1. CALORIC OUTPUT: Unless the goal is Muscle Building, design workouts that burn approximately 100 calories per hour minimum. Achieve this through:
    - Compound multi-joint movements over isolation exercises
    - Short rest periods (30-60s) for fat loss/endurance goals
    - Supersets or circuits where appropriate for the level
@@ -1563,7 +1564,7 @@ TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
    - Standing dumbbell work over seated variations
    - Floor work (planks, deadbugs) is acceptable for core — avoid seated ab machines
    - Beginners may use more seated/lying exercises for safety and stability
-   - Build Muscle goal may include more isolation work seated/lying — this is acceptable
+   - Muscle Building goal may include more isolation work seated/lying — this is acceptable
 
 VARIETY — THIS IS CRITICAL. Every session MUST be meaningfully different. You are a creative fitness programmer, not a template filler.
 
@@ -1607,14 +1608,14 @@ IF GOAL IS BURN FAT:
 - Carbs: fill remaining calories — higher carbs support better training performance, avoid going too low.
 - Recommend continued resistance training and daily activity (walking, etc). Avoid suggesting aggressive crash diets.
 
-IF GOAL IS GAIN STRENGTH or ATHLETIC PERFORMANCE:
+IF GOAL IS STRENGTH GAINING or ATHLETIC PERFORMANCE:
 - Calories: generally at or near maintenance. High-volume training may require more.
 - Protein: 1.4-2.0 g/kg (0.64-0.91 g/lb).
 - Fat: 20-35% of calories.
 - Carbs: moderate amount, 3-5 g/kg — sufficient to fuel training without being high-carb. These goals are not endurance-focused.
 - Mention hydration for training sessions.
 
-IF GOAL IS IMPROVE ENDURANCE:
+IF GOAL IS ENDURANCE:
 - Calories: generally at or near maintenance. High-volume training may require more.
 - Protein: 1.4-2.0 g/kg (0.64-0.91 g/lb).
 - Fat: 20-35% of calories.
@@ -1628,7 +1629,7 @@ IF GOAL IS APEX or BODY RECOMP (hybrid muscle + fat loss):
 - Carbs: fill remaining calories, moderate-to-higher given the metcon conditioning demands of Apex.
 
 IF GOAL IS THE MARLA (glutes/hamstrings focus, advanced muscle building):
-- Treat as Build Muscle nutrition guidance above.
+- Treat as Muscle Building nutrition guidance above.
 
 PRIORITY ORDER TO MENTION (most to least important): 1) Total calories 2) Protein intake 3) Training consistency 4) Sleep and recovery 5) Carbohydrate intake 6) Food timing 7) Supplements. Make clear that calories, protein, consistency, and sleep drive the vast majority of results — supplements and precise meal timing matter far less.
 
@@ -1695,21 +1696,21 @@ TRAINING LEVEL DEFINITIONS — apply these strictly based on the user's selected
 BEGINNER (0-2 years training):
 - Simple compound movements only — no Olympic lifts, no advanced unilateral work
 - Sets: 3 per exercise | Exercises: 5-6 total
-- Rep ranges by goal: Burn Fat: 12-15 reps, 45s rest | Build Muscle: 10-12 reps, 60s rest | Build Strength: 8-10 reps, 90s rest | Improve Fitness: 12-15 reps, 45s rest | Increase Flexibility: 12-15 reps, 60s rest | Athletic Performance: 10-12 reps, 60s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90s rest) and metcon sets (burpees, mountain climbers, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise
+- Rep ranges by goal: Fat Burning: 12-15 reps, 45s rest | Muscle Building: 10-12 reps, 60s rest | Build Strength: 8-10 reps, 90s rest | Improve Fitness: 12-15 reps, 45s rest | Increase Flexibility: 12-15 reps, 60s rest | Athletic Performance: 10-12 reps, 60s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90s rest) and metcon sets (burpees, mountain climbers, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise
 - No: plyometrics, tempo work, drop sets, supersets, advanced variations
 - Focus: movement quality, consistency, building base
 
 INTERMEDIATE (2-4 years training):
 - Compound + isolation mix, some unilateral work, supersets acceptable
 - Sets: 3-4 per exercise | Exercises: 6-8 total
-- Rep ranges by goal: Burn Fat: 10-15 reps, 30-45s rest, circuit-style | Build Muscle: 8-12 reps, 60-90s rest | Build Strength: 5-8 reps, 90-120s rest | Improve Fitness: 12-15 reps, 30s rest | Increase Flexibility: 10-12 reps, 60s rest | Athletic Performance: 6-10 reps, 60-90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90-120s rest) and metcon sets (burpees, mountain climbers, ski erg, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise — every other exercise should switch style
+- Rep ranges by goal: Fat Burning: 10-15 reps, 30-45s rest, circuit-style | Muscle Building: 8-12 reps, 60-90s rest | Build Strength: 5-8 reps, 90-120s rest | Improve Fitness: 12-15 reps, 30s rest | Increase Flexibility: 10-12 reps, 60s rest | Athletic Performance: 6-10 reps, 60-90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90-120s rest) and metcon sets (burpees, mountain climbers, ski erg, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise — every other exercise should switch style
 - Can include: drop sets, tempo variations, moderate plyometrics, supersets
 - Focus: progressive overload, mind-muscle connection
 
 ADVANCED (5+ years training):
 - Full exercise library, complex unilateral movements, Olympic variations acceptable
 - Sets: 4-5 per exercise | Exercises: 8-10 total
-- Rep ranges by goal: Burn Fat: varied 10-20 reps, minimal rest, HIIT elements | Build Muscle: varied 6-15 reps across exercises, 60-90s rest | Build Strength: 3-6 heavy reps, 2-3 min rest, periodized | Improve Fitness: 15-20 reps, 20-30s rest, metabolic | Increase Flexibility: 12-15 reps, 45s rest | Athletic Performance: 3-8 reps explosive, 90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 2 min rest) and metcon sets (burpees, ski erg, jump rope, box jumps, battle ropes, etc. — 30-60s of work, 20-30s rest) exercise by exercise — create a true hybrid session where every other exercise flips the training style
+- Rep ranges by goal: Fat Burning: varied 10-20 reps, minimal rest, HIIT elements | Muscle Building: varied 6-15 reps across exercises, 60-90s rest | Build Strength: 3-6 heavy reps, 2-3 min rest, periodized | Improve Fitness: 15-20 reps, 20-30s rest, metabolic | Increase Flexibility: 12-15 reps, 45s rest | Athletic Performance: 3-8 reps explosive, 90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 2 min rest) and metcon sets (burpees, ski erg, jump rope, box jumps, battle ropes, etc. — 30-60s of work, 20-30s rest) exercise by exercise — create a true hybrid session where every other exercise flips the training style
 - Can include: cluster sets, rest-pause, advanced plyometrics, complex periodization
 - Focus: specificity, peak performance, advanced techniques
 
@@ -1727,7 +1728,7 @@ FINAL VERIFICATION STEP — DO THIS BEFORE OUTPUTTING: Write out your exercise l
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
-1. CALORIC OUTPUT: Unless the goal is Build Muscle, design workouts that burn approximately 100 calories per hour minimum. Achieve this through:
+1. CALORIC OUTPUT: Unless the goal is Muscle Building, design workouts that burn approximately 100 calories per hour minimum. Achieve this through:
    - Compound multi-joint movements over isolation exercises
    - Short rest periods (30-60s) for fat loss/endurance goals
    - Supersets or circuits where appropriate for the level
@@ -1745,7 +1746,7 @@ TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
    - Standing dumbbell work over seated variations
    - Floor work (planks, deadbugs) is acceptable for core — avoid seated ab machines
    - Beginners may use more seated/lying exercises for safety and stability
-   - Build Muscle goal may include more isolation work seated/lying — this is acceptable
+   - Muscle Building goal may include more isolation work seated/lying — this is acceptable
 
 VARIETY — THIS IS CRITICAL. Every session MUST be meaningfully different. You are a creative fitness programmer, not a template filler.
 
@@ -1789,14 +1790,14 @@ IF GOAL IS BURN FAT:
 - Carbs: fill remaining calories — higher carbs support better training performance, avoid going too low.
 - Recommend continued resistance training and daily activity (walking, etc). Avoid suggesting aggressive crash diets.
 
-IF GOAL IS GAIN STRENGTH or ATHLETIC PERFORMANCE:
+IF GOAL IS STRENGTH GAINING or ATHLETIC PERFORMANCE:
 - Calories: generally at or near maintenance. High-volume training may require more.
 - Protein: 1.4-2.0 g/kg (0.64-0.91 g/lb).
 - Fat: 20-35% of calories.
 - Carbs: moderate amount, 3-5 g/kg — sufficient to fuel training without being high-carb. These goals are not endurance-focused.
 - Mention hydration for training sessions.
 
-IF GOAL IS IMPROVE ENDURANCE:
+IF GOAL IS ENDURANCE:
 - Calories: generally at or near maintenance. High-volume training may require more.
 - Protein: 1.4-2.0 g/kg (0.64-0.91 g/lb).
 - Fat: 20-35% of calories.
@@ -1810,7 +1811,7 @@ IF GOAL IS APEX or BODY RECOMP (hybrid muscle + fat loss):
 - Carbs: fill remaining calories, moderate-to-higher given the metcon conditioning demands of Apex.
 
 IF GOAL IS THE MARLA (glutes/hamstrings focus, advanced muscle building):
-- Treat as Build Muscle nutrition guidance above.
+- Treat as Muscle Building nutrition guidance above.
 
 PRIORITY ORDER TO MENTION (most to least important): 1) Total calories 2) Protein intake 3) Training consistency 4) Sleep and recovery 5) Carbohydrate intake 6) Food timing 7) Supplements. Make clear that calories, protein, consistency, and sleep drive the vast majority of results — supplements and precise meal timing matter far less.
 
@@ -2235,7 +2236,10 @@ Be specific. Use tables where helpful.`
                 </div>
               )}
               <div className="field full">
-                <label>Primary Goal</label>
+                <label style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <span>Workout Type</span>
+                  <span onClick={()=>setShowGoalDescriptions(true)} style={{color:"#666",textTransform:"none",letterSpacing:0,fontSize:11,cursor:"pointer",textDecoration:"underline",fontWeight:400}}>Descriptions</span>
+                </label>
                 <div className="toggle-group">
                   {GOALS.map(g=><button key={g} className={`toggle ${form.goal===g?"active":""}`} onClick={()=>toggle("goal",g)}>{g}</button>)}
                 </div>
@@ -2673,7 +2677,46 @@ Be specific. Use tables where helpful.`
           </div>
         )}
 
-
+        {showGoalDescriptions && (
+          <div className="info-overlay" onClick={e => e.target===e.currentTarget && setShowGoalDescriptions(false)}>
+            <div className="info-modal" style={{maxWidth:520,maxHeight:"80vh",overflowY:"auto"}}>
+              <div className="info-modal-header">
+                <div className="info-modal-title">WORKOUT TYPES</div>
+                <button className="info-modal-close" onClick={() => setShowGoalDescriptions(false)}>✕</button>
+              </div>
+              <div style={{padding:"22px 24px",display:"flex",flexDirection:"column",gap:18}}>
+                <div>
+                  <div style={{color:"var(--acid)",fontWeight:500,fontSize:14,marginBottom:4}}>Fat Burning</div>
+                  <div style={{fontSize:13,color:"#999",lineHeight:1.6}}>Higher reps, shorter rest, calorie-dense circuits designed to maximize fat loss while preserving muscle.</div>
+                </div>
+                <div>
+                  <div style={{color:"var(--acid)",fontWeight:500,fontSize:14,marginBottom:4}}>Muscle Building</div>
+                  <div style={{fontSize:13,color:"#999",lineHeight:1.6}}>Moderate reps, controlled rest, focused on hypertrophy and progressive overload to grow muscle size.</div>
+                </div>
+                <div>
+                  <div style={{color:"var(--acid)",fontWeight:500,fontSize:14,marginBottom:4}}>Endurance</div>
+                  <div style={{fontSize:13,color:"#999",lineHeight:1.6}}>High reps, minimal rest, built to improve muscular and cardiovascular stamina over time.</div>
+                </div>
+                <div>
+                  <div style={{color:"var(--acid)",fontWeight:500,fontSize:14,marginBottom:4}}>Strength Gaining</div>
+                  <div style={{fontSize:13,color:"#999",lineHeight:1.6}}>Low reps, heavier loads, longer rest periods to maximize raw strength and power output.</div>
+                </div>
+                <div>
+                  <div style={{color:"var(--acid)",fontWeight:500,fontSize:14,marginBottom:4}}>Apex</div>
+                  <div style={{fontSize:13,color:"#999",lineHeight:1.6}}>Alternates muscle-building strength sets with metcon conditioning (burpees, mountain climbers, etc.) — look good and perform at a high level.</div>
+                </div>
+                <div>
+                  <div style={{color:"var(--acid)",fontWeight:500,fontSize:14,marginBottom:4}}>Athletic Performance</div>
+                  <div style={{fontSize:13,color:"#999",lineHeight:1.6}}>Explosive, power-focused training built for speed, agility, and sport-specific performance.</div>
+                </div>
+                <div>
+                  <div style={{color:"var(--acid)",fontWeight:500,fontSize:14,marginBottom:4}}>The Marla</div>
+                  <div style={{fontSize:13,color:"#999",lineHeight:1.6}}>Advanced-level glutes and hamstrings specialization — hip hinge patterns, hip thrusts, RDLs, and more.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {infoExercise && (
           <div className="info-overlay" onClick={e => e.target===e.currentTarget && setInfoExercise(null)}>
