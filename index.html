@@ -459,22 +459,22 @@ const styles = `
   /* TIER SELECTOR */
   .tier-section { padding: 0 20px 16px; max-width: 100%; }
   .tier-label { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--acid); margin-bottom: 12px; }
-  .tier-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 2px; background: #1a1a1a; border: 1px solid #1e1e1e; margin-bottom: 2px; }
-  .tier-card { background: var(--black); padding: 20px 16px; cursor: pointer; transition: background 0.2s; position: relative; border: 2px solid transparent; }
-  .tier-card:hover { background: #0d0d0d; }
-  .tier-card.active { border-color: var(--acid); background: #0d1400; }
-  .tier-card.popular-tier { border-top: 3px solid var(--orange); }
-  .tier-card.active.popular-tier { border-color: var(--acid); }
-  .tier-popular-tag { position: absolute; top: -1px; right: 20px; background: var(--orange); color: var(--white); font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 2px; padding: 3px 10px; }
-  .tier-name { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--acid); margin-bottom: 16px; }
-  .tier-price { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--white); letter-spacing: 1px; line-height: 1; margin-bottom: 4px; }
-  .tier-price sup { font-size: 16px; vertical-align: super; }
-  .tier-price-note { font-size: 11px; color: #555; margin-bottom: 12px; line-height: 1.4; }
+  .tier-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; background: transparent; border: none; margin-bottom: 2px; }
+  .tier-card { background: #101010; padding: 24px 18px; cursor: pointer; transition: all 0.25s ease; position: relative; border: 1px solid #1c1c1c; border-radius: 16px; }
+  .tier-card:hover { background: #141414; border-color: #2a2a2a; transform: translateY(-2px); }
+  .tier-card.active { border-color: var(--acid); background: linear-gradient(160deg, #0f1813 0%, #0a0f0c 100%); box-shadow: 0 0 0 1px var(--acid), 0 8px 24px rgba(93,138,122,0.12); }
+  .tier-card.popular-tier { border-color: #2a241a; }
+  .tier-card.active.popular-tier { border-color: var(--acid); box-shadow: 0 0 0 1px var(--acid), 0 8px 24px rgba(93,138,122,0.12); }
+  .tier-popular-tag { position: absolute; top: -10px; right: 16px; background: var(--orange); color: var(--white); font-family: 'Bebas Neue', sans-serif; font-size: 10px; letter-spacing: 2px; padding: 4px 12px; border-radius: 500px; box-shadow: 0 2px 8px rgba(255,92,0,0.3); }
+  .tier-name { font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--acid); margin-bottom: 18px; font-weight: 500; }
+  .tier-price { font-family: 'Bebas Neue', sans-serif; font-size: 38px; color: var(--white); letter-spacing: 0.5px; line-height: 1; margin-bottom: 6px; }
+  .tier-price sup { font-size: 16px; vertical-align: super; opacity: 0.7; }
+  .tier-price-note { font-size: 11px; color: #5a5a5a; margin-bottom: 18px; line-height: 1.5; }
   .tier-price-note em { color: var(--orange); font-style: normal; }
-  .tier-features { display: flex; flex-direction: column; gap: 6px; }
-  .tier-feat { display: flex; align-items: flex-start; gap: 8px; font-size: 11px; color: #777; line-height: 1.4; }
-  .tier-feat.on { color: #bbb; }
-  .tier-feat-icon { flex-shrink: 0; margin-top: 1px; }
+  .tier-features { display: flex; flex-direction: column; gap: 9px; }
+  .tier-feat { display: flex; align-items: flex-start; gap: 9px; font-size: 12px; color: #6e6e6e; line-height: 1.4; }
+  .tier-feat.on { color: #c8c8c8; }
+  .tier-feat-icon { flex-shrink: 0; margin-top: 1px; color: var(--acid); }
   .tier-cta { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 4px; padding: 20px; cursor: pointer; transition: background 0.2s;  border-radius: 500px; }
   .tier-cta:hover { background: #4a6f61; }
 
@@ -1842,10 +1842,10 @@ Be specific. Use tables where helpful.`
       let scrollAttempts = 0;
       const trySCroll = () => {
         const targetEl = tier === "free" 
-          ? document.querySelector(".plan-wrapper") 
+          ? document.querySelector(".results-header") 
           : document.querySelector(".paywall-btn");
         if (targetEl) {
-          targetEl.scrollIntoView({ behavior: "smooth", block: "center" });
+          targetEl.scrollIntoView({ behavior: "smooth", block: tier === "free" ? "start" : "center" });
         } else if (scrollAttempts < 10) {
           scrollAttempts++;
           setTimeout(trySCroll, 100);
