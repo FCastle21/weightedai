@@ -499,7 +499,7 @@ const styles = `
   .submit-btn:disabled { background: #333; color: #555; cursor: not-allowed; }
 
   /* PROFILE LOADED BANNER */
-  .profile-banner { max-width: 900px; background: #0a1200; border: 1px solid #1e2e00; border-left: 3px solid var(--acid); padding: 14px 24px; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: #888; animation: fadeUp 0.4s ease; }
+  .profile-banner { max-width: 900px; background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; border-radius: 14px; padding: 14px 24px; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: #888; animation: fadeUp 0.4s ease; }
   .profile-banner strong { color: var(--acid); }
   .profile-edit-btn { background: transparent; border: 1px solid #2a2a2a; color: #555; font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 1px; padding: 6px 12px; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 500px; }
   .profile-edit-btn:hover { border-color: var(--acid); color: var(--acid); }
@@ -608,7 +608,7 @@ const styles = `
   .rating-done strong { color: var(--acid); }
 
   /* PROGRESSIVE OVERLOAD BANNER */
-  .overload-banner { background: #0a0f00; border: 1px solid #1a2a00; border-left: 3px solid var(--acid); padding: 16px 20px; margin-bottom: 24px; }
+  .overload-banner { background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; }
   .overload-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--acid); margin-bottom: 6px; font-weight: 500; }
   .overload-text { font-size: 14px; color: #aaa; line-height: 1.6; }
 
@@ -650,7 +650,7 @@ const styles = `
   .workout-mode-footer { position: sticky; bottom: 0; background: var(--black); border-top: 1px solid #1e1e1e; padding: 16px 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 16px)); }
   .workout-mode-done { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 4px; padding: 18px; cursor: pointer; border-radius: 500px; transition: opacity 0.2s; max-width: 700px; display: block; margin: 0 auto; }
   .workout-mode-done:hover { opacity: 0.85; }
-  .resume-banner { background: #0a1200; border: 1px solid #1e2e00; border-left: 3px solid var(--acid); padding: 16px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; animation: fadeUp 0.4s ease; }
+  .resume-banner { background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; border-radius: 14px; padding: 16px 22px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; animation: fadeUp 0.4s ease; }
   .resume-banner-text { font-size: 14px; color: #888; }
   .resume-banner-text strong { color: var(--acid); }
   .resume-btn { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; padding: 10px 20px; cursor: pointer; border-radius: 500px; white-space: nowrap; }
@@ -2070,7 +2070,7 @@ Be specific. Use tables where helpful.`
         {/* TIER SELECTOR */}
         <section className="tier-section">
           {typeof window !== "undefined" && window.__deferredPrompt && (
-            <div style={{background:"#0a0f00",border:"1px solid #1a2a00",borderLeft:"3px solid var(--acid)",padding:"14px 20px",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
+            <div style={{background:"linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%)",border:"1px solid #1a2620",borderRadius:14,padding:"14px 20px",marginBottom:16,display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:12}}>
               <div>
                 <div style={{fontSize:10,letterSpacing:3,textTransform:"uppercase",color:"var(--acid)",marginBottom:4,fontWeight:500}}>Install App</div>
                 <div style={{fontSize:13,color:"#666"}}>Add WeightedAI to your home screen for the best experience.</div>
