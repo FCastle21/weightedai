@@ -1330,6 +1330,8 @@ function WeightedAI() {
     const prompt = isFree
       ? `CRITICAL OUTPUT RULE: All verification steps, self-checks, sequence labels (like A/B), randomization notes, rotation checks, balance checks, and internal reasoning described in this prompt are for YOUR INTERNAL USE ONLY when constructing the workout. NEVER include any of this meta-commentary in your actual output. The user-facing output must contain ONLY the workout content itself — exercise names, sets, reps, rest, and brief descriptions. Do not mention "Type A", "Type B", "balanced", "verified", "rotation check", "sequence", "randomization seed", or any other planning/verification language in your response.
 
+BOLD TEXT RULE — STRICT: Use **bold** markdown ONLY for the exercise name itself (e.g. **Bulgarian Split Squat**), nothing else. NEVER bold phrases like "Exercise 1:", "MUSCLE GROUP BALANCE CHECK:", "Total: X exercises", section labels, or any planning text. If you bold anything other than a clean exercise name, you are breaking this rule.
+
 FORMATTING RULE: Do NOT include a weekly schedule table, days-per-week breakdown, rest day calendar, or "Week | Mon | Tue..." style grid anywhere in the output. Do NOT use #### (4+ hashtags) for headers — use at most ### for sub-sections. Keep formatting clean and minimal: workout day titles, exercise lists, brief notes. No calendar grids, no schedule tables.
 
 You are an elite fitness engine. Generate a single full-body workout for ${leadData.name}.
@@ -1461,6 +1463,8 @@ Exactly 3 stretches.
 Do NOT include nutrition plans, multi-week programs, or long-form content. This is a free single workout only.`
       : thirtyDayPlan
       ? `CRITICAL OUTPUT RULE: All verification steps, self-checks, sequence labels (like A/B), randomization notes, rotation checks, balance checks, and internal reasoning described in this prompt are for YOUR INTERNAL USE ONLY when constructing the workout. NEVER include any of this meta-commentary in your actual output. The user-facing output must contain ONLY the workout content itself — exercise names, sets, reps, rest, and brief descriptions. Do not mention "Type A", "Type B", "balanced", "verified", "rotation check", "sequence", "randomization seed", or any other planning/verification language in your response.
+
+BOLD TEXT RULE — STRICT: Use **bold** markdown ONLY for the exercise name itself (e.g. **Bulgarian Split Squat**), nothing else. NEVER bold phrases like "Exercise 1:", "MUSCLE GROUP BALANCE CHECK:", "Total: X exercises", section labels, or any planning text. If you bold anything other than a clean exercise name, you are breaking this rule.
 
 FORMATTING RULE: Do NOT include a weekly schedule table, days-per-week breakdown, rest day calendar, or "Week | Mon | Tue..." style grid anywhere in the output. Do NOT use #### (4+ hashtags) for headers — use at most ### for sub-sections. Keep formatting clean and minimal: workout day titles, exercise lists, brief notes. No calendar grids, no schedule tables.
 
@@ -1644,6 +1648,8 @@ DISCLAIMER — INCLUDE THIS VERBATIM AT THE END OF THE NUTRITION STRATEGY SECTIO
 
 Be thorough and specific. Use tables where helpful.`
       : `CRITICAL OUTPUT RULE: All verification steps, self-checks, sequence labels (like A/B), randomization notes, rotation checks, balance checks, and internal reasoning described in this prompt are for YOUR INTERNAL USE ONLY when constructing the workout. NEVER include any of this meta-commentary in your actual output. The user-facing output must contain ONLY the workout content itself — exercise names, sets, reps, rest, and brief descriptions. Do not mention "Type A", "Type B", "balanced", "verified", "rotation check", "sequence", "randomization seed", or any other planning/verification language in your response.
+
+BOLD TEXT RULE — STRICT: Use **bold** markdown ONLY for the exercise name itself (e.g. **Bulgarian Split Squat**), nothing else. NEVER bold phrases like "Exercise 1:", "MUSCLE GROUP BALANCE CHECK:", "Total: X exercises", section labels, or any planning text. If you bold anything other than a clean exercise name, you are breaking this rule.
 
 FORMATTING RULE: Do NOT include a weekly schedule table, days-per-week breakdown, rest day calendar, or "Week | Mon | Tue..." style grid anywhere in the output. Do NOT use #### (4+ hashtags) for headers — use at most ### for sub-sections. Keep formatting clean and minimal: workout day titles, exercise lists, brief notes. No calendar grids, no schedule tables.
 
@@ -2025,9 +2031,13 @@ Be specific. Use tables where helpful.`
     try {
       const planText = plan || "";
       const boldMatches = planText.match(/\*\*([^*]+)\*\*/g) || [];
+      const junkPatterns = /^(exercise\s*\d|muscle group|balance check|total:|warm-?up|cool-?down|session difficulty|note:|tip:|coaching)/i;
       exerciseList = boldMatches
-        .map(m => m.replace(/\*\*/g, "").split("—")[0].split("-")[0].trim())
-        .filter(e => e.length > 3 && e.length < 50)
+        .map(m => m.replace(/\*\*/g, "").split("—")[0].split("–")[0].trim())
+        .map(e => e.replace(/^\d+[\.\)\:]\s*/, "").trim()) // strip leading "1. " or "1: " numbering
+        .filter(e => e.length > 3 && e.length < 60)
+        .filter(e => !junkPatterns.test(e))
+        .filter(e => !e.endsWith(":")) // drop section headers like "Total: 10 exercises"
         .slice(0, 15);
     } catch(e) {}
     const histEntry = { date: entry.date, muscles: entry.muscles, difficulty: difficultyRating, exercises: exerciseList.join("|") };
