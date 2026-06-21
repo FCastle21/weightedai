@@ -1,7 +1,5 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <rect width="512" height="512" fill="#0a0a0a" rx="64"/>
-  <text x="100" y="208" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="86" fill="#f5f3ef" text-anchor="start">WEIGHT</text>
-  <text x="100" y="294" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="86" fill="#f5f3ef" text-anchor="start">ED</text>
-  <rect x="100" y="314" width="168" height="100" rx="20" fill="#5d8a7a"/>
-  <text x="184" y="386" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="74" fill="#0a0a0a" text-anchor="middle">AI</text>
+  <text x="100" y="220" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="86" fill="#f5f3ef" text-anchor="start">WEIGHT</text>
+  <text x="100" y="312" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="86" fill="#f5f3ef" text-anchor="start">ED <tspan fill="#5d8a7a" letter-spacing="2">[AI]</tspan></text>
 </svg>
