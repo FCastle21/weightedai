@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>WeightedAI — Your AI Fitness Trainer</title>
   <meta name="application-name" content="WeightedAI" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -2607,6 +2607,17 @@ Be specific. Use tables where helpful.`
         regs.forEach(r => r.unregister());
       });
     }
+    // Reset zoom when returning from an external app (fixes iOS PWA zoom-stick bug)
+    document.addEventListener("visibilitychange", function() {
+      if (document.visibilityState === "visible") {
+        const viewportMeta = document.querySelector('meta[name="viewport"]');
+        if (viewportMeta) {
+          const original = viewportMeta.getAttribute("content");
+          viewportMeta.setAttribute("content", original + ", maximum-scale=1.0");
+          setTimeout(() => { viewportMeta.setAttribute("content", original); }, 50);
+        }
+      }
+    });
   </script>
   <script>
     async function handleSignIn() {
