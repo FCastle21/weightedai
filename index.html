@@ -2592,7 +2592,15 @@ Be specific. Use tables where helpful.`
           <div className="workout-mode">
             <div className="workout-mode-header">
               <div className="workout-mode-logo">WEIGHTED<span>AI</span></div>
-              <button className="workout-mode-close" onClick={() => { setWorkoutMode(false); setSavedWorkout(null); try { localStorage.removeItem("weightedai_active_workout"); } catch(e) {} window.__releaseWakeLock && window.__releaseWakeLock(); }}>← Back to Plan</button>
+              <button className="workout-mode-close" onClick={() => {
+                setWorkoutMode(false);
+                setSavedWorkout(null);
+                try { localStorage.removeItem("weightedai_active_workout"); } catch(e) {}
+                window.__releaseWakeLock && window.__releaseWakeLock();
+                if (tier === "free" || tier === "individual") {
+                  handleReset();
+                }
+              }}>← Back to Plan</button>
             </div>
             <div className="workout-mode-body">
   
