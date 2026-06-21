@@ -1849,7 +1849,8 @@ Be specific. Use tables where helpful.`
       date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
       muscles: form.muscles.length > 0 ? form.muscles.join(", ") : "Full Body",
       difficulty: difficultyRating,
-      tier
+      tier,
+      goal: form.goal || ""
     };
     const newLog = [entry, ...workoutLog].slice(0, 20);
     setWorkoutLog(newLog);
@@ -2536,7 +2537,7 @@ Be specific. Use tables where helpful.`
                 ) : workoutLog.map((w, i) => (
                   <div key={i} className="workout-log-item">
                     <div>
-                      <div className="workout-log-label">{w.muscles}</div>
+                      <div className="workout-log-label">{(workoutLog.length - i)}. {w.muscles}{w.goal ? " — " + w.goal : ""}</div>
                       <div className="workout-log-date">{w.date}{w.tier ? " · " + w.tier : ""}</div>
                     </div>
                     <div className="workout-log-badge">{w.difficulty}/5</div>
