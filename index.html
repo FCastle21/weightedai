@@ -1920,15 +1920,6 @@ Be specific. Use tables where helpful.`
               </button>
             </div>
           )}
-          {/* Only show workout banner when signed in */}
-          {lead && workoutLog.length > 0 && (
-            <div className="resume-banner" onClick={() => setShowWorkoutHistory(true)} style={{cursor:"pointer"}}>
-              <div className="resume-banner-text">
-                <strong>✓ Last Workout</strong> — {workoutLog[0].muscles} · {workoutLog[0].date}
-              </div>
-              <div style={{fontSize:12,color:"var(--acid)",letterSpacing:1,whiteSpace:"nowrap"}}>VIEW ALL →</div>
-            </div>
-          )}
           {lead && savedWorkout && !workoutLog.some(w => new Date(w.date).toDateString() === new Date(savedWorkout.savedAt).toDateString()) && (
             <div className="resume-banner" style={{borderLeftColor:"var(--acid)"}}>
               <div className="resume-banner-text">
@@ -2004,8 +1995,14 @@ Be specific. Use tables where helpful.`
         {(step==="form"||step==="email-gate") && tier && (
           <section className="form-section" id="form-top">
             {profileLoaded && !editingProfile && (
-              <div className="profile-banner">
+              <div className="profile-banner" style={{flexDirection:"column",alignItems:"flex-start",gap:8}}>
                 <span>✓ Profile auto-loaded for <strong>{lead?.name || "you"}</strong>. Just pick your muscle groups and go.</span>
+                {workoutLog.length > 0 && (
+                  <div onClick={() => setShowWorkoutHistory(true)} style={{cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",fontSize:13,color:"#888"}}>
+                    <span><strong style={{color:"var(--acid)"}}>Last Workout</strong> — {workoutLog[0].muscles} · {workoutLog[0].date}</span>
+                    <span style={{color:"var(--acid)",letterSpacing:1,whiteSpace:"nowrap",fontSize:12}}>VIEW ALL →</span>
+                  </div>
+                )}
               </div>
             )}
             <div className="form-grid">
