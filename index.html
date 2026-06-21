@@ -505,7 +505,7 @@ const styles = `
   .profile-edit-btn:hover { border-color: var(--acid); color: var(--acid); }
 
   /* BLOCKED BANNER */
-  .blocked-banner { max-width: 900px; background: #1a0a00; border: 1px solid #3a1500; border-left: 3px solid var(--orange); padding: 28px 32px; margin-bottom: 32px; animation: fadeUp 0.4s ease; }
+  .blocked-banner { max-width: 900px; background: linear-gradient(135deg, #1a1008 0%, #0d0805 100%); border: 1px solid #2e1f10; border-radius: 16px; padding: 28px 32px; margin-bottom: 32px; animation: fadeUp 0.4s ease; }
   .blocked-banner h3 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--orange); margin-bottom: 8px; }
   .blocked-banner p { font-size: 14px; color: #888; line-height: 1.6; margin-bottom: 20px; }
   .blocked-upgrade-btn { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 3px; padding: 14px 28px; cursor: pointer; transition: background 0.2s; border-radius: 500px; }
@@ -549,7 +549,7 @@ const styles = `
   .reset-btn:hover { border-color: var(--acid); color: var(--acid); }
 
   /* INSPO */
-  .inspo-card { background: #0f0f0f; border: 1px solid #1e1e1e; padding: 20px 24px; margin-bottom: 32px; display: flex; align-items: flex-start; gap: 12px; }
+  .inspo-card { background: #101010; border: 1px solid #1c1c1c; border-radius: 14px; padding: 20px 24px; margin-bottom: 32px; display: flex; align-items: flex-start; gap: 12px; }
   .inspo-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
   .inspo-text { font-size: 15px; color: var(--white); line-height: 1.6; font-style: italic; }
 
@@ -604,7 +604,7 @@ const styles = `
   .rating-submit { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 3px; padding: 14px 28px; cursor: pointer; border-radius: 500px; transition: opacity 0.2s; }
   .rating-submit:hover { opacity: 0.85; }
   .rating-submit:disabled { background: #333; color: #555; cursor: not-allowed; }
-  .rating-done { background: #0f1a00; border: 1px solid #2a3a00; border-left: 3px solid var(--acid); padding: 14px 20px; font-size: 14px; color: #aaa; border-radius: 4px; }
+  .rating-done { background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; padding: 16px 20px; font-size: 14px; color: #aaa; border-radius: 14px; }
   .rating-done strong { color: var(--acid); }
 
   /* PROGRESSIVE OVERLOAD BANNER */
@@ -616,7 +616,7 @@ const styles = `
   .progress-section { border-top: 1px solid #1e1e1e; padding-top: 32px; margin-top: 32px; }
   .progress-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; color: var(--white); margin-bottom: 20px; }
   .workout-log { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
-  .workout-log-item { display: flex; align-items: center; justify-content: space-between; background: #0f0f0f; border: 1px solid #1e1e1e; padding: 12px 16px; }
+  .workout-log-item { display: flex; align-items: center; justify-content: space-between; background: #101010; border: 1px solid #1c1c1c; border-radius: 12px; padding: 12px 16px; }
   .workout-log-date { font-size: 12px; color: #555; letter-spacing: 1px; }
   .workout-log-label { font-size: 14px; color: #aaa; }
   .workout-log-badge { background: var(--acid); color: var(--black); font-size: 10px; letter-spacing: 2px; padding: 4px 12px; font-weight: 500; border-radius: 500px; }
@@ -662,7 +662,7 @@ const styles = `
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
   /* MUSIC CARD */
-  .music-card { background: #0a0a0a; border: 1px solid #1e1e1e; border-left: 3px solid #1a9e4a; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; max-width: 100%; box-sizing: border-box; }
+  .music-card { background: linear-gradient(135deg, #131310 0%, #0a0a08 100%); border: 1px solid #232318; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; max-width: 100%; box-sizing: border-box; border-radius: 14px; }
   .music-icon { font-size: 22px; flex-shrink: 0; }
   .music-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #1a9e4a; margin-bottom: 8px; font-weight: 500; }
   .music-input-row { display: flex; gap: 10px; flex: 1; min-width: 0; width: 100%; }
@@ -713,9 +713,9 @@ const styles = `
   .upsell-strip-btn:hover { opacity: 0.85; }
 
   /* SUCCESS / CONFIRMED */
-  .success-banner { background: #0f1a00; border: 1px solid #2a3a00; border-left: 3px solid var(--acid); padding: 14px 24px; margin-bottom: 28px; display: flex; align-items: center; gap: 12px; font-size: 14px; color: #aaa; }
+  .success-banner { background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; border-radius: 14px; padding: 14px 24px; margin-bottom: 28px; display: flex; align-items: center; gap: 12px; font-size: 14px; color: #aaa; }
   .success-banner strong { color: var(--acid); }
-  .email-confirmed { max-width: 900px; background: #0a1200; border: 1px solid #1e2e00; border-left: 3px solid var(--acid); padding: 14px 24px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #888; animation: fadeUp 0.4s ease; }
+  .email-confirmed { max-width: 900px; background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; border-radius: 14px; padding: 14px 24px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #888; animation: fadeUp 0.4s ease; }
   .email-confirmed strong { color: var(--acid); }
 
   /* PAYMENT MODAL */
@@ -1441,9 +1441,9 @@ The goal: a user doing daily workouts for 30 days should feel like they have a d
 BODYWEIGHT EXERCISE POOL — for bodyweight workouts, randomly select from this extensive list and never repeat an exercise from the previous 3 sessions:
 
 EXERCISE COUNT RULE FOR BODYWEIGHT ADVANCED WORKOUTS — MANDATORY: If equipment is "Bodyweight Only" AND level is "Advanced", the Main Workout MUST contain exactly 10 exercises as the standard, unless the user has explicitly noted a time restriction in their notes (e.g. "short on time", "30 minutes only"). This is a hard rule, not a suggestion.
-PUSH: Push-Up, Wide Push-Up, Diamond Push-Up, Archer Push-Up, Decline Push-Up, Incline Push-Up, Pike Push-Up, Pseudo Planche Push-Up, Hindu Push-Up, Typewriter Push-Up, Close-Grip Push-Up, Explosive Push-Up
 PULL: Pull-Up, Chin-Up, Inverted Row, Australian Pull-Up, Commando Pull-Up, L-Sit Pull-Up, Towel Row, Doorframe Row, Scapular Pull-Up, Negative Pull-Up, Mixed Grip Pull-Up
-LEGS: Squat, Jump Squat, Bulgarian Split Squat, Pistol Squat (assisted), Reverse Lunge, Forward Lunge, Lateral Lunge, Step-Up, Box Jump, Glute Bridge, Single-Leg Glute Bridge, Hip Thrust, Nordic Curl (assisted), Wall Sit, Calf Raise, Single-Leg Calf Raise, Broad Jump, Skater Squat
+LEGS: Squat, Jump Squat, Bulgarian Split Squat, Pistol Squat (assisted), Reverse Lunge, Forward Lunge, Lateral Lunge, Jump Lunge, Walking Lunge, Step-Up, Box Jump, Glute Bridge, Single-Leg Glute Bridge, Hip Thrust, Nordic Curl (assisted), Wall Sit, Calf Raise, Single-Leg Calf Raise, Broad Jump, Skater Squat
+PUSH: Push-Up, Wide Push-Up, Diamond Push-Up, Archer Push-Up, Decline Push-Up, Incline Push-Up, Pike Push-Up, Pseudo Planche Push-Up, Hindu Push-Up, Typewriter Push-Up, Close-Grip Push-Up, Explosive Push-Up, Dips (chair/bench/bars)
 HINGE: Good Morning, Single-Leg Romanian Deadlift, Hip Hinge, Donkey Kick, Fire Hydrant, Superman, Reverse Hyperextension
 CORE: Plank, Side Plank, Hollow Hold, Dead Bug, Ab Wheel Rollout, Dragon Flag (assisted), Hanging Knee Raise, Hanging Leg Raise, V-Up, L-Sit, Bicycle Crunch, Russian Twist, Mountain Climber, Bear Crawl, Pallof Press (band), Windshield Wiper
 FULL BODY: Burpee, Man Maker, Turkish Get-Up, Bear Crawl, Inchworm, Sprawl, Devil Press, Tuck Jump
