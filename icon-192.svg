@@ -2,6 +2,6 @@
   <rect width="192" height="192" fill="#0a0a0a" rx="24"/>
   <text x="40" y="78" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="32" fill="#f5f3ef" text-anchor="start">WEIGHT</text>
   <text x="40" y="110" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="32" fill="#f5f3ef" text-anchor="start">ED</text>
-  <rect x="40" y="122" width="48" height="26" rx="6" fill="#5d8a7a"/>
-  <text x="64" y="141" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="18" fill="#0a0a0a" text-anchor="middle">AI</text>
+  <rect x="40" y="120" width="62" height="38" rx="8" fill="#5d8a7a"/>
+  <text x="71" y="148" font-family="'Arial Black', Impact, sans-serif" font-weight="900" font-size="28" fill="#0a0a0a" text-anchor="middle">AI</text>
 </svg>
