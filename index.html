@@ -254,7 +254,7 @@
 
     <p class="hero-label">AI-Powered Fitness Training</p>
     <h1>HUMAN <em>PERFORMANCE.</em><br />AI <em>PRECISION.</em></h1>
-    <p class="hero-sub">A fitness trainer's coaching logic, built into an AI that remembers your history and adapts every session — not a one-time chatbot answer.</p>
+    <p class="hero-sub">Real training logic — encoded into AI that builds smarter workouts every time.</p>
 
     <div class="hero-actions">
       <a href="#how-it-works" class="btn-primary">HOW IT WORKS</a>
@@ -807,7 +807,7 @@ const styles = `
 
 `;
 
-const GOALS     = ["Fat Burning", "Muscle Building", "Endurance", "Strength Gaining", "Apex", "Athletic Performance", "The Marla"];
+const GOALS     = ["Fat Burning", "Muscle Building", "Strength Gaining", "Apex", "Athletic Performance", "The Marla"];
 const EQUIPMENT = ["Full Gym", "Home Gym", "Dumbbells Only", "Bodyweight Only", "TRX", "Kettlebells"];
 const LEVELS    = ["Beginner", "Intermediate", "Advanced"];
 const DAYS      = ["3", "4", "5", "6"];
@@ -1359,40 +1359,16 @@ EXERCISE ORDER RULE — MANDATORY: When multiple muscle groups are selected, ord
 - Injuries: ${currentForm.injuries||"None"}
 ${workoutHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(workoutHistory.length, 3) + " sessions):\n" + workoutHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
 
-TRAINING LEVEL DEFINITIONS — apply these strictly based on the user's selected level:
+TRAINING LEVEL DEFINITIONS — apply strictly based on selected level. Sets/exercises by level: Beginner = 3 sets, 5-6 exercises (no plyometrics/drop sets/supersets, focus on movement quality). Intermediate = 3-4 sets, 6-8 exercises (drop sets/tempo/moderate plyo OK, focus on overload + mind-muscle connection). Advanced = 4-5 sets, 8-10 exercises (10 for Bodyweight Only unless time-restricted; cluster sets/rest-pause/complex periodization OK, focus on specificity + peak performance).
 
-BEGINNER (0-2 years training):
-- Simple compound movements only — no Olympic lifts, no advanced unilateral work
-- Sets: 3 per exercise | Exercises: 5-6 total
-- Rep ranges by goal: Fat Burning: 12-15 reps, 45s rest | Muscle Building: 10-12 reps, 60s rest | Build Strength: 8-10 reps, 90s rest | Improve Fitness: 12-15 reps, 45s rest | Increase Flexibility: 12-15 reps, 60s rest | Athletic Performance: 10-12 reps, 60s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90s rest) and metcon sets (burpees, mountain climbers, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise
-- No: plyometrics, tempo work, drop sets, supersets, advanced variations
-- Focus: movement quality, consistency, building base
+REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Intermediate=harder, Advanced=hardest):
+- Fat Burning: 10-20 reps, 30-45s rest, circuit-style at higher levels
+- Muscle Building: 6-15 reps, 60-90s rest
+- Strength Gaining: 3-10 reps, 90s-3min rest, heavier/periodized at higher levels
+- Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
+- Apex: see APEX RULE below
 
-INTERMEDIATE (2-4 years training):
-- Compound + isolation mix, some unilateral work, supersets acceptable
-- Sets: 3-4 per exercise | Exercises: 6-8 total
-- Rep ranges by goal: Fat Burning: 10-15 reps, 30-45s rest, circuit-style | Muscle Building: 8-12 reps, 60-90s rest | Build Strength: 5-8 reps, 90-120s rest | Improve Fitness: 12-15 reps, 30s rest | Increase Flexibility: 10-12 reps, 60s rest | Athletic Performance: 6-10 reps, 60-90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90-120s rest) and metcon sets (burpees, mountain climbers, ski erg, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise — every other exercise should switch style
-- Can include: drop sets, tempo variations, moderate plyometrics, supersets
-- Focus: progressive overload, mind-muscle connection
-
-ADVANCED (5+ years training):
-- Full exercise library, complex unilateral movements, Olympic variations acceptable
-- Sets: 4-5 per exercise | Exercises: 8-10 total (10 exercises as the standard for Bodyweight Only equipment, unless the user has noted time restrictions)
-- Rep ranges by goal: Fat Burning: varied 10-20 reps, minimal rest, HIIT elements | Muscle Building: varied 6-15 reps across exercises, 60-90s rest | Build Strength: 3-6 heavy reps, 2-3 min rest, periodized | Improve Fitness: 15-20 reps, 20-30s rest, metabolic | Increase Flexibility: 12-15 reps, 45s rest | Athletic Performance: 3-8 reps explosive, 90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 2 min rest) and metcon sets (burpees, ski erg, jump rope, box jumps, battle ropes, etc. — 30-60s of work, 20-30s rest) exercise by exercise — create a true hybrid session where every other exercise flips the training style
-- Can include: cluster sets, rest-pause, advanced plyometrics, complex periodization
-- Focus: specificity, peak performance, advanced techniques
-
-APEX SPECIFIC RULE — APPLIES AT ALL LEVELS: Apex is built around one mission — look good and perform at a high level. It combines muscle building with metabolic conditioning (metcon) in the SAME workout to simultaneously build a strong, aesthetic physique and elite-level conditioning. Alternate between two distinct exercise types throughout the session:
-
-TYPE A — MUSCLE BUILDING: Compound and isolation lifts (squat, deadlift, bench press, row, overhead press patterns, lunges) at moderate-heavy loads, 6-10 reps, 60-90s rest. Standard strength training form.
-
-TYPE B — METCON: High-intensity cardio/conditioning movements such as burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing machine sprints, or other plyometric/explosive movements. These are timed or high-rep (30-60 seconds of work, or 15-25 reps), minimal rest (15-30s). Burpees and mountain climbers are excellent staple metcon exercises for Apex — include at least one of them in the workout if not already present, since they require no specialized equipment and are highly effective for this goal.
-
-STRUCTURE — THIS IS A HARD REQUIREMENT FOR THE ENTIRE WORKOUT, NO EXCEPTIONS: Exercises must alternate Muscle Building, Metcon, Muscle Building, Metcon for the ENTIRE workout from exercise 1 to the final exercise. This pattern MUST continue through every single exercise — do not let it drift into all-strength or all-metcon at any point, including the middle or end of the workout. Before finalizing your exercise list, go through it in order and label each one "A" (muscle building) or "B" (metcon) — the labels must strictly alternate A,B,A,B,A,B... for the full list. If you find two A's or two B's in a row anywhere in the list, fix it before outputting. Never two Muscle Building exercises back to back, never two Metcon exercises back to back, anywhere in the workout. The goal is simultaneous muscle growth, fat loss, and cardiovascular conditioning sustained throughout the entire session, not just the first half.
-
-MAXIMUM EXERCISE COUNT: Apex workouts must NEVER exceed 12 total exercises, regardless of level or days per week. Keep the exercise count reasonable (8-12 total) so the strict alternating pattern remains practical to complete in one session.
-
-FINAL VERIFICATION STEP — DO THIS BEFORE OUTPUTTING: Write out your exercise list as a sequence of letters only (e.g. A,B,A,B,A,B,A,B). Scan this sequence left to right. If you see "A,A" or "B,B" anywhere — even once — your workout is WRONG and violates the core Apex rule. Go back and swap or reorder exercises until the sequence is a perfect alternation with zero repeats of the same letter in a row. Do not output the workout until this sequence check passes. This check applies to the Main Workout exercises only, not warm-up or cool-down.
+APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises (compound/isolation lifts: squat, deadlift, bench, row, overhead press, lunges — 6-10 reps, 60s-2min rest scaled by level) with Metcon exercises (burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings — 30-60s work, 20-30s rest) for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions. Burpees/mountain climbers are reliable metcon defaults. Cap at 8-12 total exercises (never exceed 12). Before outputting, label your list A (muscle building) / B (metcon) and verify it strictly alternates with zero consecutive repeats — fix and recheck if it doesn't.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1416,29 +1392,15 @@ TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
    - Beginners may use more seated/lying exercises for safety and stability
    - Muscle Building goal may include more isolation work seated/lying — this is acceptable
 
-VARIETY — THIS IS CRITICAL. Every session MUST be meaningfully different. You are a creative fitness programmer, not a template filler.
+VARIETY — CRITICAL. You are a creative programmer, not a template filler. Every session must be meaningfully different.
 
-RANDOMIZATION SEED: ${Date.now()} — use this number to pick a unique starting point in the exercise pool. If the seed ends in 0-2 start with HINGE movements, 3-4 start with PULL, 5-6 start with LEGS, 7-8 start with PUSH, 9 start with CORE. This ensures every workout begins differently.
+SEED: ${Date.now()} — use this to pick a different starting point each time. Seed ends in 0-2: start HINGE | 3-4: start PULL | 5-6: start LEGS | 7-8: start PUSH | 9: start CORE.
 
-CRITICAL ANTI-REPETITION: Before writing any exercise, ask yourself "did I include this in a previous response today?" If yes, choose a different one. The following are OVERUSED defaults that you must actively avoid unless no alternative exists: Push-Up, Squat, Plank, Burpee, Jumping Jack, Mountain Climber, Lunge, Glute Bridge. These are last resorts only.
+OVERUSED DEFAULTS (last resorts only, avoid unless no alternative exists): Push-Up, Squat, Plank, Burpee, Jumping Jack, Mountain Climber, Lunge, Glute Bridge. Never use the most obvious exercise for a muscle group as your default pick.
 
-HARD RULES:
-1. NEVER use the same exercise twice in the same workout
-2. NEVER default to the most common/obvious exercise for a muscle group (e.g. push-up for chest, squat for legs, plank for core) — these are LAST resorts, not defaults
-3. ROTATE movement patterns each session:
-   - Push: cycle between horizontal / vertical / decline / unilateral push variations
-   - Pull: cycle between horizontal row / vertical pull / unilateral / face pull variations  
-   - Legs: cycle between squat / hinge / lunge / single-leg / plyometric patterns
-   - Core: cycle between anti-extension / anti-rotation / flexion / dynamic carry patterns
-4. VARY rep ranges: cycle between strength (3-6), hypertrophy (8-12), endurance (15-20) — pick ONE scheme per session and commit
-5. VARY exercise order — never start with the same exercise two sessions in a row
-6. IMAGINE you are choosing exercises by rolling dice — pick from different parts of the exercise pool each time
-7. If you find yourself writing "Push-Up", "Squat", "Plank", or "Burpee" — STOP and choose a less common variation instead
-8. For BODYWEIGHT specifically: the pool has 60+ exercises — spread selections across PUSH, PULL, LEGS, HINGE, and CORE categories. Never pick more than 2 exercises from the same subcategory.
+RULES: (1) Never repeat an exercise within the same workout. (2) Rotate movement patterns each session — Push: horizontal/vertical/decline/unilateral | Pull: horizontal row/vertical pull/unilateral/face pull | Legs: squat/hinge/lunge/single-leg/plyo | Core: anti-extension/anti-rotation/flexion/carry. (3) Vary rep scheme per session (strength 3-6, hypertrophy 8-12, or endurance 15-20 — commit to one). (4) Never start with the same exercise two sessions running. (5) For Bodyweight: spread across PUSH/PULL/LEGS/HINGE/CORE, max 2 per subcategory.
 
-ANTI-REPETITION CHECK: Before finalizing your exercise list, read it back and ask: "Would someone who did this app yesterday recognize these exercises?" If yes, replace at least 3 of them.
-
-The goal: a user doing daily workouts for 30 days should feel like they have a different trainer each session.
+FINAL CHECK: Before output, ask "would someone who did this yesterday recognize these exercises?" If yes, swap at least 3.
 
 BODYWEIGHT EXERCISE POOL — for bodyweight workouts, randomly select from this extensive list and never repeat an exercise from the previous 3 sessions:
 
@@ -1519,40 +1481,16 @@ PROGRESSIVE OVERLOAD:
 - Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)` : ""}
 
 Then create a complete 30-DAY plan:
-TRAINING LEVEL DEFINITIONS — apply these strictly based on the user's selected level:
+TRAINING LEVEL DEFINITIONS — apply strictly based on selected level. Sets/exercises by level: Beginner = 3 sets, 5-6 exercises (no plyometrics/drop sets/supersets, focus on movement quality). Intermediate = 3-4 sets, 6-8 exercises (drop sets/tempo/moderate plyo OK, focus on overload + mind-muscle connection). Advanced = 4-5 sets, 8-10 exercises (10 for Bodyweight Only unless time-restricted; cluster sets/rest-pause/complex periodization OK, focus on specificity + peak performance).
 
-BEGINNER (0-2 years training):
-- Simple compound movements only — no Olympic lifts, no advanced unilateral work
-- Sets: 3 per exercise | Exercises: 5-6 total
-- Rep ranges by goal: Fat Burning: 12-15 reps, 45s rest | Muscle Building: 10-12 reps, 60s rest | Build Strength: 8-10 reps, 90s rest | Improve Fitness: 12-15 reps, 45s rest | Increase Flexibility: 12-15 reps, 60s rest | Athletic Performance: 10-12 reps, 60s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90s rest) and metcon sets (burpees, mountain climbers, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise
-- No: plyometrics, tempo work, drop sets, supersets, advanced variations
-- Focus: movement quality, consistency, building base
+REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Intermediate=harder, Advanced=hardest):
+- Fat Burning: 10-20 reps, 30-45s rest, circuit-style at higher levels
+- Muscle Building: 6-15 reps, 60-90s rest
+- Strength Gaining: 3-10 reps, 90s-3min rest, heavier/periodized at higher levels
+- Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
+- Apex: see APEX RULE below
 
-INTERMEDIATE (2-4 years training):
-- Compound + isolation mix, some unilateral work, supersets acceptable
-- Sets: 3-4 per exercise | Exercises: 6-8 total
-- Rep ranges by goal: Fat Burning: 10-15 reps, 30-45s rest, circuit-style | Muscle Building: 8-12 reps, 60-90s rest | Build Strength: 5-8 reps, 90-120s rest | Improve Fitness: 12-15 reps, 30s rest | Increase Flexibility: 10-12 reps, 60s rest | Athletic Performance: 6-10 reps, 60-90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90-120s rest) and metcon sets (burpees, mountain climbers, ski erg, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise — every other exercise should switch style
-- Can include: drop sets, tempo variations, moderate plyometrics, supersets
-- Focus: progressive overload, mind-muscle connection
-
-ADVANCED (5+ years training):
-- Full exercise library, complex unilateral movements, Olympic variations acceptable
-- Sets: 4-5 per exercise | Exercises: 8-10 total (10 exercises as the standard for Bodyweight Only equipment, unless the user has noted time restrictions)
-- Rep ranges by goal: Fat Burning: varied 10-20 reps, minimal rest, HIIT elements | Muscle Building: varied 6-15 reps across exercises, 60-90s rest | Build Strength: 3-6 heavy reps, 2-3 min rest, periodized | Improve Fitness: 15-20 reps, 20-30s rest, metabolic | Increase Flexibility: 12-15 reps, 45s rest | Athletic Performance: 3-8 reps explosive, 90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 2 min rest) and metcon sets (burpees, ski erg, jump rope, box jumps, battle ropes, etc. — 30-60s of work, 20-30s rest) exercise by exercise — create a true hybrid session where every other exercise flips the training style
-- Can include: cluster sets, rest-pause, advanced plyometrics, complex periodization
-- Focus: specificity, peak performance, advanced techniques
-
-APEX SPECIFIC RULE — APPLIES AT ALL LEVELS: Apex is built around one mission — look good and perform at a high level. It combines muscle building with metabolic conditioning (metcon) in the SAME workout to simultaneously build a strong, aesthetic physique and elite-level conditioning. Alternate between two distinct exercise types throughout the session:
-
-TYPE A — MUSCLE BUILDING: Compound and isolation lifts (squat, deadlift, bench press, row, overhead press patterns, lunges) at moderate-heavy loads, 6-10 reps, 60-90s rest. Standard strength training form.
-
-TYPE B — METCON: High-intensity cardio/conditioning movements such as burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing machine sprints, or other plyometric/explosive movements. These are timed or high-rep (30-60 seconds of work, or 15-25 reps), minimal rest (15-30s). Burpees and mountain climbers are excellent staple metcon exercises for Apex — include at least one of them in the workout if not already present, since they require no specialized equipment and are highly effective for this goal.
-
-STRUCTURE — THIS IS A HARD REQUIREMENT FOR THE ENTIRE WORKOUT, NO EXCEPTIONS: Exercises must alternate Muscle Building, Metcon, Muscle Building, Metcon for the ENTIRE workout from exercise 1 to the final exercise. This pattern MUST continue through every single exercise — do not let it drift into all-strength or all-metcon at any point, including the middle or end of the workout. Before finalizing your exercise list, go through it in order and label each one "A" (muscle building) or "B" (metcon) — the labels must strictly alternate A,B,A,B,A,B... for the full list. If you find two A's or two B's in a row anywhere in the list, fix it before outputting. Never two Muscle Building exercises back to back, never two Metcon exercises back to back, anywhere in the workout. The goal is simultaneous muscle growth, fat loss, and cardiovascular conditioning sustained throughout the entire session, not just the first half.
-
-MAXIMUM EXERCISE COUNT: Apex workouts must NEVER exceed 12 total exercises, regardless of level or days per week. Keep the exercise count reasonable (8-12 total) so the strict alternating pattern remains practical to complete in one session.
-
-FINAL VERIFICATION STEP — DO THIS BEFORE OUTPUTTING: Write out your exercise list as a sequence of letters only (e.g. A,B,A,B,A,B,A,B). Scan this sequence left to right. If you see "A,A" or "B,B" anywhere — even once — your workout is WRONG and violates the core Apex rule. Go back and swap or reorder exercises until the sequence is a perfect alternation with zero repeats of the same letter in a row. Do not output the workout until this sequence check passes. This check applies to the Main Workout exercises only, not warm-up or cool-down.
+APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises (compound/isolation lifts: squat, deadlift, bench, row, overhead press, lunges — 6-10 reps, 60s-2min rest scaled by level) with Metcon exercises (burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings — 30-60s work, 20-30s rest) for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions. Burpees/mountain climbers are reliable metcon defaults. Cap at 8-12 total exercises (never exceed 12). Before outputting, label your list A (muscle building) / B (metcon) and verify it strictly alternates with zero consecutive repeats — fix and recheck if it doesn't.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1576,29 +1514,15 @@ TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
    - Beginners may use more seated/lying exercises for safety and stability
    - Muscle Building goal may include more isolation work seated/lying — this is acceptable
 
-VARIETY — THIS IS CRITICAL. Every session MUST be meaningfully different. You are a creative fitness programmer, not a template filler.
+VARIETY — CRITICAL. You are a creative programmer, not a template filler. Every session must be meaningfully different.
 
-RANDOMIZATION SEED: ${Date.now()} — use this number to pick a unique starting point in the exercise pool. If the seed ends in 0-2 start with HINGE movements, 3-4 start with PULL, 5-6 start with LEGS, 7-8 start with PUSH, 9 start with CORE. This ensures every workout begins differently.
+SEED: ${Date.now()} — use this to pick a different starting point each time. Seed ends in 0-2: start HINGE | 3-4: start PULL | 5-6: start LEGS | 7-8: start PUSH | 9: start CORE.
 
-CRITICAL ANTI-REPETITION: Before writing any exercise, ask yourself "did I include this in a previous response today?" If yes, choose a different one. The following are OVERUSED defaults that you must actively avoid unless no alternative exists: Push-Up, Squat, Plank, Burpee, Jumping Jack, Mountain Climber, Lunge, Glute Bridge. These are last resorts only.
+OVERUSED DEFAULTS (last resorts only, avoid unless no alternative exists): Push-Up, Squat, Plank, Burpee, Jumping Jack, Mountain Climber, Lunge, Glute Bridge. Never use the most obvious exercise for a muscle group as your default pick.
 
-HARD RULES:
-1. NEVER use the same exercise twice in the same workout
-2. NEVER default to the most common/obvious exercise for a muscle group (e.g. push-up for chest, squat for legs, plank for core) — these are LAST resorts, not defaults
-3. ROTATE movement patterns each session:
-   - Push: cycle between horizontal / vertical / decline / unilateral push variations
-   - Pull: cycle between horizontal row / vertical pull / unilateral / face pull variations  
-   - Legs: cycle between squat / hinge / lunge / single-leg / plyometric patterns
-   - Core: cycle between anti-extension / anti-rotation / flexion / dynamic carry patterns
-4. VARY rep ranges: cycle between strength (3-6), hypertrophy (8-12), endurance (15-20) — pick ONE scheme per session and commit
-5. VARY exercise order — never start with the same exercise two sessions in a row
-6. IMAGINE you are choosing exercises by rolling dice — pick from different parts of the exercise pool each time
-7. If you find yourself writing "Push-Up", "Squat", "Plank", or "Burpee" — STOP and choose a less common variation instead
-8. For BODYWEIGHT specifically: the pool has 60+ exercises — spread selections across PUSH, PULL, LEGS, HINGE, and CORE categories. Never pick more than 2 exercises from the same subcategory.
+RULES: (1) Never repeat an exercise within the same workout. (2) Rotate movement patterns each session — Push: horizontal/vertical/decline/unilateral | Pull: horizontal row/vertical pull/unilateral/face pull | Legs: squat/hinge/lunge/single-leg/plyo | Core: anti-extension/anti-rotation/flexion/carry. (3) Vary rep scheme per session (strength 3-6, hypertrophy 8-12, or endurance 15-20 — commit to one). (4) Never start with the same exercise two sessions running. (5) For Bodyweight: spread across PUSH/PULL/LEGS/HINGE/CORE, max 2 per subcategory.
 
-ANTI-REPETITION CHECK: Before finalizing your exercise list, read it back and ask: "Would someone who did this app yesterday recognize these exercises?" If yes, replace at least 3 of them.
-
-The goal: a user doing daily workouts for 30 days should feel like they have a different trainer each session.
+FINAL CHECK: Before output, ask "would someone who did this yesterday recognize these exercises?" If yes, swap at least 3.
 # ${leadData.name}'s 30-Day Plan
 ## Overview & Goals
 ## How To Use This Plan
@@ -1624,13 +1548,6 @@ IF GOAL IS STRENGTH GAINING or ATHLETIC PERFORMANCE:
 - Fat: 20-35% of calories.
 - Carbs: moderate amount, 3-5 g/kg — sufficient to fuel training without being high-carb. These goals are not endurance-focused.
 - Mention hydration for training sessions.
-
-IF GOAL IS ENDURANCE:
-- Calories: generally at or near maintenance. High-volume training may require more.
-- Protein: 1.4-2.0 g/kg (0.64-0.91 g/lb).
-- Fat: 20-35% of calories.
-- Carbs: THIS IS THE ONE GOAL WHERE HIGH CARB IS APPROPRIATE — moderate training: 3-5 g/kg | hard training: 5-7 g/kg | endurance-heavy: 6-10+ g/kg. Carbs are the primary fuel for intense/prolonged exercise — do not under-recommend them here. This is the only goal that should receive a high-carb recommendation.
-- Mention hydration and electrolyte replacement for long or sweat-heavy sessions.
 
 IF GOAL IS APEX or BODY RECOMP (hybrid muscle + fat loss):
 - Calories: at or slightly below maintenance (0-10% deficit) to support simultaneous muscle retention/gain and fat loss.
@@ -1705,40 +1622,16 @@ PROGRESSIVE OVERLOAD:
 - Difficulty 1-2 last session: increase reps by 2-3 or add a set
 - Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)` : ""}
 
-TRAINING LEVEL DEFINITIONS — apply these strictly based on the user's selected level:
+TRAINING LEVEL DEFINITIONS — apply strictly based on selected level. Sets/exercises by level: Beginner = 3 sets, 5-6 exercises (no plyometrics/drop sets/supersets, focus on movement quality). Intermediate = 3-4 sets, 6-8 exercises (drop sets/tempo/moderate plyo OK, focus on overload + mind-muscle connection). Advanced = 4-5 sets, 8-10 exercises (10 for Bodyweight Only unless time-restricted; cluster sets/rest-pause/complex periodization OK, focus on specificity + peak performance).
 
-BEGINNER (0-2 years training):
-- Simple compound movements only — no Olympic lifts, no advanced unilateral work
-- Sets: 3 per exercise | Exercises: 5-6 total
-- Rep ranges by goal: Fat Burning: 12-15 reps, 45s rest | Muscle Building: 10-12 reps, 60s rest | Build Strength: 8-10 reps, 90s rest | Improve Fitness: 12-15 reps, 45s rest | Increase Flexibility: 12-15 reps, 60s rest | Athletic Performance: 10-12 reps, 60s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90s rest) and metcon sets (burpees, mountain climbers, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise
-- No: plyometrics, tempo work, drop sets, supersets, advanced variations
-- Focus: movement quality, consistency, building base
+REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Intermediate=harder, Advanced=hardest):
+- Fat Burning: 10-20 reps, 30-45s rest, circuit-style at higher levels
+- Muscle Building: 6-15 reps, 60-90s rest
+- Strength Gaining: 3-10 reps, 90s-3min rest, heavier/periodized at higher levels
+- Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
+- Apex: see APEX RULE below
 
-INTERMEDIATE (2-4 years training):
-- Compound + isolation mix, some unilateral work, supersets acceptable
-- Sets: 3-4 per exercise | Exercises: 6-8 total
-- Rep ranges by goal: Fat Burning: 10-15 reps, 30-45s rest, circuit-style | Muscle Building: 8-12 reps, 60-90s rest | Build Strength: 5-8 reps, 90-120s rest | Improve Fitness: 12-15 reps, 30s rest | Increase Flexibility: 10-12 reps, 60s rest | Athletic Performance: 6-10 reps, 60-90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 90-120s rest) and metcon sets (burpees, mountain climbers, ski erg, jump rope, etc. — 30-45s of work, 20-30s rest) exercise by exercise — every other exercise should switch style
-- Can include: drop sets, tempo variations, moderate plyometrics, supersets
-- Focus: progressive overload, mind-muscle connection
-
-ADVANCED (5+ years training):
-- Full exercise library, complex unilateral movements, Olympic variations acceptable
-- Sets: 4-5 per exercise | Exercises: 8-10 total (10 exercises as the standard for Bodyweight Only equipment, unless the user has noted time restrictions)
-- Rep ranges by goal: Fat Burning: varied 10-20 reps, minimal rest, HIIT elements | Muscle Building: varied 6-15 reps across exercises, 60-90s rest | Build Strength: 3-6 heavy reps, 2-3 min rest, periodized | Improve Fitness: 15-20 reps, 20-30s rest, metabolic | Increase Flexibility: 12-15 reps, 45s rest | Athletic Performance: 3-8 reps explosive, 90s rest | Apex: ALTERNATE between muscle-building sets (6-10 reps, 2 min rest) and metcon sets (burpees, ski erg, jump rope, box jumps, battle ropes, etc. — 30-60s of work, 20-30s rest) exercise by exercise — create a true hybrid session where every other exercise flips the training style
-- Can include: cluster sets, rest-pause, advanced plyometrics, complex periodization
-- Focus: specificity, peak performance, advanced techniques
-
-APEX SPECIFIC RULE — APPLIES AT ALL LEVELS: Apex is built around one mission — look good and perform at a high level. It combines muscle building with metabolic conditioning (metcon) in the SAME workout to simultaneously build a strong, aesthetic physique and elite-level conditioning. Alternate between two distinct exercise types throughout the session:
-
-TYPE A — MUSCLE BUILDING: Compound and isolation lifts (squat, deadlift, bench press, row, overhead press patterns, lunges) at moderate-heavy loads, 6-10 reps, 60-90s rest. Standard strength training form.
-
-TYPE B — METCON: High-intensity cardio/conditioning movements such as burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing machine sprints, or other plyometric/explosive movements. These are timed or high-rep (30-60 seconds of work, or 15-25 reps), minimal rest (15-30s). Burpees and mountain climbers are excellent staple metcon exercises for Apex — include at least one of them in the workout if not already present, since they require no specialized equipment and are highly effective for this goal.
-
-STRUCTURE — THIS IS A HARD REQUIREMENT FOR THE ENTIRE WORKOUT, NO EXCEPTIONS: Exercises must alternate Muscle Building, Metcon, Muscle Building, Metcon for the ENTIRE workout from exercise 1 to the final exercise. This pattern MUST continue through every single exercise — do not let it drift into all-strength or all-metcon at any point, including the middle or end of the workout. Before finalizing your exercise list, go through it in order and label each one "A" (muscle building) or "B" (metcon) — the labels must strictly alternate A,B,A,B,A,B... for the full list. If you find two A's or two B's in a row anywhere in the list, fix it before outputting. Never two Muscle Building exercises back to back, never two Metcon exercises back to back, anywhere in the workout. The goal is simultaneous muscle growth, fat loss, and cardiovascular conditioning sustained throughout the entire session, not just the first half.
-
-MAXIMUM EXERCISE COUNT: Apex workouts must NEVER exceed 12 total exercises, regardless of level or days per week. Keep the exercise count reasonable (8-12 total) so the strict alternating pattern remains practical to complete in one session.
-
-FINAL VERIFICATION STEP — DO THIS BEFORE OUTPUTTING: Write out your exercise list as a sequence of letters only (e.g. A,B,A,B,A,B,A,B). Scan this sequence left to right. If you see "A,A" or "B,B" anywhere — even once — your workout is WRONG and violates the core Apex rule. Go back and swap or reorder exercises until the sequence is a perfect alternation with zero repeats of the same letter in a row. Do not output the workout until this sequence check passes. This check applies to the Main Workout exercises only, not warm-up or cool-down.
+APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises (compound/isolation lifts: squat, deadlift, bench, row, overhead press, lunges — 6-10 reps, 60s-2min rest scaled by level) with Metcon exercises (burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings — 30-60s work, 20-30s rest) for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions. Burpees/mountain climbers are reliable metcon defaults. Cap at 8-12 total exercises (never exceed 12). Before outputting, label your list A (muscle building) / B (metcon) and verify it strictly alternates with zero consecutive repeats — fix and recheck if it doesn't.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1762,29 +1655,15 @@ TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
    - Beginners may use more seated/lying exercises for safety and stability
    - Muscle Building goal may include more isolation work seated/lying — this is acceptable
 
-VARIETY — THIS IS CRITICAL. Every session MUST be meaningfully different. You are a creative fitness programmer, not a template filler.
+VARIETY — CRITICAL. You are a creative programmer, not a template filler. Every session must be meaningfully different.
 
-RANDOMIZATION SEED: ${Date.now()} — use this number to pick a unique starting point in the exercise pool. If the seed ends in 0-2 start with HINGE movements, 3-4 start with PULL, 5-6 start with LEGS, 7-8 start with PUSH, 9 start with CORE. This ensures every workout begins differently.
+SEED: ${Date.now()} — use this to pick a different starting point each time. Seed ends in 0-2: start HINGE | 3-4: start PULL | 5-6: start LEGS | 7-8: start PUSH | 9: start CORE.
 
-CRITICAL ANTI-REPETITION: Before writing any exercise, ask yourself "did I include this in a previous response today?" If yes, choose a different one. The following are OVERUSED defaults that you must actively avoid unless no alternative exists: Push-Up, Squat, Plank, Burpee, Jumping Jack, Mountain Climber, Lunge, Glute Bridge. These are last resorts only.
+OVERUSED DEFAULTS (last resorts only, avoid unless no alternative exists): Push-Up, Squat, Plank, Burpee, Jumping Jack, Mountain Climber, Lunge, Glute Bridge. Never use the most obvious exercise for a muscle group as your default pick.
 
-HARD RULES:
-1. NEVER use the same exercise twice in the same workout
-2. NEVER default to the most common/obvious exercise for a muscle group (e.g. push-up for chest, squat for legs, plank for core) — these are LAST resorts, not defaults
-3. ROTATE movement patterns each session:
-   - Push: cycle between horizontal / vertical / decline / unilateral push variations
-   - Pull: cycle between horizontal row / vertical pull / unilateral / face pull variations  
-   - Legs: cycle between squat / hinge / lunge / single-leg / plyometric patterns
-   - Core: cycle between anti-extension / anti-rotation / flexion / dynamic carry patterns
-4. VARY rep ranges: cycle between strength (3-6), hypertrophy (8-12), endurance (15-20) — pick ONE scheme per session and commit
-5. VARY exercise order — never start with the same exercise two sessions in a row
-6. IMAGINE you are choosing exercises by rolling dice — pick from different parts of the exercise pool each time
-7. If you find yourself writing "Push-Up", "Squat", "Plank", or "Burpee" — STOP and choose a less common variation instead
-8. For BODYWEIGHT specifically: the pool has 60+ exercises — spread selections across PUSH, PULL, LEGS, HINGE, and CORE categories. Never pick more than 2 exercises from the same subcategory.
+RULES: (1) Never repeat an exercise within the same workout. (2) Rotate movement patterns each session — Push: horizontal/vertical/decline/unilateral | Pull: horizontal row/vertical pull/unilateral/face pull | Legs: squat/hinge/lunge/single-leg/plyo | Core: anti-extension/anti-rotation/flexion/carry. (3) Vary rep scheme per session (strength 3-6, hypertrophy 8-12, or endurance 15-20 — commit to one). (4) Never start with the same exercise two sessions running. (5) For Bodyweight: spread across PUSH/PULL/LEGS/HINGE/CORE, max 2 per subcategory.
 
-ANTI-REPETITION CHECK: Before finalizing your exercise list, read it back and ask: "Would someone who did this app yesterday recognize these exercises?" If yes, replace at least 3 of them.
-
-The goal: a user doing daily workouts for 30 days should feel like they have a different trainer each session.
+FINAL CHECK: Before output, ask "would someone who did this yesterday recognize these exercises?" If yes, swap at least 3.
 # ${leadData.name}'s Personalized Plan
 ## Overview
 ## Workout Plans (each day: name, muscle focus, exactly 3 warm-up moves, 5-7 main exercises, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers), rest period. PYRAMID RULE — MANDATORY: Any exercise with 4 or more sets MUST use pyramid progression with increasing weight each set. Format MUST be written as "4 sets x 15-12-10-8 reps" NOT "4 sets x 10 reps". For 3 sets use straight sets written as "3 sets x 10 reps". No exceptions — every 4+ set exercise must show descending rep numbers separated by dashes. Then one short sentence describing what it works and why it's in this workout.)
@@ -1810,13 +1689,6 @@ IF GOAL IS STRENGTH GAINING or ATHLETIC PERFORMANCE:
 - Fat: 20-35% of calories.
 - Carbs: moderate amount, 3-5 g/kg — sufficient to fuel training without being high-carb. These goals are not endurance-focused.
 - Mention hydration for training sessions.
-
-IF GOAL IS ENDURANCE:
-- Calories: generally at or near maintenance. High-volume training may require more.
-- Protein: 1.4-2.0 g/kg (0.64-0.91 g/lb).
-- Fat: 20-35% of calories.
-- Carbs: THIS IS THE ONE GOAL WHERE HIGH CARB IS APPROPRIATE — moderate training: 3-5 g/kg | hard training: 5-7 g/kg | endurance-heavy: 6-10+ g/kg. Carbs are the primary fuel for intense/prolonged exercise — do not under-recommend them here. This is the only goal that should receive a high-carb recommendation.
-- Mention hydration and electrolyte replacement for long or sweat-heavy sessions.
 
 IF GOAL IS APEX or BODY RECOMP (hybrid muscle + fat loss):
 - Calories: at or slightly below maintenance (0-10% deficit) to support simultaneous muscle retention/gain and fat loss.
