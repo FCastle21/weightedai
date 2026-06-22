@@ -810,6 +810,81 @@ async function saveProfile(email, data) {
   } catch {}
 }
 
+// Safety net: detect and fix broken Apex muscle-building/metcon alternation
+function fixApexAlternation(planText) {
+  try {
+    // Metcon keywords - if an exercise name contains any of these, classify as Metcon (B)
+    const metconKeywords = ["burpee", "mountain climber", "ski erg", "jump rope", "box jump", "battle rope", "kettlebell swing", "sled", "row sprint", "rowing sprint", "sprint", "carry", "drag", "jump squat", "broad jump", "skater", "plyo", "tuck jump", "high knee", "jumping jack", "shuttle"];
+
+    // Find all bolded exercise lines with their full line content (to detect sets/reps context)
+    const lines = planText.split("\n");
+    const exerciseLineIndices = [];
+    const classifications = [];
+
+    lines.forEach((line, idx) => {
+      const boldMatch = line.match(/\*\*([^*]+)\*\*/);
+      if (boldMatch) {
+        const exName = boldMatch[1].split("—")[0].split("–")[0].trim().toLowerCase();
+        const isMetcon = metconKeywords.some(kw => exName.includes(kw));
+        exerciseLineIndices.push(idx);
+        classifications.push(isMetcon ? "B" : "A");
+      }
+    });
+
+    // Only operate on the Main Workout section - skip if fewer than 4 exercises found (not enough to validate meaningfully)
+    if (exerciseLineIndices.length < 4) return planText;
+
+    // Check if alternation is already correct
+    let isValid = true;
+    for (let i = 1; i < classifications.length; i++) {
+      if (classifications[i] === classifications[i - 1]) {
+        isValid = false;
+        break;
+      }
+    }
+    if (isValid) return planText; // Already alternates correctly, no changes needed
+
+    // Alternation is broken - reorder the exercise blocks (each block = bold line + its following description lines until next bold line or blank-blank)
+    // Build exercise blocks
+    const blocks = [];
+    for (let i = 0; i < exerciseLineIndices.length; i++) {
+      const startIdx = exerciseLineIndices[i];
+      const endIdx = i + 1 < exerciseLineIndices.length ? exerciseLineIndices[i + 1] : lines.length;
+      blocks.push({ lines: lines.slice(startIdx, endIdx), type: classifications[i] });
+    }
+
+    // Separate into A and B groups, preserving original relative order within each group
+    const aBlocks = blocks.filter(b => b.type === "A");
+    const bBlocks = blocks.filter(b => b.type === "B");
+
+    // Interleave A and B starting with whichever group is more plentiful first (or A by default)
+    const reordered = [];
+    const maxLen = Math.max(aBlocks.length, bBlocks.length);
+    const startWithA = aBlocks.length >= bBlocks.length;
+    for (let i = 0; i < maxLen; i++) {
+      if (startWithA) {
+        if (aBlocks[i]) reordered.push(aBlocks[i]);
+        if (bBlocks[i]) reordered.push(bBlocks[i]);
+      } else {
+        if (bBlocks[i]) reordered.push(bBlocks[i]);
+        if (aBlocks[i]) reordered.push(aBlocks[i]);
+      }
+    }
+
+    // Rebuild the plan text: everything before the first exercise block, then reordered blocks, then everything after the last block
+    const firstBlockStart = exerciseLineIndices[0];
+    const lastBlockEnd = exerciseLineIndices[exerciseLineIndices.length - 1] + blocks[blocks.length - 1].lines.length;
+    const before = lines.slice(0, firstBlockStart);
+    const after = lines.slice(lastBlockEnd);
+    const reorderedLines = reordered.flatMap(b => b.lines);
+
+    return [...before, ...reorderedLines, ...after].join("\n");
+  } catch (e) {
+    console.error("fixApexAlternation error:", e);
+    return planText; // Fail safe - return original if anything goes wrong
+  }
+}
+
 function parseMarkdown(text) {
   if (!text) return "";
   // Remove standalone ** and --- artifacts
@@ -1327,7 +1402,9 @@ TYPE B — METCON (use ONLY these patterns): conditioning exercises performed fo
 
 LOADED CARRIES AND HYBRID MOVEMENTS: Farmer carries, suitcase carries, sled drags, and similar loaded carry exercises ARE allowed in Apex and classify as TYPE B — METCON (timed/distance-based, full-body, heart-rate elevating, minimal rest). Classify them as B, never as A.
 
-Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscle focus is "Full Body" AND level is "Advanced", use exactly 10 exercises (5 muscle building + 5 metcon) per the EXERCISE COUNT RULE FOR ADVANCED WORKOUTS above — this takes priority. Otherwise, use 8-12 total exercises, never exceeding 12. Before outputting, classify EVERY exercise as A or B using the strict definitions above (not vague impression), write the sequence as letters, and verify it strictly alternates with zero consecutive repeats — fix and recheck if it doesn't.
+Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscle focus is "Full Body" AND level is "Advanced", use exactly 10 exercises (5 muscle building + 5 metcon) per the EXERCISE COUNT RULE FOR ADVANCED WORKOUTS above — this takes priority. Otherwise, use 8-12 total exercises, never exceeding 12.
+
+MANDATORY PRE-OUTPUT STEP — DO THIS BEFORE WRITING THE FINAL WORKOUT: First, draft your exercise list as numbered pairs in this exact format: "1. [Exercise Name] = A" then "2. [Exercise Name] = B" then "3. [Exercise Name] = A" and so on, alternating A/B explicitly for every single exercise you plan to include. Look at this draft list. If exercise 3 and exercise 4 are both A, or both B, that is a violation — replace one of them with the opposite type immediately in your draft before proceeding. Only after your draft list shows perfect A,B,A,B,A,B alternation with NO exceptions should you write out the final formatted workout using that exact exercise order. Do not skip this draft step — workouts that drift into multiple same-type exercises in a row (e.g. 3 or 4 strength exercises back to back) are a critical failure of this program.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1380,7 +1457,7 @@ Then provide:
 ### Warm-Up (5 min)
 Exactly 3 warm-up moves.
 ### Main Workout
-6-8 exercises — for each: **Exercise Name** — sets x reps, rest (use actual numbers, e.g. "3 sets x 10 reps"). Use straight sets (same rep count across all sets) for every exercise — no pyramid/descending rep schemes. Then one short sentence describing what it works and why it's in this workout.
+6-8 exercises — for each: **Exercise Name** — sets x reps, rest (use actual numbers, e.g. "3 sets x 10 reps"). STRAIGHT SETS RULE — MANDATORY, NO EXCEPTIONS: Every exercise must use the SAME rep number across all sets (e.g. "4 sets x 10 reps" — write ONE number, not a range or descending sequence). NEVER write formats like "8-7-6-5" or "15-12-10-8" or any descending/ascending rep sequence. If you write a hyphenated rep range for an exercise's set count, you are violating this rule. Then one short sentence describing what it works and why it's in this workout.
 ### Cool-Down (5 min)
 Exactly 3 stretches.
 
@@ -1460,7 +1537,9 @@ TYPE B — METCON (use ONLY these patterns): conditioning exercises performed fo
 
 LOADED CARRIES AND HYBRID MOVEMENTS: Farmer carries, suitcase carries, sled drags, and similar loaded carry exercises ARE allowed in Apex and classify as TYPE B — METCON (timed/distance-based, full-body, heart-rate elevating, minimal rest). Classify them as B, never as A.
 
-Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscle focus is "Full Body" AND level is "Advanced", use exactly 10 exercises (5 muscle building + 5 metcon) per the EXERCISE COUNT RULE FOR ADVANCED WORKOUTS above — this takes priority. Otherwise, use 8-12 total exercises, never exceeding 12. Before outputting, classify EVERY exercise as A or B using the strict definitions above (not vague impression), write the sequence as letters, and verify it strictly alternates with zero consecutive repeats — fix and recheck if it doesn't.
+Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscle focus is "Full Body" AND level is "Advanced", use exactly 10 exercises (5 muscle building + 5 metcon) per the EXERCISE COUNT RULE FOR ADVANCED WORKOUTS above — this takes priority. Otherwise, use 8-12 total exercises, never exceeding 12.
+
+MANDATORY PRE-OUTPUT STEP — DO THIS BEFORE WRITING THE FINAL WORKOUT: First, draft your exercise list as numbered pairs in this exact format: "1. [Exercise Name] = A" then "2. [Exercise Name] = B" then "3. [Exercise Name] = A" and so on, alternating A/B explicitly for every single exercise you plan to include. Look at this draft list. If exercise 3 and exercise 4 are both A, or both B, that is a violation — replace one of them with the opposite type immediately in your draft before proceeding. Only after your draft list shows perfect A,B,A,B,A,B alternation with NO exceptions should you write out the final formatted workout using that exact exercise order. Do not skip this draft step — workouts that drift into multiple same-type exercises in a row (e.g. 3 or 4 strength exercises back to back) are a critical failure of this program.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1535,7 +1614,7 @@ Default fallback if no goal matches the above (or for general balance): Protein 
 DISCLAIMER — INCLUDE THIS VERBATIM AT THE END OF THE NUTRITION STRATEGY SECTION: "These nutrition recommendations are general guidelines based on widely accepted sports nutrition principles, not personalized medical or dietary prescriptions. Individual needs vary based on health history, medical conditions, and other factors. Please consult a registered dietitian or physician with any specific questions or concerns before making significant changes to your diet."
 
 ## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
-## The 30-Day Schedule (4 weeks, every training day with: day number, focus, exactly 3 warm-up moves, 5-6 main exercises, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"). Use straight sets — no pyramid/descending rep schemes. One short sentence on what it works. One coaching note per day.)
+## The 30-Day Schedule (4 weeks, every training day with: day number, focus, exactly 3 warm-up moves, 5-6 main exercises, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"). STRAIGHT SETS RULE — MANDATORY: same rep number across all sets, NEVER a descending sequence like "8-7-6-5". One short sentence on what it works. One coaching note per day.)
 ## Recovery Protocol
 ## End of 30 Days
 
@@ -1611,7 +1690,9 @@ TYPE B — METCON (use ONLY these patterns): conditioning exercises performed fo
 
 LOADED CARRIES AND HYBRID MOVEMENTS: Farmer carries, suitcase carries, sled drags, and similar loaded carry exercises ARE allowed in Apex and classify as TYPE B — METCON (timed/distance-based, full-body, heart-rate elevating, minimal rest). Classify them as B, never as A.
 
-Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscle focus is "Full Body" AND level is "Advanced", use exactly 10 exercises (5 muscle building + 5 metcon) per the EXERCISE COUNT RULE FOR ADVANCED WORKOUTS above — this takes priority. Otherwise, use 8-12 total exercises, never exceeding 12. Before outputting, classify EVERY exercise as A or B using the strict definitions above (not vague impression), write the sequence as letters, and verify it strictly alternates with zero consecutive repeats — fix and recheck if it doesn't.
+Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscle focus is "Full Body" AND level is "Advanced", use exactly 10 exercises (5 muscle building + 5 metcon) per the EXERCISE COUNT RULE FOR ADVANCED WORKOUTS above — this takes priority. Otherwise, use 8-12 total exercises, never exceeding 12.
+
+MANDATORY PRE-OUTPUT STEP — DO THIS BEFORE WRITING THE FINAL WORKOUT: First, draft your exercise list as numbered pairs in this exact format: "1. [Exercise Name] = A" then "2. [Exercise Name] = B" then "3. [Exercise Name] = A" and so on, alternating A/B explicitly for every single exercise you plan to include. Look at this draft list. If exercise 3 and exercise 4 are both A, or both B, that is a violation — replace one of them with the opposite type immediately in your draft before proceeding. Only after your draft list shows perfect A,B,A,B,A,B alternation with NO exceptions should you write out the final formatted workout using that exact exercise order. Do not skip this draft step — workouts that drift into multiple same-type exercises in a row (e.g. 3 or 4 strength exercises back to back) are a critical failure of this program.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1646,7 +1727,7 @@ RULES: (1) Never repeat an exercise within the same workout. (2) Rotate movement
 FINAL CHECK: Before output, ask "would someone who did this yesterday recognize these exercises?" If yes, swap at least 3.
 # ${leadData.name}'s Personalized Plan
 ## Overview
-## Workout Plans (each day: name, muscle focus, exactly 3 warm-up moves, 5-7 main exercises, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period. Use straight sets (same rep count across all sets) for every exercise — no pyramid/descending rep schemes. Then one short sentence describing what it works and why it's in this workout.)
+## Workout Plans (each day: name, muscle focus, exactly 3 warm-up moves, 5-7 main exercises, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period. STRAIGHT SETS RULE — MANDATORY, NO EXCEPTIONS: Every exercise must use the SAME rep number across all sets (e.g. "4 sets x 10 reps" — write ONE number, not a range or descending sequence). NEVER write formats like "8-7-6-5" or "15-12-10-8" or any descending/ascending rep sequence. If you write a hyphenated rep range for an exercise's set count, you are violating this rule. Then one short sentence describing what it works and why it's in this workout.)
 NUTRITION GUIDELINES — APPLY BASED ON THE USER'S GOAL. Use their weight (convert to kg if needed: lbs / 2.2 = kg) to calculate exact numbers, not vague ranges. Show your math briefly (e.g. "180 lb = ~82 kg").
 
 IF GOAL IS BUILD MUSCLE:
@@ -1701,7 +1782,11 @@ Be specific. Use tables where helpful.`
       if (!data || data.error) throw new Error(data?.error || "API error");
 
       const raw = data.content?.find(b => b.type === "text")?.text || "";
-      const cleanPlan = raw.trim();
+      let cleanPlan = raw.trim();
+      // Safety net: if this is an Apex workout, validate and fix alternation if the AI broke it
+      if (currentForm.goal === "Apex") {
+        cleanPlan = fixApexAlternation(cleanPlan);
+      }
       setIsStreaming(false);
       setPlan(cleanPlan);
       setStep("plan");
