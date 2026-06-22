@@ -1310,7 +1310,7 @@ EXERCISE ORDER RULE — MANDATORY: When multiple muscle groups are selected, ord
 - Injuries: ${currentForm.injuries||"None"}
 ${workoutHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(workoutHistory.length, 3) + " sessions):\n" + workoutHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
 
-TRAINING LEVEL DEFINITIONS — apply strictly based on selected level. Sets/exercises by level: Beginner = 3 sets, 5-6 exercises (no plyometrics/drop sets/supersets, focus on movement quality). Intermediate = 3-4 sets, 6-8 exercises (drop sets/tempo/moderate plyo OK, focus on overload + mind-muscle connection). Advanced = 4-5 sets, 8-10 exercises (10 for Bodyweight Only unless time-restricted; cluster sets/rest-pause/complex periodization OK, focus on specificity + peak performance).
+TRAINING LEVEL DEFINITIONS — apply strictly based on selected level. Sets/exercises by level: Beginner = 3 sets, 5-6 exercises (no plyometrics/drop sets/supersets, focus on movement quality). Intermediate = 3-4 sets, 6-8 exercises (drop sets/tempo/moderate plyo OK, focus on overload + mind-muscle connection). Advanced = 4-5 sets, 8-10 exercises (10 exercises of 4 sets each for Bodyweight Only OR Full Body muscle focus, unless time-restricted; cluster sets/rest-pause/complex periodization OK, focus on specificity + peak performance).
 
 REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Intermediate=harder, Advanced=hardest):
 - Fat Loss: 10-20 reps, 30-45s rest, circuit-style at higher levels
@@ -1319,7 +1319,15 @@ REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Interme
 - Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
 - Apex: see APEX RULE below
 
-APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises (compound/isolation lifts: squat, deadlift, bench, row, overhead press, lunges — 6-10 reps, 60s-2min rest scaled by level) with Metcon exercises (burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings — 30-60s work, 20-30s rest) for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions. Burpees/mountain climbers are reliable metcon defaults. Cap at 8-12 total exercises (never exceed 12). Before outputting, label your list A (muscle building) / B (metcon) and verify it strictly alternates with zero consecutive repeats — fix and recheck if it doesn't.
+APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises with Metcon exercises for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions.
+
+TYPE A — MUSCLE BUILDING (use ONLY these patterns): traditional resistance exercises with a clear muscle target trained for 6-10 reps at 60s-2min rest — squats, deadlifts, bench/overhead presses, rows, curls, extensions, lunges, lateral raises, pull-ups/pulldowns. If an exercise is performed for reps with a barbell/dumbbell/machine/bodyweight in a controlled tempo targeting 1-2 specific muscles, it is Type A.
+
+TYPE B — METCON (use ONLY these patterns): conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest) — burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing sprints, plyometric/explosive movements. If an exercise is timed, full-body, and elevates heart rate rather than targeting a specific muscle, it is Type B.
+
+LOADED CARRIES AND HYBRID MOVEMENTS: Farmer carries, suitcase carries, sled drags, and similar loaded carry exercises ARE allowed in Apex and classify as TYPE B — METCON (timed/distance-based, full-body, heart-rate elevating, minimal rest). Classify them as B, never as A.
+
+Burpees/mountain climbers are reliable metcon defaults. Cap at 8-12 total exercises (never exceed 12). Before outputting, classify EVERY exercise as A or B using the strict definitions above (not vague impression), write the sequence as letters, and verify it strictly alternates with zero consecutive repeats — fix and recheck if it doesn't.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1355,7 +1363,7 @@ FINAL CHECK: Before output, ask "would someone who did this yesterday recognize 
 
 BODYWEIGHT EXERCISE POOL — for bodyweight workouts, randomly select from this extensive list and never repeat an exercise from the previous 3 sessions:
 
-EXERCISE COUNT RULE FOR BODYWEIGHT ADVANCED WORKOUTS — MANDATORY: If equipment is "Bodyweight Only" AND level is "Advanced", the Main Workout MUST contain exactly 10 exercises as the standard, unless the user has explicitly noted a time restriction in their notes (e.g. "short on time", "30 minutes only"). This is a hard rule, not a suggestion.
+EXERCISE COUNT RULE FOR ADVANCED WORKOUTS — MANDATORY: If level is "Advanced" AND (equipment is "Bodyweight Only" OR muscle focus is "Full Body"), the Main Workout MUST contain exactly 10 exercises, each with 4 sets, as the standard — unless the user has explicitly noted a time restriction in their notes (e.g. "short on time", "30 minutes only"). This is a hard rule, not a suggestion.
 PULL: Pull-Up, Chin-Up, Inverted Row, Australian Pull-Up, Commando Pull-Up, L-Sit Pull-Up, Towel Row, Doorframe Row, Scapular Pull-Up, Negative Pull-Up, Mixed Grip Pull-Up
 LEGS: Squat, Jump Squat, Bulgarian Split Squat, Pistol Squat (assisted), Reverse Lunge, Forward Lunge, Lateral Lunge, Jump Lunge, Walking Lunge, Step-Up, Box Jump, Glute Bridge, Single-Leg Glute Bridge, Hip Thrust, Nordic Curl (assisted), Wall Sit, Calf Raise, Single-Leg Calf Raise, Broad Jump, Skater Squat
 PUSH: Push-Up, Wide Push-Up, Diamond Push-Up, Archer Push-Up, Decline Push-Up, Incline Push-Up, Pike Push-Up, Pseudo Planche Push-Up, Hindu Push-Up, Typewriter Push-Up, Close-Grip Push-Up, Explosive Push-Up, Dips (chair/bench/bars)
@@ -1432,7 +1440,10 @@ PROGRESSIVE OVERLOAD:
 - Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)` : ""}
 
 Then create a complete 30-DAY plan:
-TRAINING LEVEL DEFINITIONS — apply strictly based on selected level. Sets/exercises by level: Beginner = 3 sets, 5-6 exercises (no plyometrics/drop sets/supersets, focus on movement quality). Intermediate = 3-4 sets, 6-8 exercises (drop sets/tempo/moderate plyo OK, focus on overload + mind-muscle connection). Advanced = 4-5 sets, 8-10 exercises (10 for Bodyweight Only unless time-restricted; cluster sets/rest-pause/complex periodization OK, focus on specificity + peak performance).
+
+EXERCISE COUNT RULE FOR ADVANCED WORKOUTS — MANDATORY: If level is "Advanced" AND (equipment is "Bodyweight Only" OR muscle focus is "Full Body"), each training day's Main Workout MUST contain exactly 10 exercises, each with 4 sets, as the standard — unless the user has explicitly noted a time restriction in their notes. This is a hard rule, not a suggestion.
+
+TRAINING LEVEL DEFINITIONS — apply strictly based on selected level. Sets/exercises by level: Beginner = 3 sets, 5-6 exercises (no plyometrics/drop sets/supersets, focus on movement quality). Intermediate = 3-4 sets, 6-8 exercises (drop sets/tempo/moderate plyo OK, focus on overload + mind-muscle connection). Advanced = 4-5 sets, 8-10 exercises (10 exercises of 4 sets each for Bodyweight Only OR Full Body muscle focus, unless time-restricted; cluster sets/rest-pause/complex periodization OK, focus on specificity + peak performance).
 
 REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Intermediate=harder, Advanced=hardest):
 - Fat Loss: 10-20 reps, 30-45s rest, circuit-style at higher levels
@@ -1441,7 +1452,15 @@ REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Interme
 - Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
 - Apex: see APEX RULE below
 
-APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises (compound/isolation lifts: squat, deadlift, bench, row, overhead press, lunges — 6-10 reps, 60s-2min rest scaled by level) with Metcon exercises (burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings — 30-60s work, 20-30s rest) for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions. Burpees/mountain climbers are reliable metcon defaults. Cap at 8-12 total exercises (never exceed 12). Before outputting, label your list A (muscle building) / B (metcon) and verify it strictly alternates with zero consecutive repeats — fix and recheck if it doesn't.
+APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises with Metcon exercises for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions.
+
+TYPE A — MUSCLE BUILDING (use ONLY these patterns): traditional resistance exercises with a clear muscle target trained for 6-10 reps at 60s-2min rest — squats, deadlifts, bench/overhead presses, rows, curls, extensions, lunges, lateral raises, pull-ups/pulldowns. If an exercise is performed for reps with a barbell/dumbbell/machine/bodyweight in a controlled tempo targeting 1-2 specific muscles, it is Type A.
+
+TYPE B — METCON (use ONLY these patterns): conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest) — burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing sprints, plyometric/explosive movements. If an exercise is timed, full-body, and elevates heart rate rather than targeting a specific muscle, it is Type B.
+
+LOADED CARRIES AND HYBRID MOVEMENTS: Farmer carries, suitcase carries, sled drags, and similar loaded carry exercises ARE allowed in Apex and classify as TYPE B — METCON (timed/distance-based, full-body, heart-rate elevating, minimal rest). Classify them as B, never as A.
+
+Burpees/mountain climbers are reliable metcon defaults. Cap at 8-12 total exercises (never exceed 12). Before outputting, classify EVERY exercise as A or B using the strict definitions above (not vague impression), write the sequence as letters, and verify it strictly alternates with zero consecutive repeats — fix and recheck if it doesn't.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1573,7 +1592,9 @@ PROGRESSIVE OVERLOAD:
 - Difficulty 1-2 last session: increase reps by 2-3 or add a set
 - Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)` : ""}
 
-TRAINING LEVEL DEFINITIONS — apply strictly based on selected level. Sets/exercises by level: Beginner = 3 sets, 5-6 exercises (no plyometrics/drop sets/supersets, focus on movement quality). Intermediate = 3-4 sets, 6-8 exercises (drop sets/tempo/moderate plyo OK, focus on overload + mind-muscle connection). Advanced = 4-5 sets, 8-10 exercises (10 for Bodyweight Only unless time-restricted; cluster sets/rest-pause/complex periodization OK, focus on specificity + peak performance).
+EXERCISE COUNT RULE FOR ADVANCED WORKOUTS — MANDATORY: If level is "Advanced" AND (equipment is "Bodyweight Only" OR muscle focus is "Full Body"), the Main Workout MUST contain exactly 10 exercises, each with 4 sets, as the standard — unless the user has explicitly noted a time restriction in their notes. This is a hard rule, not a suggestion.
+
+TRAINING LEVEL DEFINITIONS — apply strictly based on selected level. Sets/exercises by level: Beginner = 3 sets, 5-6 exercises (no plyometrics/drop sets/supersets, focus on movement quality). Intermediate = 3-4 sets, 6-8 exercises (drop sets/tempo/moderate plyo OK, focus on overload + mind-muscle connection). Advanced = 4-5 sets, 8-10 exercises (10 exercises of 4 sets each for Bodyweight Only OR Full Body muscle focus, unless time-restricted; cluster sets/rest-pause/complex periodization OK, focus on specificity + peak performance).
 
 REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Intermediate=harder, Advanced=hardest):
 - Fat Loss: 10-20 reps, 30-45s rest, circuit-style at higher levels
@@ -1582,7 +1603,15 @@ REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Interme
 - Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
 - Apex: see APEX RULE below
 
-APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises (compound/isolation lifts: squat, deadlift, bench, row, overhead press, lunges — 6-10 reps, 60s-2min rest scaled by level) with Metcon exercises (burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings — 30-60s work, 20-30s rest) for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions. Burpees/mountain climbers are reliable metcon defaults. Cap at 8-12 total exercises (never exceed 12). Before outputting, label your list A (muscle building) / B (metcon) and verify it strictly alternates with zero consecutive repeats — fix and recheck if it doesn't.
+APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises with Metcon exercises for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions.
+
+TYPE A — MUSCLE BUILDING (use ONLY these patterns): traditional resistance exercises with a clear muscle target trained for 6-10 reps at 60s-2min rest — squats, deadlifts, bench/overhead presses, rows, curls, extensions, lunges, lateral raises, pull-ups/pulldowns. If an exercise is performed for reps with a barbell/dumbbell/machine/bodyweight in a controlled tempo targeting 1-2 specific muscles, it is Type A.
+
+TYPE B — METCON (use ONLY these patterns): conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest) — burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing sprints, plyometric/explosive movements. If an exercise is timed, full-body, and elevates heart rate rather than targeting a specific muscle, it is Type B.
+
+LOADED CARRIES AND HYBRID MOVEMENTS: Farmer carries, suitcase carries, sled drags, and similar loaded carry exercises ARE allowed in Apex and classify as TYPE B — METCON (timed/distance-based, full-body, heart-rate elevating, minimal rest). Classify them as B, never as A.
+
+Burpees/mountain climbers are reliable metcon defaults. Cap at 8-12 total exercises (never exceed 12). Before outputting, classify EVERY exercise as A or B using the strict definitions above (not vague impression), write the sequence as letters, and verify it strictly alternates with zero consecutive repeats — fix and recheck if it doesn't.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
