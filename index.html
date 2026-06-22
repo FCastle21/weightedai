@@ -1382,6 +1382,8 @@ STRICT BALANCE RULE — THIS IS MANDATORY:
 - Violating this balance rule is the #1 error to avoid.
 
 EXERCISE ORDER RULE — MANDATORY: When multiple muscle groups are selected, order exercises by muscle group size, largest to smallest: Legs first, then Chest and Back (these two can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Core last. Within each muscle group's exercises, keep them grouped together before moving to the next muscle group in this order.
+
+FULL BODY CORE RULE — MANDATORY: Every Full Body workout MUST include at least one core/abdominal exercise (e.g. plank, hanging leg raise, cable crunch, ab wheel, dead bug, Russian twist, etc.), and that core exercise MUST be the final exercise in the Main Workout — the very last one listed before cool-down.
 - Injuries: ${currentForm.injuries||"None"}
 ${workoutHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(workoutHistory.length, 3) + " sessions):\n" + workoutHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
 
@@ -1494,6 +1496,8 @@ STRICT BALANCE RULE — THIS IS MANDATORY:
 - Violating this balance rule is the #1 error to avoid.
 
 EXERCISE ORDER RULE — MANDATORY: When multiple muscle groups are selected, order exercises by muscle group size, largest to smallest: Legs first, then Chest and Back (these two can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Core last. Within each muscle group's exercises, keep them grouped together before moving to the next muscle group in this order.
+
+FULL BODY CORE RULE — MANDATORY: Every Full Body workout MUST include at least one core/abdominal exercise (e.g. plank, hanging leg raise, cable crunch, ab wheel, dead bug, Russian twist, etc.), and that core exercise MUST be the final exercise in the Main Workout — the very last one listed before cool-down.
 - Days/week: ${currentForm.days}
 - Injuries: ${currentForm.injuries||"None"}
 - Notes / Hard Constraints: ${currentForm.notes||"None"}${currentForm.notes && currentForm.notes.includes("HARD CONSTRAINT") ? " ← THESE ARE MANDATORY REQUIREMENTS. READ THEM CAREFULLY AND FOLLOW THEM EXACTLY. DO NOT GENERATE EXERCISES THAT VIOLATE ANY CONSTRAINT LISTED HERE." : ""}
@@ -1649,6 +1653,8 @@ STRICT BALANCE RULE — THIS IS MANDATORY:
 - Violating this balance rule is the #1 error to avoid.
 
 EXERCISE ORDER RULE — MANDATORY: When multiple muscle groups are selected, order exercises by muscle group size, largest to smallest: Legs first, then Chest and Back (these two can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Core last. Within each muscle group's exercises, keep them grouped together before moving to the next muscle group in this order.
+
+FULL BODY CORE RULE — MANDATORY: Every Full Body workout MUST include at least one core/abdominal exercise (e.g. plank, hanging leg raise, cable crunch, ab wheel, dead bug, Russian twist, etc.), and that core exercise MUST be the final exercise in the Main Workout — the very last one listed before cool-down.
 - Days/week: ${currentForm.days}
 - Injuries: ${currentForm.injuries||"None"}
 - Notes / Hard Constraints: ${currentForm.notes||"None"}${currentForm.notes && currentForm.notes.includes("HARD CONSTRAINT") ? " ← THESE ARE MANDATORY REQUIREMENTS. READ THEM CAREFULLY AND FOLLOW THEM EXACTLY. DO NOT GENERATE EXERCISES THAT VIOLATE ANY CONSTRAINT LISTED HERE." : ""}
