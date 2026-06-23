@@ -2190,6 +2190,21 @@ Be specific. Use tables where helpful.`
                     <span style={{color:"var(--acid)",letterSpacing:1,whiteSpace:"nowrap",fontSize:12}}>VIEW ALL →</span>
                   </div>
                 )}
+                {workoutLog.length > 0 && (
+                  <button onClick={(e) => {
+                    e.stopPropagation();
+                    const lastMuscleNames = workoutLog[0].muscles.split(",").map(m => m.trim());
+                    const validMuscles = lastMuscleNames.filter(m => MUSCLES.includes(m));
+                    const repeatForm = { ...form, muscles: validMuscles.length > 0 ? validMuscles : [], goal: workoutLog[0].goal || form.goal };
+                    if (!repeatForm.goal || !repeatForm.level || !repeatForm.equipment) { setError("Missing profile info. Please fill out your profile first."); return; }
+                    setForm(repeatForm);
+                    setError(null);
+                    setStep("loading");
+                    generatePlan(lead, null, repeatForm);
+                  }} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:2,padding:"10px 16px",cursor:"pointer",borderRadius:500,marginTop:2}}>
+                    REPEAT LAST WORKOUT →
+                  </button>
+                )}
               </div>
             )}
             <div className="form-grid">
