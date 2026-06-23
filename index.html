@@ -1958,10 +1958,34 @@ Be specific. Use tables where helpful.`
           .filter(e => e.length > 3 && e.length < 60);
       } catch(e) {}
       const banText = prevExercises.length > 0 
-        ? " The following exercises were JUST used and are STRICTLY BANNED from this regeneration: " + prevExercises.join(", ") + ". Choose completely different exercises for every single slot."
+        ? " The following exercises were JUST used in the previous version of this workout and are STRICTLY BANNED from this regeneration — using more than 2 of them is a CRITICAL FAILURE: " + prevExercises.join(", ") + ". You may reuse at most 2 of these if truly no alternative exists, but the other 6+ exercise slots must be completely different exercises never seen in the banned list."
         : "";
       const freshForm = { ...form, notes: (form.notes ? form.notes + ". " : "") + "REGENERATION REQUEST: Generate a COMPLETELY DIFFERENT workout than before. Use different exercises, different order, different rep schemes." + banText };
+      
       await generatePlan(lead, null, freshForm);
+      
+      // Safety net: check if too many banned exercises leaked through, retry once with stronger ban if so
+      if (prevExercises.length > 0) {
+        setTimeout(async () => {
+          const currentPlanText = document.querySelector(".plan-content")?.textContent || "";
+          const newBoldMatches = (currentPlanText.match(/\S+/g) || []);
+          // Re-extract from the actual plan state via a fresh check
+          setPlan(currentPlan => {
+            if (!currentPlan) return currentPlan;
+            const checkBoldMatches = currentPlan.match(/\*\*([^*]+)\*\*/g) || [];
+            const newExercises = checkBoldMatches.map(m => m.replace(/\*\*/g, "").split("—")[0].split("–")[0].trim().toLowerCase());
+            const prevLower = prevExercises.map(e => e.toLowerCase());
+            const repeatCount = newExercises.filter(ex => prevLower.includes(ex)).length;
+            if (repeatCount > 2) {
+              // Too many repeats - trigger a stronger retry
+              const strongerBanText = " The following exercises are ABSOLUTELY FORBIDDEN — do not use them under any circumstance, even as a fallback: " + prevExercises.join(", ") + ". A previous attempt failed by repeating too many of these; this time you must select entirely different exercises for every slot.";
+              const retryForm = { ...form, notes: (form.notes ? form.notes + ". " : "") + "REGENERATION REQUEST: Generate a COMPLETELY DIFFERENT workout." + strongerBanText };
+              generatePlan(lead, null, retryForm);
+            }
+            return currentPlan;
+          });
+        }, 800);
+      }
       return;
     }
 
