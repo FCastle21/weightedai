@@ -760,11 +760,11 @@ const styles = `
 
 `;
 
-const GOALS     = ["Fat Loss", "Muscle Building", "Strength Gaining", "Athletic Performance", "Metcon", "The Marla", "Apex"];
+const GOALS     = ["Fat Loss", "Muscle Building", "Strength Gaining", "Athletic Performance", "The Marla", "Apex"];
 const EQUIPMENT = ["Full Gym", "Home Gym", "Dumbbells Only", "Bodyweight Only", "TRX", "Kettlebells"];
 const LEVELS    = ["Beginner", "Intermediate", "Advanced"];
 const DAYS      = ["3", "4", "5", "6"];
-const MUSCLES   = ["Full Body", "Back", "Biceps", "Chest", "Core / Abs", "Legs / Glutes", "Shoulders", "Triceps"];
+const MUSCLES   = ["Full Body", "Back", "Biceps", "Chest", "Core / Abs", "Legs / Glutes", "Metcon", "Shoulders", "Triceps"];
 
 const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"" };
 
@@ -1373,7 +1373,8 @@ PROFILE:
 - Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body")} — STRICTLY limit all exercises to ONLY these muscle groups. Do not include exercises for any other muscle groups.${currentForm.goal === "The Marla" ? " THIS IS THE MARLA WORKOUT — every single exercise must target glutes and/or hamstrings specifically. No quad-dominant exercises. No cardio/conditioning/metcon exercises of any kind (no jump rope, no battle ropes, no burpees, no mountain climbers, no jumping jacks, no sprints) — this is a pure muscle-building program, not conditioning. Focus on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, curtsy lunges, back extensions, hamstring curls, and TRX hamstring curls/TRX hamstring exercises." : ""}
 
 STRICT BALANCE RULE — THIS IS MANDATORY:
-- Count the number of muscle groups selected. Divide total exercises equally among them.
+- EXCEPTION: If "Metcon" is one of the selected muscle groups, exclude it from this balance calculation — it follows the separate METCON MUSCLE GROUP RULE instead (alternation, not equal distribution). Apply this balance rule only to the remaining non-Metcon muscle groups.
+- Count the number of (non-Metcon) muscle groups selected. Divide total exercises equally among them.
 - Example: Chest + Triceps + Shoulders selected = 3 groups. With 6 exercises: exactly 2 chest exercises, exactly 2 tricep exercises, exactly 2 shoulder exercises.
 - Example: Back + Biceps selected = 2 groups. With 8 exercises: exactly 4 back exercises, exactly 4 bicep exercises.
 - NEVER give more than 1 extra exercise to any single group vs the others.
@@ -1395,7 +1396,6 @@ REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Interme
 - Strength Gaining: 3-10 reps, 90s-3min rest, heavier/periodized at higher levels
 - Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
 - Apex: see APEX RULE below
-- Metcon: see METCON RULE below
 
 APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises with Metcon exercises for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions.
 
@@ -1409,15 +1409,17 @@ Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscl
 
 MANDATORY PRE-OUTPUT STEP — DO THIS BEFORE WRITING THE FINAL WORKOUT: First, draft your exercise list as numbered pairs in this exact format: "1. [Exercise Name] = A" then "2. [Exercise Name] = B" then "3. [Exercise Name] = A" and so on, alternating A/B explicitly for every single exercise you plan to include. Look at this draft list. If exercise 3 and exercise 4 are both A, or both B, that is a violation — replace one of them with the opposite type immediately in your draft before proceeding. Only after your draft list shows perfect A,B,A,B,A,B alternation with NO exceptions should you write out the final formatted workout using that exact exercise order. Do not skip this draft step — workouts that drift into multiple same-type exercises in a row (e.g. 3 or 4 strength exercises back to back) are a critical failure of this program.
 
-METCON RULE — APPLIES AT ALL LEVELS: Metcon is a workout type focused on combining the user's SELECTED MUSCLE GROUPS with metabolic conditioning. Alternate between two exercise types for the ENTIRE workout, exercise by exercise: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon...
+METCON MUSCLE GROUP RULE — APPLIES IF "Metcon" IS SELECTED AS ONE OF THE MUSCLE GROUPS, REGARDLESS OF WORKOUT TYPE/GOAL: When "Metcon" appears alongside other selected muscle groups (e.g. Back + Metcon, or Chest + Shoulders + Metcon), alternate between exercises targeting the OTHER selected muscle group(s) and Metcon/conditioning exercises for the ENTIRE workout: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon...
 
-TYPE A — MUSCLE GROUP EXERCISE: A traditional resistance exercise targeting one of the user's selected muscle groups (e.g. if Chest and Back are selected, alternate exercises between those two muscle groups, classified as Type A), trained for 8-12 reps at 60-90s rest.
+TYPE A — MUSCLE GROUP EXERCISE: A traditional resistance exercise targeting one of the user's selected non-Metcon muscle groups (e.g. if Back is also selected, all Type A exercises target back), trained at the rep range appropriate to the selected Workout Type/Goal (e.g. 8-12 reps for Muscle Building).
 
-TYPE B — METCON: conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest) — burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing sprints, loaded carries, plyometric/explosive movements.
+TYPE B — METCON: conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest) — burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing sprints, loaded carries, plyometric/explosive movements. These do NOT need to target the selected muscle group(s) — they are general conditioning.
 
-If the user selected "Full Body" or did not select specific muscle groups, Type A exercises can come from any muscle group, following the standard Exercise Order Rule and Strict Balance Rule for muscle distribution among the Type A slots specifically.
+If "Metcon" is selected together with "Full Body" (or no other specific muscle group), Type A exercises can come from any muscle group, following the standard Exercise Order Rule and Strict Balance Rule.
 
-Never two of the same type in a row, anywhere in the workout, no exceptions. Cap at 8-12 total exercises. Before outputting, draft your exercise list as numbered pairs labeled A/B exactly as described in the Apex rule above, verify perfect alternation, and fix any violations before writing the final output.
+If "Metcon" is selected ALONE with no other muscle group, treat the entire workout as Type B only — all conditioning exercises, no alternation needed.
+
+Never two of the same type in a row when alternating, anywhere in the workout, no exceptions. Cap at 8-12 total exercises. Before outputting, draft your exercise list as numbered pairs labeled A/B, verify perfect alternation, and fix any violations before writing the final output.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1498,7 +1500,8 @@ PROFILE:
 - Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups. Do not program exercises for muscles not listed here.${currentForm.goal === "The Marla" ? " THIS IS THE MARLA WORKOUT — every single exercise must target glutes and/or hamstrings specifically. No quad-dominant exercises (squats targeting quads, leg press, leg extensions). No cardio/conditioning/metcon exercises of any kind (no jump rope, no battle ropes, no burpees, no mountain climbers, no jumping jacks, no sprints, no plyometric jumps) — this is a pure muscle-building program, not conditioning. Focus on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, curtsy lunges, back extensions, hamstring curls, and TRX hamstring curls/TRX hamstring exercises. This is an advanced-level muscle building workout exclusively for glutes and hamstrings." : ""}
 
 STRICT BALANCE RULE — THIS IS MANDATORY:
-- Count the number of muscle groups selected. Divide total exercises equally among them.
+- EXCEPTION: If "Metcon" is one of the selected muscle groups, exclude it from this balance calculation — it follows the separate METCON MUSCLE GROUP RULE instead (alternation, not equal distribution). Apply this balance rule only to the remaining non-Metcon muscle groups.
+- Count the number of (non-Metcon) muscle groups selected. Divide total exercises equally among them.
 - Example: Chest + Triceps + Shoulders = 3 groups. With 9 exercises: exactly 3 per group.
 - Example: Back + Biceps = 2 groups. With 8 exercises: exactly 4 per group.
 - NEVER give more than 1 extra exercise to any single group vs the others.
@@ -1543,7 +1546,6 @@ REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Interme
 - Strength Gaining: 3-10 reps, 90s-3min rest, heavier/periodized at higher levels
 - Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
 - Apex: see APEX RULE below
-- Metcon: see METCON RULE below
 
 APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises with Metcon exercises for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions.
 
@@ -1557,15 +1559,17 @@ Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscl
 
 MANDATORY PRE-OUTPUT STEP — DO THIS BEFORE WRITING THE FINAL WORKOUT: First, draft your exercise list as numbered pairs in this exact format: "1. [Exercise Name] = A" then "2. [Exercise Name] = B" then "3. [Exercise Name] = A" and so on, alternating A/B explicitly for every single exercise you plan to include. Look at this draft list. If exercise 3 and exercise 4 are both A, or both B, that is a violation — replace one of them with the opposite type immediately in your draft before proceeding. Only after your draft list shows perfect A,B,A,B,A,B alternation with NO exceptions should you write out the final formatted workout using that exact exercise order. Do not skip this draft step — workouts that drift into multiple same-type exercises in a row (e.g. 3 or 4 strength exercises back to back) are a critical failure of this program.
 
-METCON RULE — APPLIES AT ALL LEVELS: Metcon is a workout type focused on combining the user's SELECTED MUSCLE GROUPS with metabolic conditioning. Alternate between two exercise types for the ENTIRE workout, exercise by exercise: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon...
+METCON MUSCLE GROUP RULE — APPLIES IF "Metcon" IS SELECTED AS ONE OF THE MUSCLE GROUPS, REGARDLESS OF WORKOUT TYPE/GOAL: When "Metcon" appears alongside other selected muscle groups (e.g. Back + Metcon, or Chest + Shoulders + Metcon), alternate between exercises targeting the OTHER selected muscle group(s) and Metcon/conditioning exercises for the ENTIRE workout: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon...
 
-TYPE A — MUSCLE GROUP EXERCISE: A traditional resistance exercise targeting one of the user's selected muscle groups (e.g. if Chest and Back are selected, alternate exercises between those two muscle groups, classified as Type A), trained for 8-12 reps at 60-90s rest.
+TYPE A — MUSCLE GROUP EXERCISE: A traditional resistance exercise targeting one of the user's selected non-Metcon muscle groups (e.g. if Back is also selected, all Type A exercises target back), trained at the rep range appropriate to the selected Workout Type/Goal (e.g. 8-12 reps for Muscle Building).
 
-TYPE B — METCON: conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest) — burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing sprints, loaded carries, plyometric/explosive movements.
+TYPE B — METCON: conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest) — burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing sprints, loaded carries, plyometric/explosive movements. These do NOT need to target the selected muscle group(s) — they are general conditioning.
 
-If the user selected "Full Body" or did not select specific muscle groups, Type A exercises can come from any muscle group, following the standard Exercise Order Rule and Strict Balance Rule for muscle distribution among the Type A slots specifically.
+If "Metcon" is selected together with "Full Body" (or no other specific muscle group), Type A exercises can come from any muscle group, following the standard Exercise Order Rule and Strict Balance Rule.
 
-Never two of the same type in a row, anywhere in the workout, no exceptions. Cap at 8-12 total exercises. Before outputting, draft your exercise list as numbered pairs labeled A/B exactly as described in the Apex rule above, verify perfect alternation, and fix any violations before writing the final output.
+If "Metcon" is selected ALONE with no other muscle group, treat the entire workout as Type B only — all conditioning exercises, no alternation needed.
+
+Never two of the same type in a row when alternating, anywhere in the workout, no exceptions. Cap at 8-12 total exercises. Before outputting, draft your exercise list as numbered pairs labeled A/B, verify perfect alternation, and fix any violations before writing the final output.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1666,7 +1670,8 @@ PROFILE:
 - Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups. Do not program exercises for muscles not listed here.${currentForm.goal === "The Marla" ? " THIS IS THE MARLA WORKOUT — every single exercise must target glutes and/or hamstrings specifically. No quad-dominant exercises (squats targeting quads, leg press, leg extensions). No cardio/conditioning/metcon exercises of any kind (no jump rope, no battle ropes, no burpees, no mountain climbers, no jumping jacks, no sprints, no plyometric jumps) — this is a pure muscle-building program, not conditioning. Focus on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, curtsy lunges, back extensions, hamstring curls, and TRX hamstring curls/TRX hamstring exercises. This is an advanced-level muscle building workout exclusively for glutes and hamstrings." : ""}
 
 STRICT BALANCE RULE — THIS IS MANDATORY:
-- Count the number of muscle groups selected. Divide total exercises equally among them.
+- EXCEPTION: If "Metcon" is one of the selected muscle groups, exclude it from this balance calculation — it follows the separate METCON MUSCLE GROUP RULE instead (alternation, not equal distribution). Apply this balance rule only to the remaining non-Metcon muscle groups.
+- Count the number of (non-Metcon) muscle groups selected. Divide total exercises equally among them.
 - Example: Chest + Triceps + Shoulders = 3 groups. With 9 exercises: exactly 3 per group.
 - Example: Back + Biceps = 2 groups. With 8 exercises: exactly 4 per group.
 - NEVER give more than 1 extra exercise to any single group vs the others.
@@ -1709,7 +1714,6 @@ REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Interme
 - Strength Gaining: 3-10 reps, 90s-3min rest, heavier/periodized at higher levels
 - Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
 - Apex: see APEX RULE below
-- Metcon: see METCON RULE below
 
 APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises with Metcon exercises for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions.
 
@@ -1723,15 +1727,17 @@ Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscl
 
 MANDATORY PRE-OUTPUT STEP — DO THIS BEFORE WRITING THE FINAL WORKOUT: First, draft your exercise list as numbered pairs in this exact format: "1. [Exercise Name] = A" then "2. [Exercise Name] = B" then "3. [Exercise Name] = A" and so on, alternating A/B explicitly for every single exercise you plan to include. Look at this draft list. If exercise 3 and exercise 4 are both A, or both B, that is a violation — replace one of them with the opposite type immediately in your draft before proceeding. Only after your draft list shows perfect A,B,A,B,A,B alternation with NO exceptions should you write out the final formatted workout using that exact exercise order. Do not skip this draft step — workouts that drift into multiple same-type exercises in a row (e.g. 3 or 4 strength exercises back to back) are a critical failure of this program.
 
-METCON RULE — APPLIES AT ALL LEVELS: Metcon is a workout type focused on combining the user's SELECTED MUSCLE GROUPS with metabolic conditioning. Alternate between two exercise types for the ENTIRE workout, exercise by exercise: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon...
+METCON MUSCLE GROUP RULE — APPLIES IF "Metcon" IS SELECTED AS ONE OF THE MUSCLE GROUPS, REGARDLESS OF WORKOUT TYPE/GOAL: When "Metcon" appears alongside other selected muscle groups (e.g. Back + Metcon, or Chest + Shoulders + Metcon), alternate between exercises targeting the OTHER selected muscle group(s) and Metcon/conditioning exercises for the ENTIRE workout: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon...
 
-TYPE A — MUSCLE GROUP EXERCISE: A traditional resistance exercise targeting one of the user's selected muscle groups (e.g. if Chest and Back are selected, alternate exercises between those two muscle groups, classified as Type A), trained for 8-12 reps at 60-90s rest.
+TYPE A — MUSCLE GROUP EXERCISE: A traditional resistance exercise targeting one of the user's selected non-Metcon muscle groups (e.g. if Back is also selected, all Type A exercises target back), trained at the rep range appropriate to the selected Workout Type/Goal (e.g. 8-12 reps for Muscle Building).
 
-TYPE B — METCON: conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest) — burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing sprints, loaded carries, plyometric/explosive movements.
+TYPE B — METCON: conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest) — burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing sprints, loaded carries, plyometric/explosive movements. These do NOT need to target the selected muscle group(s) — they are general conditioning.
 
-If the user selected "Full Body" or did not select specific muscle groups, Type A exercises can come from any muscle group, following the standard Exercise Order Rule and Strict Balance Rule for muscle distribution among the Type A slots specifically.
+If "Metcon" is selected together with "Full Body" (or no other specific muscle group), Type A exercises can come from any muscle group, following the standard Exercise Order Rule and Strict Balance Rule.
 
-Never two of the same type in a row, anywhere in the workout, no exceptions. Cap at 8-12 total exercises. Before outputting, draft your exercise list as numbered pairs labeled A/B exactly as described in the Apex rule above, verify perfect alternation, and fix any violations before writing the final output.
+If "Metcon" is selected ALONE with no other muscle group, treat the entire workout as Type B only — all conditioning exercises, no alternation needed.
+
+Never two of the same type in a row when alternating, anywhere in the workout, no exceptions. Cap at 8-12 total exercises. Before outputting, draft your exercise list as numbered pairs labeled A/B, verify perfect alternation, and fix any violations before writing the final output.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1822,8 +1828,8 @@ Be specific. Use tables where helpful.`
 
       const raw = data.content?.find(b => b.type === "text")?.text || "";
       let cleanPlan = raw.trim();
-      // Safety net: if this is an Apex or Metcon workout, validate and fix alternation if the AI broke it
-      if (currentForm.goal === "Apex" || currentForm.goal === "Metcon") {
+      // Safety net: if this is Apex, or Metcon is selected as a muscle group, validate and fix alternation if the AI broke it
+      if (currentForm.goal === "Apex" || (currentForm.muscles && currentForm.muscles.includes("Metcon"))) {
         cleanPlan = fixApexAlternation(cleanPlan);
       }
       setIsStreaming(false);
