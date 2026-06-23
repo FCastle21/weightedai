@@ -760,7 +760,7 @@ const styles = `
 
 `;
 
-const GOALS     = ["Fat Loss", "Muscle Building", "Strength Gaining", "Athletic Performance", "The Marla", "Apex"];
+const GOALS     = ["Fat Loss", "Muscle Building", "Strength Gaining", "Athletic Performance", "Metcon", "The Marla", "Apex"];
 const EQUIPMENT = ["Full Gym", "Home Gym", "Dumbbells Only", "Bodyweight Only", "TRX", "Kettlebells"];
 const LEVELS    = ["Beginner", "Intermediate", "Advanced"];
 const DAYS      = ["3", "4", "5", "6"];
@@ -1395,6 +1395,7 @@ REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Interme
 - Strength Gaining: 3-10 reps, 90s-3min rest, heavier/periodized at higher levels
 - Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
 - Apex: see APEX RULE below
+- Metcon: see METCON RULE below
 
 APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises with Metcon exercises for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions.
 
@@ -1407,6 +1408,16 @@ LOADED CARRIES AND HYBRID MOVEMENTS: Farmer carries, suitcase carries, sled drag
 Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscle focus is "Full Body" AND level is "Advanced", use exactly 10 exercises (5 muscle building + 5 metcon) per the EXERCISE COUNT RULE FOR ADVANCED WORKOUTS above — this takes priority. Otherwise, use 8-12 total exercises, never exceeding 12.
 
 MANDATORY PRE-OUTPUT STEP — DO THIS BEFORE WRITING THE FINAL WORKOUT: First, draft your exercise list as numbered pairs in this exact format: "1. [Exercise Name] = A" then "2. [Exercise Name] = B" then "3. [Exercise Name] = A" and so on, alternating A/B explicitly for every single exercise you plan to include. Look at this draft list. If exercise 3 and exercise 4 are both A, or both B, that is a violation — replace one of them with the opposite type immediately in your draft before proceeding. Only after your draft list shows perfect A,B,A,B,A,B alternation with NO exceptions should you write out the final formatted workout using that exact exercise order. Do not skip this draft step — workouts that drift into multiple same-type exercises in a row (e.g. 3 or 4 strength exercises back to back) are a critical failure of this program.
+
+METCON RULE — APPLIES AT ALL LEVELS: Metcon is a workout type focused on combining the user's SELECTED MUSCLE GROUPS with metabolic conditioning. Alternate between two exercise types for the ENTIRE workout, exercise by exercise: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon...
+
+TYPE A — MUSCLE GROUP EXERCISE: A traditional resistance exercise targeting one of the user's selected muscle groups (e.g. if Chest and Back are selected, alternate exercises between those two muscle groups, classified as Type A), trained for 8-12 reps at 60-90s rest.
+
+TYPE B — METCON: conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest) — burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing sprints, loaded carries, plyometric/explosive movements.
+
+If the user selected "Full Body" or did not select specific muscle groups, Type A exercises can come from any muscle group, following the standard Exercise Order Rule and Strict Balance Rule for muscle distribution among the Type A slots specifically.
+
+Never two of the same type in a row, anywhere in the workout, no exceptions. Cap at 8-12 total exercises. Before outputting, draft your exercise list as numbered pairs labeled A/B exactly as described in the Apex rule above, verify perfect alternation, and fix any violations before writing the final output.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1532,6 +1543,7 @@ REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Interme
 - Strength Gaining: 3-10 reps, 90s-3min rest, heavier/periodized at higher levels
 - Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
 - Apex: see APEX RULE below
+- Metcon: see METCON RULE below
 
 APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises with Metcon exercises for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions.
 
@@ -1544,6 +1556,16 @@ LOADED CARRIES AND HYBRID MOVEMENTS: Farmer carries, suitcase carries, sled drag
 Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscle focus is "Full Body" AND level is "Advanced", use exactly 10 exercises (5 muscle building + 5 metcon) per the EXERCISE COUNT RULE FOR ADVANCED WORKOUTS above — this takes priority. Otherwise, use 8-12 total exercises, never exceeding 12.
 
 MANDATORY PRE-OUTPUT STEP — DO THIS BEFORE WRITING THE FINAL WORKOUT: First, draft your exercise list as numbered pairs in this exact format: "1. [Exercise Name] = A" then "2. [Exercise Name] = B" then "3. [Exercise Name] = A" and so on, alternating A/B explicitly for every single exercise you plan to include. Look at this draft list. If exercise 3 and exercise 4 are both A, or both B, that is a violation — replace one of them with the opposite type immediately in your draft before proceeding. Only after your draft list shows perfect A,B,A,B,A,B alternation with NO exceptions should you write out the final formatted workout using that exact exercise order. Do not skip this draft step — workouts that drift into multiple same-type exercises in a row (e.g. 3 or 4 strength exercises back to back) are a critical failure of this program.
+
+METCON RULE — APPLIES AT ALL LEVELS: Metcon is a workout type focused on combining the user's SELECTED MUSCLE GROUPS with metabolic conditioning. Alternate between two exercise types for the ENTIRE workout, exercise by exercise: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon...
+
+TYPE A — MUSCLE GROUP EXERCISE: A traditional resistance exercise targeting one of the user's selected muscle groups (e.g. if Chest and Back are selected, alternate exercises between those two muscle groups, classified as Type A), trained for 8-12 reps at 60-90s rest.
+
+TYPE B — METCON: conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest) — burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing sprints, loaded carries, plyometric/explosive movements.
+
+If the user selected "Full Body" or did not select specific muscle groups, Type A exercises can come from any muscle group, following the standard Exercise Order Rule and Strict Balance Rule for muscle distribution among the Type A slots specifically.
+
+Never two of the same type in a row, anywhere in the workout, no exceptions. Cap at 8-12 total exercises. Before outputting, draft your exercise list as numbered pairs labeled A/B exactly as described in the Apex rule above, verify perfect alternation, and fix any violations before writing the final output.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1687,6 +1709,7 @@ REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Interme
 - Strength Gaining: 3-10 reps, 90s-3min rest, heavier/periodized at higher levels
 - Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
 - Apex: see APEX RULE below
+- Metcon: see METCON RULE below
 
 APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises with Metcon exercises for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions.
 
@@ -1699,6 +1722,16 @@ LOADED CARRIES AND HYBRID MOVEMENTS: Farmer carries, suitcase carries, sled drag
 Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscle focus is "Full Body" AND level is "Advanced", use exactly 10 exercises (5 muscle building + 5 metcon) per the EXERCISE COUNT RULE FOR ADVANCED WORKOUTS above — this takes priority. Otherwise, use 8-12 total exercises, never exceeding 12.
 
 MANDATORY PRE-OUTPUT STEP — DO THIS BEFORE WRITING THE FINAL WORKOUT: First, draft your exercise list as numbered pairs in this exact format: "1. [Exercise Name] = A" then "2. [Exercise Name] = B" then "3. [Exercise Name] = A" and so on, alternating A/B explicitly for every single exercise you plan to include. Look at this draft list. If exercise 3 and exercise 4 are both A, or both B, that is a violation — replace one of them with the opposite type immediately in your draft before proceeding. Only after your draft list shows perfect A,B,A,B,A,B alternation with NO exceptions should you write out the final formatted workout using that exact exercise order. Do not skip this draft step — workouts that drift into multiple same-type exercises in a row (e.g. 3 or 4 strength exercises back to back) are a critical failure of this program.
+
+METCON RULE — APPLIES AT ALL LEVELS: Metcon is a workout type focused on combining the user's SELECTED MUSCLE GROUPS with metabolic conditioning. Alternate between two exercise types for the ENTIRE workout, exercise by exercise: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon...
+
+TYPE A — MUSCLE GROUP EXERCISE: A traditional resistance exercise targeting one of the user's selected muscle groups (e.g. if Chest and Back are selected, alternate exercises between those two muscle groups, classified as Type A), trained for 8-12 reps at 60-90s rest.
+
+TYPE B — METCON: conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest) — burpees, mountain climbers, ski erg, jump rope, box jumps, battle ropes, kettlebell swings, sled pushes, rowing sprints, loaded carries, plyometric/explosive movements.
+
+If the user selected "Full Body" or did not select specific muscle groups, Type A exercises can come from any muscle group, following the standard Exercise Order Rule and Strict Balance Rule for muscle distribution among the Type A slots specifically.
+
+Never two of the same type in a row, anywhere in the workout, no exceptions. Cap at 8-12 total exercises. Before outputting, draft your exercise list as numbered pairs labeled A/B exactly as described in the Apex rule above, verify perfect alternation, and fix any violations before writing the final output.
 
 TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
 
@@ -1789,8 +1822,8 @@ Be specific. Use tables where helpful.`
 
       const raw = data.content?.find(b => b.type === "text")?.text || "";
       let cleanPlan = raw.trim();
-      // Safety net: if this is an Apex workout, validate and fix alternation if the AI broke it
-      if (currentForm.goal === "Apex") {
+      // Safety net: if this is an Apex or Metcon workout, validate and fix alternation if the AI broke it
+      if (currentForm.goal === "Apex" || currentForm.goal === "Metcon") {
         cleanPlan = fixApexAlternation(cleanPlan);
       }
       setIsStreaming(false);
