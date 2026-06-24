@@ -13,7 +13,7 @@
   <link rel="manifest" href="/manifest.json" />
   <link rel="apple-touch-icon" href="/icon-192.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Serif+Display:ital@0;1&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -48,13 +48,13 @@
       backdrop-filter: blur(12px);
     }
     .nav-logo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 22px; letter-spacing: 2px; color: var(--white);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 22px; letter-spacing: 0px; color: var(--white);
       text-decoration: none; line-height: 1; display: inline-block;
     }
     .nav-logo .logo-line { display: block; }
     .nav-logo .logo-badge {
-      color: var(--mint); font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px;
+      color: var(--mint); font-family: 'Share Tech Mono', monospace; letter-spacing: 0px;
     }
 
     /* ── HERO ── */
@@ -235,7 +235,7 @@
 
   <!-- NAV -->
   <nav>
-    <a href="#" class="nav-logo"><span class="logo-line">WEIGHT</span><span class="logo-line">ED <span class="logo-badge">[AI]</span></span></a>
+    <a href="#" class="nav-logo"><span class="logo-line">WEIGHT</span><span class="logo-line">ED<span class="logo-badge" style="margin-left:4px;">[AI]</span></span></a>
     <button onclick="document.getElementById('signin-overlay').style.display='flex'" id="signin-nav-btn" style="background:#5d8a7a;border:none;color:#0a0a0a;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 20px;cursor:pointer;border-radius:500px;font-weight:500;">Sign In</button>
   </nav>
 
@@ -404,7 +404,7 @@
 
 
 const styles = `
-  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Share+Tech+Mono&display=swap');
 
 
   /* MOBILE OVERFLOW FIX */
@@ -434,9 +434,9 @@ const styles = `
 
   /* HEADER */
   .header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #1e1e1e; }
-  .logo { font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1.5px; color: var(--white); line-height: 1; }
+  .logo { font-family: 'Share Tech Mono', monospace; font-size: 16px; letter-spacing: 0px; color: var(--white); line-height: 1; }
   .logo .logo-line { display: block; }
-  .logo .logo-badge { color: var(--acid); font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; }
+  .logo .logo-badge { color: var(--acid); font-family: 'Share Tech Mono', monospace; letter-spacing: 0px; }
   .badge { background: var(--acid); color: var(--black); font-size: 11px; font-weight: 500; letter-spacing: 2px; padding: 6px 14px; border-radius: 500px; text-transform: uppercase; }
 
   /* HERO */
@@ -2107,7 +2107,7 @@ Be specific. Use tables where helpful.`
       <div className="app">
 
         <header className="header">
-          <div className="logo"><span className="logo-line">WEIGHT</span><span className="logo-line">ED <span className="logo-badge">[AI]</span></span></div>
+          <div className="logo"><span className="logo-line">WEIGHT</span><span className="logo-line">ED<span className="logo-badge" style={{marginLeft:3}}>[AI]</span></span></div>
           <div className="badge">Beta</div>
         </header>
 
