@@ -810,6 +810,19 @@ async function saveProfile(email, data) {
   } catch {}
 }
 
+// Safety net: detect if conditioning/metcon exercises leaked into a workout where Metcon was NOT selected
+function detectUnwantedMetcon(planText) {
+  try {
+    const metconKeywords = ["burpee", "mountain climber", "ski erg", "jump rope", "box jump", "battle rope", "kettlebell swing", "sled", "row sprint", "rowing sprint", "rowing machine", "sprint", "carry", "drag", "jump squat", "broad jump", "skater", "plyo", "tuck jump", "high knee", "jumping jack", "shuttle", "assault bike", "devil press", "thruster", "wall ball", "butt kicker", "lateral shuffle", "plank jack", "bear crawl", "crab walk", "jumping lunge", "star jump", "squat jump", "slam", "tire flip", "farmer"];
+    const boldMatches = planText.match(/\*\*([^*]+)\*\*/g) || [];
+    const exNames = boldMatches.map(m => m.replace(/\*\*/g, "").split("—")[0].split("–")[0].trim().toLowerCase());
+    const violations = exNames.filter(name => metconKeywords.some(kw => name.includes(kw)));
+    return violations;
+  } catch (e) {
+    return [];
+  }
+}
+
 // Safety net: detect and fix broken Apex muscle-building/metcon alternation
 function fixApexAlternation(planText) {
   try {
@@ -1861,6 +1874,20 @@ Be specific. Use tables where helpful.`
       // Safety net: if this is Apex, or Metcon is selected as a muscle group, validate and fix alternation if the AI broke it
       if (currentForm.goal === "Apex" || (currentForm.muscles && currentForm.muscles.includes("Metcon"))) {
         cleanPlan = fixApexAlternation(cleanPlan);
+      }
+      // Safety net: if Metcon was NOT selected, but conditioning exercises leaked in anyway, retry once with a stronger ban
+      const metconNotSelected = !currentForm.muscles || !currentForm.muscles.includes("Metcon");
+      if (metconNotSelected && !formOverride?.__metconRetry) {
+        const violations = detectUnwantedMetcon(cleanPlan);
+        if (violations.length > 0) {
+          const strongBanForm = {
+            ...currentForm,
+            __metconRetry: true,
+            notes: (currentForm.notes ? currentForm.notes + ". " : "") + "CRITICAL CORRECTION REQUIRED: The previous attempt incorrectly included conditioning/cardio exercises (" + violations.join(", ") + ") even though Metcon was not selected. This is a pure resistance training workout — NO cardio, NO conditioning, NO kettlebell swings, NO sled work, NO sprints of any kind, NO box jumps, NO battle ropes. Every single exercise must be a traditional strength/resistance movement targeting the selected muscle groups only."
+          };
+          await generatePlan(leadData, existingProfile, strongBanForm);
+          return;
+        }
       }
       setIsStreaming(false);
       setPlan(cleanPlan);
