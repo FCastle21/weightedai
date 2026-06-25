@@ -823,6 +823,46 @@ function detectUnwantedMetcon(planText) {
   }
 }
 
+// Strip entire exercise blocks (header + description) for any exercise matching metcon keywords
+function removeUnwantedMetconBlocks(planText) {
+  try {
+    const metconKeywords = ["burpee", "mountain climber", "ski erg", "jump rope", "box jump", "battle rope", "kettlebell swing", "sled", "row sprint", "rowing sprint", "rowing machine", "sprint", "carry", "drag", "jump squat", "broad jump", "skater", "plyo", "tuck jump", "high knee", "jumping jack", "shuttle", "assault bike", "devil press", "thruster", "wall ball", "butt kicker", "lateral shuffle", "plank jack", "bear crawl", "crab walk", "jumping lunge", "star jump", "squat jump", "slam", "tire flip", "farmer"];
+    const lines = planText.split("\n");
+    const exerciseLineIndices = [];
+    const isViolation = [];
+
+    lines.forEach((line, idx) => {
+      const boldMatch = line.match(/\*\*([^*]+)\*\*/);
+      if (boldMatch) {
+        const exName = boldMatch[1].split("—")[0].split("–")[0].trim().toLowerCase();
+        exerciseLineIndices.push(idx);
+        isViolation.push(metconKeywords.some(kw => exName.includes(kw)));
+      }
+    });
+
+    if (!isViolation.some(v => v)) return planText; // nothing to remove
+
+    // Build blocks (bold line + following lines until next bold line)
+    const blocks = [];
+    for (let i = 0; i < exerciseLineIndices.length; i++) {
+      const startIdx = exerciseLineIndices[i];
+      const endIdx = i + 1 < exerciseLineIndices.length ? exerciseLineIndices[i + 1] : lines.length;
+      blocks.push({ lines: lines.slice(startIdx, endIdx), violation: isViolation[i] });
+    }
+
+    const keptBlocks = blocks.filter(b => !b.violation);
+    const firstBlockStart = exerciseLineIndices[0];
+    const lastBlockEnd = exerciseLineIndices[exerciseLineIndices.length - 1] + blocks[blocks.length - 1].lines.length;
+    const before = lines.slice(0, firstBlockStart);
+    const after = lines.slice(lastBlockEnd);
+    const keptLines = keptBlocks.flatMap(b => b.lines);
+
+    return [...before, ...keptLines, ...after].join("\n");
+  } catch (e) {
+    return planText;
+  }
+}
+
 // Safety net: detect and fix broken Apex muscle-building/metcon alternation
 function fixApexAlternation(planText) {
   try {
@@ -1875,18 +1915,12 @@ Be specific. Use tables where helpful.`
       if (currentForm.goal === "Apex" || (currentForm.muscles && currentForm.muscles.includes("Metcon"))) {
         cleanPlan = fixApexAlternation(cleanPlan);
       }
-      // Safety net: if Metcon was NOT selected, but conditioning exercises leaked in anyway, retry once with a stronger ban
+      // Safety net: if Metcon was NOT selected, but conditioning exercises leaked in anyway, strip them out entirely
       const metconNotSelected = !currentForm.muscles || !currentForm.muscles.includes("Metcon");
-      if (metconNotSelected && !formOverride?.__metconRetry) {
+      if (metconNotSelected) {
         const violations = detectUnwantedMetcon(cleanPlan);
         if (violations.length > 0) {
-          const strongBanForm = {
-            ...currentForm,
-            __metconRetry: true,
-            notes: (currentForm.notes ? currentForm.notes + ". " : "") + "CRITICAL CORRECTION REQUIRED: The previous attempt incorrectly included conditioning/cardio exercises (" + violations.join(", ") + ") even though Metcon was not selected. This is a pure resistance training workout — NO cardio, NO conditioning, NO kettlebell swings, NO sled work, NO sprints of any kind, NO box jumps, NO battle ropes. Every single exercise must be a traditional strength/resistance movement targeting the selected muscle groups only."
-          };
-          await generatePlan(leadData, existingProfile, strongBanForm);
-          return;
+          cleanPlan = removeUnwantedMetconBlocks(cleanPlan);
         }
       }
       setIsStreaming(false);
