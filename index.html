@@ -917,104 +917,117 @@ function injectMetconExercises(planText, neededCount) {
 // Safety net: detect and fix broken Apex muscle-building/metcon alternation
 function fixApexAlternation(planText, level) {
   try {
-    // Metcon keywords - if an exercise name contains any of these, classify as Metcon (B)
     const metconKeywords = ["burpee", "mountain climber", "ski erg", "jump rope", "box jump", "battle rope", "kettlebell swing", "sled", "row sprint", "rowing sprint", "rowing machine", "sprint", "carry", "drag", "jump squat", "broad jump", "skater", "plyo", "tuck jump", "high knee", "jumping jack", "shuttle", "assault bike", "devil press", "thruster", "wall ball", "butt kicker", "lateral shuffle", "plank jack", "bear crawl", "crab walk", "jumping lunge", "star jump", "squat jump", "slam", "tire flip", "farmer"];
+    const minCounts = { "Beginner": 6, "Intermediate": 8, "Advanced": 10 };
+    const minExpected = minCounts[level] || 4;
 
     const lines = planText.split("\n");
 
-    // Determine the line-index range of the Main Workout section, excluding Warm-Up/Cool-Down
-    let mainStartLine = 0;
-    let mainEndLine = lines.length;
-    for (let i = 0; i < lines.length; i++) {
-      if (/##?#?\s*(Main Workout|Workout Plans?)/i.test(lines[i])) { mainStartLine = i; break; }
-    }
-    for (let i = mainStartLine + 1; i < lines.length; i++) {
-      if (/##?#?\s*(Cool-?Down|Cooldown|Recovery|Nutrition|Progression|Success Metrics)/i.test(lines[i])) { mainEndLine = i; break; }
-    }
-
-    // Find all bolded exercise lines WITHIN the main section range only
-    const exerciseLineIndices = [];
-    const classifications = [];
-
+    // Find all "### Day N" style headers to split the plan into per-day chunks
+    const dayHeaderIndices = [];
     lines.forEach((line, idx) => {
-      if (idx < mainStartLine || idx >= mainEndLine) return;
-      const boldMatch = line.match(/\*\*([^*]+)\*\*/);
-      if (boldMatch) {
-        const exName = boldMatch[1].split("—")[0].split("–")[0].trim().toLowerCase();
-        const junkPatterns = /^(warm-?up|cool-?down|day \d|week \d)/i;
-        if (junkPatterns.test(exName)) return;
-        const isMetcon = metconKeywords.some(kw => exName.includes(kw));
-        exerciseLineIndices.push(idx);
-        classifications.push(isMetcon ? "B" : "A");
-      }
+      if (/##?#?\s*Day\s*\d/i.test(line)) dayHeaderIndices.push(idx);
     });
 
-    // Check minimum exercise count by level
-    const minCounts = { "Beginner": 6, "Intermediate": 8, "Advanced": 10 };
-    const minExpected = minCounts[level] || 4;
-    console.log("[WeightedAI] Detected", exerciseLineIndices.length, "exercises. Level:", level, "Min expected:", minExpected, "Classifications:", JSON.stringify(classifications));
-    if (exerciseLineIndices.length < minExpected) {
-      return { __needsRegeneration: true, reason: "too_few_exercises", count: exerciseLineIndices.length, expected: minExpected };
-    }
-
-    // Only operate on the Main Workout section - skip if fewer than 4 exercises found (not enough to validate meaningfully)
-    if (exerciseLineIndices.length < 4) return planText;
-
-    // Check if alternation is already correct
-    let isValid = true;
-    for (let i = 1; i < classifications.length; i++) {
-      if (classifications[i] === classifications[i - 1]) {
-        isValid = false;
-        break;
-      }
-    }
-    if (isValid) return planText; // Already alternates correctly, no changes needed
-
-    // If there are zero Metcon exercises (or zero Muscle Building), reordering can't fix it - flag for regeneration instead
-    const hasA = classifications.includes("A");
-    const hasB = classifications.includes("B");
-    if (!hasA || !hasB) {
-      return { __needsRegeneration: true, reason: !hasB ? "no_metcon_found" : "no_muscle_building_found" };
-    }
-
-    // Alternation is broken - reorder the exercise blocks (each block = bold line + its following description lines until next bold line or blank-blank)
-    // Build exercise blocks
-    const blocks = [];
-    for (let i = 0; i < exerciseLineIndices.length; i++) {
-      const startIdx = exerciseLineIndices[i];
-      const endIdx = i + 1 < exerciseLineIndices.length ? exerciseLineIndices[i + 1] : lines.length;
-      blocks.push({ lines: lines.slice(startIdx, endIdx), type: classifications[i] });
-    }
-
-    // Separate into A and B groups, preserving original relative order within each group
-    const aBlocks = blocks.filter(b => b.type === "A");
-    const bBlocks = blocks.filter(b => b.type === "B");
-
-    // Interleave A and B starting with whichever group is more plentiful first (or A by default)
-    const reordered = [];
-    const maxLen = Math.max(aBlocks.length, bBlocks.length);
-    const startWithA = aBlocks.length >= bBlocks.length;
-    for (let i = 0; i < maxLen; i++) {
-      if (startWithA) {
-        if (aBlocks[i]) reordered.push(aBlocks[i]);
-        if (bBlocks[i]) reordered.push(bBlocks[i]);
-      } else {
-        if (bBlocks[i]) reordered.push(bBlocks[i]);
-        if (aBlocks[i]) reordered.push(aBlocks[i]);
+    // If no day headers found, treat the whole plan as a single "day" (e.g. free tier single workout)
+    const dayRanges = [];
+    if (dayHeaderIndices.length === 0) {
+      dayRanges.push({ start: 0, end: lines.length });
+    } else {
+      for (let i = 0; i < dayHeaderIndices.length; i++) {
+        const start = dayHeaderIndices[i];
+        const end = i + 1 < dayHeaderIndices.length ? dayHeaderIndices[i + 1] : lines.length;
+        dayRanges.push({ start, end });
       }
     }
 
-    // Rebuild the plan text: everything before the first exercise block, then reordered blocks, then everything after the last block
-    const firstBlockStart = exerciseLineIndices[0];
-    const lastBlockEnd = exerciseLineIndices[exerciseLineIndices.length - 1] + blocks[blocks.length - 1].lines.length;
-    const before = lines.slice(0, firstBlockStart);
-    const after = lines.slice(lastBlockEnd);
-    const reorderedLines = reordered.flatMap(b => b.lines);
+    let anyRegenerationNeeded = null;
+    let resultLines = [...lines];
 
-    return [...before, ...reorderedLines, ...after].join("\n");
+    for (const range of dayRanges) {
+      // Find Main Workout / Cool-Down boundaries WITHIN this day's range
+      let mainStartLine = range.start;
+      let mainEndLine = range.end;
+      for (let i = range.start; i < range.end; i++) {
+        if (/##?#?\s*(Main Workout|Workout Plans?)/i.test(lines[i])) { mainStartLine = i; break; }
+      }
+      for (let i = mainStartLine + 1; i < range.end; i++) {
+        if (/##?#?\s*(Cool-?Down|Cooldown|Recovery|Nutrition|Progression|Success Metrics)/i.test(lines[i])) { mainEndLine = i; break; }
+      }
+
+      const exerciseLineIndices = [];
+      const classifications = [];
+      for (let idx = mainStartLine; idx < mainEndLine; idx++) {
+        const line = lines[idx];
+        const boldMatch = line.match(/\*\*([^*]+)\*\*/);
+        if (boldMatch) {
+          const exName = boldMatch[1].split("—")[0].split("–")[0].trim().toLowerCase();
+          const junkPatterns = /^(warm-?up|cool-?down|day \d|week \d)/i;
+          if (junkPatterns.test(exName)) continue;
+          const isMetcon = metconKeywords.some(kw => exName.includes(kw));
+          exerciseLineIndices.push(idx);
+          classifications.push(isMetcon ? "B" : "A");
+        }
+      }
+
+      console.log("[WeightedAI] Day range", range.start, "-", range.end, "→ Detected", exerciseLineIndices.length, "exercises. Classifications:", JSON.stringify(classifications));
+
+      if (exerciseLineIndices.length === 0) continue; // nothing to validate in this range (e.g. trailing nutrition section)
+
+      if (exerciseLineIndices.length < minExpected) {
+        anyRegenerationNeeded = { __needsRegeneration: true, reason: "too_few_exercises", count: exerciseLineIndices.length, expected: minExpected };
+        continue;
+      }
+
+      let isValid = true;
+      for (let i = 1; i < classifications.length; i++) {
+        if (classifications[i] === classifications[i - 1]) { isValid = false; break; }
+      }
+      if (isValid) continue; // this day is fine
+
+      const hasA = classifications.includes("A");
+      const hasB = classifications.includes("B");
+      if (!hasA || !hasB) {
+        anyRegenerationNeeded = { __needsRegeneration: true, reason: !hasB ? "no_metcon_found" : "no_muscle_building_found" };
+        continue;
+      }
+
+      // Fix this day's alternation by reordering its exercise blocks
+      const blocks = [];
+      for (let i = 0; i < exerciseLineIndices.length; i++) {
+        const startIdx = exerciseLineIndices[i];
+        const endIdx = i + 1 < exerciseLineIndices.length ? exerciseLineIndices[i + 1] : mainEndLine;
+        blocks.push({ lines: lines.slice(startIdx, endIdx), type: classifications[i] });
+      }
+      const aBlocks = blocks.filter(b => b.type === "A");
+      const bBlocks = blocks.filter(b => b.type === "B");
+      const reordered = [];
+      const maxLen = Math.max(aBlocks.length, bBlocks.length);
+      const startWithA = aBlocks.length >= bBlocks.length;
+      for (let i = 0; i < maxLen; i++) {
+        if (startWithA) {
+          if (aBlocks[i]) reordered.push(aBlocks[i]);
+          if (bBlocks[i]) reordered.push(bBlocks[i]);
+        } else {
+          if (bBlocks[i]) reordered.push(bBlocks[i]);
+          if (aBlocks[i]) reordered.push(aBlocks[i]);
+        }
+      }
+      const firstBlockStart = exerciseLineIndices[0];
+      const lastBlockEnd = exerciseLineIndices[exerciseLineIndices.length - 1] + blocks[blocks.length - 1].lines.length;
+      const reorderedLines = reordered.flatMap(b => b.lines);
+
+      // Splice the reordered lines back into resultLines at the correct position
+      const before = resultLines.slice(0, firstBlockStart);
+      const after = resultLines.slice(lastBlockEnd);
+      resultLines = [...before, ...reorderedLines, ...after];
+    }
+
+    if (anyRegenerationNeeded) return anyRegenerationNeeded;
+    return resultLines.join("\n");
   } catch (e) {
     console.error("fixApexAlternation error:", e);
-    return planText; // Fail safe - return original if anything goes wrong
+    return planText;
   }
 }
 
@@ -1663,7 +1676,7 @@ Then create a complete 30-DAY plan:
 ## Overview & Goals
 ## How To Use This Plan
 ## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
-## The 30-Day Schedule (4 weeks, every training day with: day number, focus, exactly 3 warm-up moves listed as plain text — NOT bolded, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), one short sentence on what it works, one coaching note per day, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown.)
+## The 30-Day Schedule (4 weeks, every training day MUST start with a "### Day N" header, e.g. "### Day 1" — this exact format is required. Within each day: focus, exactly 3 warm-up moves listed as plain text — NOT bolded, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), one short sentence on what it works, one coaching note per day, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh at the beginning of EACH day — every single day's exercises must alternate independently.)
 ## Recovery Protocol
 ## End of 30 Days
 
@@ -1766,7 +1779,7 @@ DISCLAIMER — INCLUDE THIS VERBATIM AT THE END OF THE NUTRITION STRATEGY SECTIO
 
 # ${leadData.name}'s Personalized Plan
 ## Overview
-## Workout Plans (each day: name, muscle focus, exactly 3 warm-up moves listed as plain text — NOT bolded, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period, then one short sentence describing what it works, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown — warm-up and cool-down move names must be plain text.)
+## Workout Plans (each day MUST start with a "### Day N" header, e.g. "### Day 1", "### Day 2" — this exact format is required. Within each day: name, muscle focus, exactly 3 warm-up moves listed as plain text — NOT bolded, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period, then one short sentence describing what it works, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown — warm-up and cool-down move names must be plain text. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh at the beginning of EACH day — every single day's exercises must alternate independently, not just the plan as a whole.)
 ## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
 ## Recovery Protocol
 ## 4-Week Progression
