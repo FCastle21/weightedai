@@ -920,15 +920,29 @@ function fixApexAlternation(planText, level) {
     // Metcon keywords - if an exercise name contains any of these, classify as Metcon (B)
     const metconKeywords = ["burpee", "mountain climber", "ski erg", "jump rope", "box jump", "battle rope", "kettlebell swing", "sled", "row sprint", "rowing sprint", "rowing machine", "sprint", "carry", "drag", "jump squat", "broad jump", "skater", "plyo", "tuck jump", "high knee", "jumping jack", "shuttle", "assault bike", "devil press", "thruster", "wall ball", "butt kicker", "lateral shuffle", "plank jack", "bear crawl", "crab walk", "jumping lunge", "star jump", "squat jump", "slam", "tire flip", "farmer"];
 
-    // Find all bolded exercise lines with their full line content (to detect sets/reps context)
     const lines = planText.split("\n");
+
+    // Determine the line-index range of the Main Workout section, excluding Warm-Up/Cool-Down
+    let mainStartLine = 0;
+    let mainEndLine = lines.length;
+    for (let i = 0; i < lines.length; i++) {
+      if (/##?#?\s*(Main Workout|Workout Plans?)/i.test(lines[i])) { mainStartLine = i; break; }
+    }
+    for (let i = mainStartLine + 1; i < lines.length; i++) {
+      if (/##?#?\s*(Cool-?Down|Cooldown|Recovery|Nutrition|Progression|Success Metrics)/i.test(lines[i])) { mainEndLine = i; break; }
+    }
+
+    // Find all bolded exercise lines WITHIN the main section range only
     const exerciseLineIndices = [];
     const classifications = [];
 
     lines.forEach((line, idx) => {
+      if (idx < mainStartLine || idx >= mainEndLine) return;
       const boldMatch = line.match(/\*\*([^*]+)\*\*/);
       if (boldMatch) {
         const exName = boldMatch[1].split("—")[0].split("–")[0].trim().toLowerCase();
+        const junkPatterns = /^(warm-?up|cool-?down|day \d|week \d)/i;
+        if (junkPatterns.test(exName)) return;
         const isMetcon = metconKeywords.some(kw => exName.includes(kw));
         exerciseLineIndices.push(idx);
         classifications.push(isMetcon ? "B" : "A");
@@ -1649,7 +1663,7 @@ Then create a complete 30-DAY plan:
 ## Overview & Goals
 ## How To Use This Plan
 ## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
-## The 30-Day Schedule (4 weeks, every training day with: day number, focus, exactly 3 warm-up moves, then main exercises per the Exercise Count By Level rule, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"). One short sentence on what it works. One coaching note per day.)
+## The 30-Day Schedule (4 weeks, every training day with: day number, focus, exactly 3 warm-up moves listed as plain text — NOT bolded, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), one short sentence on what it works, one coaching note per day, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown.)
 ## Recovery Protocol
 ## End of 30 Days
 
@@ -1752,7 +1766,7 @@ DISCLAIMER — INCLUDE THIS VERBATIM AT THE END OF THE NUTRITION STRATEGY SECTIO
 
 # ${leadData.name}'s Personalized Plan
 ## Overview
-## Workout Plans (each day: name, muscle focus, exactly 3 warm-up moves, then main exercises per the Exercise Count By Level rule, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period. Then one short sentence describing what it works and why it's in this workout.)
+## Workout Plans (each day: name, muscle focus, exactly 3 warm-up moves listed as plain text — NOT bolded, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period, then one short sentence describing what it works, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown — warm-up and cool-down move names must be plain text.)
 ## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
 ## Recovery Protocol
 ## 4-Week Progression
