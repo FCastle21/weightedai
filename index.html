@@ -760,7 +760,7 @@ const styles = `
 
 `;
 
-const GOALS     = ["Fat Loss", "Muscle Building", "Strength Gaining", "Athletic Performance", "The Marla", "Apex"];
+const GOALS     = ["Fat Loss", "Muscle Building", "Strength Gaining", "The Marla", "Apex"];
 const EQUIPMENT = ["Full Gym", "Home Gym", "Dumbbells Only", "Bodyweight Only", "TRX", "Kettlebells"];
 const LEVELS    = ["Beginner", "Intermediate", "Advanced"];
 const DAYS      = ["3", "4", "5", "6"];
@@ -1420,125 +1420,65 @@ You are an elite fitness engine. Generate a single full-body workout for ${leadD
 PROFILE:
 - Age: ${currentForm.age || "Not specified"}
 - Gender: ${currentForm.gender || "Not specified"}
-- Level: ${currentForm.level}
-- Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}${currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout — use them when they fit naturally into the variety/rotation, not by default.":""}
+- Level: ${currentForm.goal === "The Marla" ? "Advanced" : currentForm.level}
+- Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}${currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
 - Goal: ${currentForm.goal}
-- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body")} — STRICTLY limit all exercises to ONLY these muscle groups. Do not include exercises for any other muscle groups.${currentForm.goal === "The Marla" ? " THIS IS THE MARLA WORKOUT — every single exercise must target glutes and/or hamstrings specifically. No quad-dominant exercises. No cardio/conditioning/metcon exercises of any kind (no jump rope, no battle ropes, no burpees, no mountain climbers, no jumping jacks, no sprints) — this is a pure muscle-building program, not conditioning. Focus on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, curtsy lunges, back extensions, hamstring curls, and TRX hamstring curls/TRX hamstring exercises." : ""}
-
-STRICT BALANCE RULE — THIS IS MANDATORY:
-- EXCEPTION: If "Metcon" is one of the selected muscle groups, exclude it from this balance calculation — it follows the separate METCON MUSCLE GROUP RULE instead (alternation, not equal distribution). Apply this balance rule only to the remaining non-Metcon muscle groups.
-- Count the number of (non-Metcon) muscle groups selected. Divide total exercises equally among them.
-- Example: Chest + Triceps + Shoulders selected = 3 groups. With 6 exercises: exactly 2 chest exercises, exactly 2 tricep exercises, exactly 2 shoulder exercises.
-- Example: Back + Biceps selected = 2 groups. With 8 exercises: exactly 4 back exercises, exactly 4 bicep exercises.
-- NEVER give more than 1 extra exercise to any single group vs the others.
-- Do NOT default to shoulder press variations repeatedly. Each shoulder exercise must be a DIFFERENT movement (e.g. overhead press counts as 1 shoulder exercise — do not add lateral raises AND front raises AND Arnold press on top of it).
-- Label each exercise with its muscle group in your planning so you can verify the count before outputting.
-- Violating this balance rule is the #1 error to avoid.
-
-EXERCISE ORDER RULE — MANDATORY: When multiple muscle groups are selected, order exercises by muscle group size, largest to smallest: Legs first, then Chest and Back (these two can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Core last. Within each muscle group's exercises, keep them grouped together before moving to the next muscle group in this order.
-
-FULL BODY CORE RULE — MANDATORY: Every Full Body workout MUST include at least one core/abdominal exercise (e.g. plank, hanging leg raise, cable crunch, ab wheel, dead bug, Russian twist, etc.), and that core exercise MUST be the final exercise in the Main Workout — the very last one listed before cool-down.
+- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
 - Injuries: ${currentForm.injuries||"None"}
 ${workoutHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(workoutHistory.length, 3) + " sessions):\n" + workoutHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
 
-TRAINING LEVEL DEFINITIONS — apply strictly based on selected level. Sets/exercises by level: Beginner = 3 sets, 5-6 exercises (no plyometrics/drop sets/supersets, focus on movement quality). Intermediate = 3-4 sets, 6-8 exercises (drop sets/tempo/moderate plyo OK, focus on overload + mind-muscle connection). Advanced = 4-5 sets, 8-10 exercises (10 exercises of 4 sets each for Bodyweight Only OR Full Body muscle focus, unless time-restricted; cluster sets/rest-pause/complex periodization OK, focus on specificity + peak performance).
+CORE TRAINING RULES — APPLY TO EVERY WORKOUT REGARDLESS OF TYPE:
 
-REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Intermediate=harder, Advanced=hardest):
-- Fat Loss: 10-20 reps, 30-45s rest, circuit-style at higher levels
-- Muscle Building: 8-12 reps, 60-90s rest
-- Strength Gaining: 3-10 reps, 90s-3min rest, heavier/periodized at higher levels
-- Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
-- Apex: see APEX RULE below
+EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order: Legs/Glutes first, then Back and Chest (can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Abs/Core last. Every workout MUST end with at least one Abs/Core exercise as the final exercise in the Main Workout, before cool-down.
 
-APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises with Metcon exercises for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions.
+SETS BY LEVEL: Beginner = 3 sets per exercise. Intermediate = 3 sets per exercise. Advanced = 4 sets per exercise.
 
-TYPE A — MUSCLE BUILDING (use ONLY these patterns): traditional resistance exercises with a clear muscle target trained for 8-12 reps at 60s-2min rest — squats, deadlifts, bench/overhead presses, rows, curls, extensions, lunges, lateral raises, pull-ups/pulldowns. If an exercise is performed for reps with a barbell/dumbbell/machine/bodyweight in a controlled tempo targeting 1-2 specific muscles, it is Type A.
+EXERCISE COUNT BY LEVEL: Beginner = 6-7 exercises. Intermediate = 8-9 exercises. Advanced = 10-11 exercises. (Exception: if the user has noted a time restriction, you may reduce the count accordingly.)
 
-TYPE B — METCON (use ONLY these patterns): conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest). If an exercise is timed, full-body, and elevates heart rate rather than targeting a specific muscle, it is Type B.
+MUSCLE GROUP SELECTION: If the user selected multiple specific muscle groups (not Full Body), order them larger-to-smaller per the Exercise Order above, and distribute exercises as evenly as possible across the selected groups (see STRICT BALANCE RULE below).
 
-EXPANDED METCON POOL — rotate widely across this list, do not default to the same 2-3 exercises every time: burpees, mountain climbers, ski erg sprints, jump rope, box jumps, battle ropes (alternating waves, slams), kettlebell swings, sled push, sled pull/drag, rowing machine sprints, assault bike sprints, farmer's carry, suitcase carry, devil press, thrusters, wall balls, high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, medicine ball slams, tire flips, shuttle runs.
+METCON AS A MUSCLE GROUP: If "Metcon" is selected alongside other muscle groups, alternate between exercises for the selected muscle group(s) and Metcon/conditioning exercises for the entire workout: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon... Never two of the same type in a row. If "Metcon" is selected alone with no other muscle group, the entire workout is conditioning exercises only, following the standard Exercise Order/Count rules for structure.
 
-METCON VARIETY RULE — MANDATORY: Battle ropes are ONE option among 25+ in the pool above — do NOT default to them repeatedly. Within a single workout, never repeat the same metcon exercise twice. Across sessions, actively rotate to different metcon exercises than recent workouts — if battle ropes appeared in the user's last 1-2 sessions (check workout history), avoid them this time and pick something different from the pool.
+STRICT BALANCE RULE: When multiple non-Metcon muscle groups are selected, count them and divide total exercises as evenly as possible. Never give more than 1 extra exercise to any single group versus the others. Label each exercise with its target muscle group in your own planning to self-check before output.
 
-LOADED CARRIES AND HYBRID MOVEMENTS: Farmer carries, suitcase carries, sled drags, and similar loaded carry exercises ARE allowed in Apex and classify as TYPE B — METCON (timed/distance-based, full-body, heart-rate elevating, minimal rest). Classify them as B, never as A.
+STRAIGHT SETS ONLY: Every exercise uses the SAME rep number across all its sets (e.g. "4 sets x 10 reps"). NEVER use a descending/pyramid rep sequence like "10-8-6-4". This is a hard rule with no exceptions.
 
-Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscle focus is "Full Body" AND level is "Advanced", use exactly 10 exercises (5 muscle building + 5 metcon) per the EXERCISE COUNT RULE FOR ADVANCED WORKOUTS above — this takes priority. Otherwise, use 8-12 total exercises, never exceeding 12.
+WORKOUT TYPE DEFINITIONS:
 
-MANDATORY PRE-OUTPUT STEP — DO THIS BEFORE WRITING THE FINAL WORKOUT: First, draft your exercise list as numbered pairs in this exact format: "1. [Exercise Name] = A" then "2. [Exercise Name] = B" then "3. [Exercise Name] = A" and so on, alternating A/B explicitly for every single exercise you plan to include. Look at this draft list. If exercise 3 and exercise 4 are both A, or both B, that is a violation — replace one of them with the opposite type immediately in your draft before proceeding. Only after your draft list shows perfect A,B,A,B,A,B alternation with NO exceptions should you write out the final formatted workout using that exact exercise order. Do not skip this draft step — workouts that drift into multiple same-type exercises in a row (e.g. 3 or 4 strength exercises back to back) are a critical failure of this program.
+FAT LOSS: 8-12 reps per exercise. Prioritize compound lifts that engage larger muscle groups. 90 second rest between sets.
 
-METCON MUSCLE GROUP RULE — APPLIES IF "Metcon" IS SELECTED AS ONE OF THE MUSCLE GROUPS, REGARDLESS OF WORKOUT TYPE/GOAL: When "Metcon" appears alongside other selected muscle groups (e.g. Back + Metcon, or Chest + Shoulders + Metcon), alternate between exercises targeting the OTHER selected muscle group(s) and Metcon/conditioning exercises for the ENTIRE workout: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon...
+MUSCLE BUILDING: 8-12 reps per exercise. Mix of compound lifts and isolation exercises. 90-120 second rest between sets.
 
-TYPE A — MUSCLE GROUP EXERCISE: A traditional resistance exercise targeting one of the user's selected non-Metcon muscle groups (e.g. if Back is also selected, all Type A exercises target back), trained at the rep range appropriate to the selected Workout Type/Goal (e.g. 8-12 reps for Muscle Building).
+STRENGTH GAINING: 3-5 reps per exercise (heavier weight, lower reps). 2-4 minute rest between sets.
 
-TYPE B — METCON: conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest). These do NOT need to target the selected muscle group(s) — they are general conditioning.
 
-EXPANDED METCON POOL — rotate widely across this list, do not default to the same 2-3 exercises every time: burpees, mountain climbers, ski erg sprints, jump rope, box jumps, battle ropes (alternating waves, slams), kettlebell swings, sled push, sled pull/drag, rowing machine sprints, assault bike sprints, farmer's carry, suitcase carry, devil press, thrusters, wall balls, high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, medicine ball slams, tire flips, shuttle runs.
+APEX: A hybrid of full-body Muscle Building and metabolic conditioning. Alternate between Muscle Building exercises and Metcon exercises for the entire workout: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row. Cover ALL major muscle groups across the Muscle Building slots — Legs, Back, Chest, Shoulders, Biceps, Triceps, Abs/Core — distributed evenly per the Exercise Order/Balance rules. Muscle Building slots use 8-12 reps at 90-120s rest. Metcon slots use 30-60s of work at 20-30s rest, drawn from the Metcon Exercise Pool below. Exercise count for Apex follows the standard Exercise Count By Level above (the full count splits evenly between Muscle Building and Metcon — e.g. Advanced = 10-11 total means 5-6 Muscle Building + 5-6 Metcon).
 
-METCON VARIETY RULE — MANDATORY: Battle ropes are ONE option among 25+ in the pool above — do NOT default to them repeatedly. Within a single workout, never repeat the same metcon exercise twice. Across sessions, actively rotate to different metcon exercises than recent workouts — if battle ropes appeared in the user's last 1-2 sessions (check workout history), avoid them this time and pick something different from the pool.
+THE MARLA: Advanced-level Muscle Building program exclusively for Glutes and Hamstrings. ALWAYS treat as: Level = Advanced, Equipment = Full Gym, Muscle Focus = Legs/Glutes (hamstring-emphasis) — regardless of what the user has selected elsewhere, The Marla overrides level/equipment/muscle selection. 8-12 reps per exercise, 90-120s rest, 4 sets (Advanced), 10-11 exercises. Every exercise must target glutes and/or hamstrings specifically — NO quad-dominant exercises (squats targeting quads, leg press, leg extensions), NO cardio/conditioning/metcon exercises of any kind. Focus exclusively on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, curtsy lunges, back extensions, hamstring curls, and TRX hamstring curls/exercises.
 
-If "Metcon" is selected together with "Full Body" (or no other specific muscle group), Type A exercises can come from any muscle group, following the standard Exercise Order Rule and Strict Balance Rule.
+NO METCON WITHOUT SELECTION — MANDATORY: Conditioning/cardio-style exercises (from the Metcon Exercise Pool below) must ONLY appear if "Metcon" is explicitly selected as a muscle group, OR the Workout Type is Apex. If neither applies, do NOT include ANY conditioning/cardio exercises — every exercise must be traditional resistance training. This rule overrides any general variety guidance.
 
-If "Metcon" is selected ALONE with no other muscle group, treat the entire workout as Type B only — all conditioning exercises, no alternation needed.
+METCON EXERCISE POOL — rotate widely, never default to the same 2-3 exercises, never repeat one exercise twice in the same workout: burpees, mountain climbers, ski erg sprints, jump rope, box jumps, battle ropes (alternating waves, slams), kettlebell swings, sled push, sled pull/drag, rowing machine sprints, assault bike sprints, farmer's carry, suitcase carry, devil press, thrusters, wall balls, high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, medicine ball slams, tire flips, shuttle runs. Check workout history — if an exercise appeared in the last 1-2 sessions, avoid it this time.
 
-Never two of the same type in a row when alternating, anywhere in the workout, no exceptions. Cap at 8-12 total exercises. Before outputting, draft your exercise list as numbered pairs labeled A/B, verify perfect alternation, and fix any violations before writing the final output.
+VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
-TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
+VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
-0. NO METCON WITHOUT SELECTION — MANDATORY: Conditioning/cardio-style exercises (kettlebell swings, battle ropes, assault bike sprints, box jumps, burpees, mountain climbers, ski erg, jump rope, sled work, rowing sprints, etc.) must ONLY appear if "Metcon" is explicitly one of the selected muscle groups. If "Metcon" was NOT selected, do not include ANY conditioning/cardio exercises — every exercise must be traditional resistance training targeting the selected muscle groups, regardless of the Workout Type/Goal selected (including Fat Loss or Athletic Performance). This rule overrides any general variety/dynamic-movement guidance below.
-
-1. CALORIC OUTPUT: Unless the goal is Muscle Building, design workouts that burn approximately 100 calories per hour minimum. Achieve this through:
-   - Compound multi-joint movements over isolation exercises
-   - Short rest periods (30-60s) for fat loss/endurance goals
-   - Supersets or circuits where appropriate for the level
-   - Keeping the trainee moving — minimize idle time
-
-2. DYNAMIC MOVEMENT: Workouts must use varied angles, planes, and movement patterns. This means:
-   - Mix of sagittal (forward/back), frontal (side to side), and transverse (rotational) plane movements
-   - Vary between bilateral and unilateral exercises
-   - Include at least one rotational or multi-planar movement per session
-   - Use different grip widths, stances, and tempos across exercises
-
-3. UPRIGHT BIAS (Intermediate & Advanced): Unless an exercise specifically requires it, avoid programming exercises done seated or lying down. Prefer:
-   - Standing, half-kneeling, or single-leg stance variations
-   - Standing cable work over seated machines
-   - Standing dumbbell work over seated variations
-   - Floor work (planks, deadbugs) is acceptable for core — avoid seated ab machines
-   - Beginners may use more seated/lying exercises for safety and stability
-   - Muscle Building goal may include more isolation work seated/lying — this is acceptable
-
-VARIETY — CRITICAL. You are a creative programmer, not a template filler. Every session must be meaningfully different.
-
-SEED: ${Date.now()} — use this to pick a different starting point each time. Seed ends in 0-2: start HINGE | 3-4: start PULL | 5-6: start LEGS | 7-8: start PUSH | 9: start CORE.
-
-OVERUSED DEFAULTS (last resorts only, avoid unless no alternative exists): Push-Up, Squat, Plank, Burpee, Jumping Jack, Mountain Climber, Lunge, Glute Bridge. Never use the most obvious exercise for a muscle group as your default pick.
-
-RULES: (1) Never repeat an exercise within the same workout. (2) Rotate movement patterns each session — Push: horizontal/vertical/decline/unilateral | Pull: horizontal row/vertical pull/unilateral/face pull | Legs: squat/hinge/lunge/single-leg/plyo | Core: anti-extension/anti-rotation/flexion/carry. (3) Vary rep scheme per session (strength 3-6, hypertrophy 8-12, or endurance 15-20 — commit to one). (4) Never start with the same exercise two sessions running. (5) For Bodyweight: spread across PUSH/PULL/LEGS/HINGE/CORE, max 2 per subcategory.
-
-FINAL CHECK: Before output, ask "would someone who did this yesterday recognize these exercises?" If yes, swap at least 3.
-
-BODYWEIGHT EXERCISE POOL — for bodyweight workouts, randomly select from this extensive list and never repeat an exercise from the previous 3 sessions:
-
-EXERCISE COUNT RULE FOR ADVANCED WORKOUTS — MANDATORY: If level is "Advanced" AND (equipment is "Bodyweight Only" OR muscle focus is "Full Body"), the Main Workout MUST contain exactly 10 exercises, each with 4 sets, as the standard — unless the user has explicitly noted a time restriction in their notes (e.g. "short on time", "30 minutes only"). This is a hard rule, not a suggestion.
+BODYWEIGHT EXERCISE POOL (for Bodyweight Only equipment) — randomly select from this list, never repeat an exercise from the previous 3 sessions:
 PULL: Pull-Up, Chin-Up, Inverted Row, Australian Pull-Up, Commando Pull-Up, L-Sit Pull-Up, Towel Row, Doorframe Row, Scapular Pull-Up, Negative Pull-Up, Mixed Grip Pull-Up
 LEGS: Squat, Jump Squat, Bulgarian Split Squat, Pistol Squat (assisted), Reverse Lunge, Forward Lunge, Lateral Lunge, Jump Lunge, Walking Lunge, Step-Up, Box Jump, Glute Bridge, Single-Leg Glute Bridge, Hip Thrust, Nordic Curl (assisted), Wall Sit, Calf Raise, Single-Leg Calf Raise, Broad Jump, Skater Squat
 PUSH: Push-Up, Wide Push-Up, Diamond Push-Up, Archer Push-Up, Decline Push-Up, Incline Push-Up, Pike Push-Up, Pseudo Planche Push-Up, Hindu Push-Up, Typewriter Push-Up, Close-Grip Push-Up, Explosive Push-Up, Dips (chair/bench/bars)
 HINGE: Good Morning, Single-Leg Romanian Deadlift, Hip Hinge, Donkey Kick, Fire Hydrant, Superman, Reverse Hyperextension
 CORE: Plank, Side Plank, Hollow Hold, Dead Bug, Ab Wheel Rollout, Dragon Flag (assisted), Hanging Knee Raise, Hanging Leg Raise, V-Up, L-Sit, Bicycle Crunch, Russian Twist, Mountain Climber, Bear Crawl, Pallof Press (band), Windshield Wiper
-FULL BODY: Burpee, Man Maker, Turkish Get-Up, Bear Crawl, Inchworm, Sprawl, Devil Press, Tuck Jump
-
-USE RANDOM SELECTION — do not default to the same 8 exercises every time. Imagine you are drawing exercises randomly from this pool.
-
-SELF-CHECK BEFORE WRITING: Look at your planned exercise list. If more than 2 of these appear: Push-Up, Squat, Plank, Burpee, Mountain Climber, Lunge, Glute Bridge — replace the extras with less common variations. A user doing this app daily should NEVER get the same workout twice in a row.
 
 Then provide:
 ## This Week's Full-Body Workout
 ### Warm-Up (5 min)
 Exactly 3 warm-up moves.
 ### Main Workout
-6-8 exercises — for each: **Exercise Name** — sets x reps, rest (use actual numbers, e.g. "3 sets x 10 reps"). STRAIGHT SETS RULE — MANDATORY, NO EXCEPTIONS: Every exercise must use the SAME rep number across all sets (e.g. "4 sets x 10 reps" — write ONE number, not a range or descending sequence). NEVER write formats like "8-7-6-5" or "15-12-10-8" or any descending/ascending rep sequence. If you write a hyphenated rep range for an exercise's set count, you are violating this rule. Then one short sentence describing what it works and why it's in this workout.
+Exercise count and sets per the Exercise Count By Level and Sets By Level rules above. For each: **Exercise Name** — sets x reps, rest (use actual numbers, e.g. "3 sets x 10 reps"). Then one short sentence describing what it works and why it's in this workout.
 ### Cool-Down (5 min)
 Exactly 3 stretches.
-
 
 Do NOT include nutrition plans, multi-week programs, or long-form content. This is a free single workout only.`
       : thirtyDayPlan
@@ -1558,166 +1498,99 @@ PROFILE:
 - Weight: ${currentForm.weight||"Not specified"}
 - Height: ${currentForm.height||"Not specified"}
 - Goal: ${currentForm.goal}
-- Level: ${currentForm.level}
-- Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout — use them when they fit naturally into the variety/rotation, not by default.":""}
-- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups. Do not program exercises for muscles not listed here.${currentForm.goal === "The Marla" ? " THIS IS THE MARLA WORKOUT — every single exercise must target glutes and/or hamstrings specifically. No quad-dominant exercises (squats targeting quads, leg press, leg extensions). No cardio/conditioning/metcon exercises of any kind (no jump rope, no battle ropes, no burpees, no mountain climbers, no jumping jacks, no sprints, no plyometric jumps) — this is a pure muscle-building program, not conditioning. Focus on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, curtsy lunges, back extensions, hamstring curls, and TRX hamstring curls/TRX hamstring exercises. This is an advanced-level muscle building workout exclusively for glutes and hamstrings." : ""}
-
-STRICT BALANCE RULE — THIS IS MANDATORY:
-- EXCEPTION: If "Metcon" is one of the selected muscle groups, exclude it from this balance calculation — it follows the separate METCON MUSCLE GROUP RULE instead (alternation, not equal distribution). Apply this balance rule only to the remaining non-Metcon muscle groups.
-- Count the number of (non-Metcon) muscle groups selected. Divide total exercises equally among them.
-- Example: Chest + Triceps + Shoulders = 3 groups. With 9 exercises: exactly 3 per group.
-- Example: Back + Biceps = 2 groups. With 8 exercises: exactly 4 per group.
-- NEVER give more than 1 extra exercise to any single group vs the others.
-- Each exercise must target a DISTINCTLY different movement — no clustering (e.g. do not include overhead press + Arnold press + push press all as "shoulder" exercises).
-- Before writing the workout, mentally assign each exercise to its muscle group and verify the count is equal.
-- Violating this balance rule is the #1 error to avoid.
-
-EXERCISE ORDER RULE — MANDATORY: When multiple muscle groups are selected, order exercises by muscle group size, largest to smallest: Legs first, then Chest and Back (these two can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Core last. Within each muscle group's exercises, keep them grouped together before moving to the next muscle group in this order.
-
-FULL BODY CORE RULE — MANDATORY: Every Full Body workout MUST include at least one core/abdominal exercise (e.g. plank, hanging leg raise, cable crunch, ab wheel, dead bug, Russian twist, etc.), and that core exercise MUST be the final exercise in the Main Workout — the very last one listed before cool-down.
+- Level: ${currentForm.goal === "The Marla" ? "Advanced" : currentForm.level}
+- Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
+- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
 - Days/week: ${currentForm.days}
 - Injuries: ${currentForm.injuries||"None"}
 - Notes / Hard Constraints: ${currentForm.notes||"None"}${currentForm.notes && currentForm.notes.includes("HARD CONSTRAINT") ? " ← THESE ARE MANDATORY REQUIREMENTS. READ THEM CAREFULLY AND FOLLOW THEM EXACTLY. DO NOT GENERATE EXERCISES THAT VIOLATE ANY CONSTRAINT LISTED HERE." : ""}
-${workoutHistory.length > 0 ? `
-PREVIOUS WORKOUT HISTORY (last ${Math.min(workoutHistory.length, 3)} sessions):
-${workoutHistory.slice(0,3).map((h,i) => {
-  const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : [];
-  return `Session ${i+1} (${h.date}): ${h.muscles} — Difficulty ${h.difficulty}/5${h.difficulty >= 4 ? " (very hard)" : h.difficulty <= 2 ? " (easy)" : " (moderate)"}${exList.length > 0 ? `\nExercises used: ${exList.join(", ")}` : ""}`;
-}).join("\n\n")}
+${workoutHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(workoutHistory.length, 3) + " sessions):\n" + workoutHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
 
-CRITICAL EXERCISE ROTATION RULES:
-1. DO NOT use any exercise listed above from the last 2 sessions
-2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session
-3. If an exercise appears in only session 1 or only session 2, avoid it if possible
-4. The goal is NO repeated exercises until at least 3 sessions have passed
-5. Choose completely different movement variations — if Romanian Deadlift was used, use Conventional Deadlift or Good Mornings instead; if Barbell Squat was used, use Goblet Squat, Bulgarian Split Squat or Hack Squat instead
-
-PROGRESSIVE OVERLOAD: 
+PROGRESSIVE OVERLOAD:
 - Difficulty 4-5 last session: maintain volume, focus on form
 - Difficulty 1-2 last session: increase reps by 2-3 or add a set
-- Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)` : ""}
+- Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)
 
-Then create a complete 30-DAY plan:
+CORE TRAINING RULES — APPLY TO EVERY WORKOUT REGARDLESS OF TYPE:
 
-EXERCISE COUNT RULE FOR ADVANCED WORKOUTS — MANDATORY: If level is "Advanced" AND (equipment is "Bodyweight Only" OR muscle focus is "Full Body"), each training day's Main Workout MUST contain exactly 10 exercises, each with 4 sets, as the standard — unless the user has explicitly noted a time restriction in their notes. This is a hard rule, not a suggestion.
+EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order: Legs/Glutes first, then Back and Chest (can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Abs/Core last. Every workout MUST end with at least one Abs/Core exercise as the final exercise in the Main Workout, before cool-down.
 
-TRAINING LEVEL DEFINITIONS — apply strictly based on selected level. Sets/exercises by level: Beginner = 3 sets, 5-6 exercises (no plyometrics/drop sets/supersets, focus on movement quality). Intermediate = 3-4 sets, 6-8 exercises (drop sets/tempo/moderate plyo OK, focus on overload + mind-muscle connection). Advanced = 4-5 sets, 8-10 exercises (10 exercises of 4 sets each for Bodyweight Only OR Full Body muscle focus, unless time-restricted; cluster sets/rest-pause/complex periodization OK, focus on specificity + peak performance).
+SETS BY LEVEL: Beginner = 3 sets per exercise. Intermediate = 3 sets per exercise. Advanced = 4 sets per exercise.
 
-REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Intermediate=harder, Advanced=hardest):
-- Fat Loss: 10-20 reps, 30-45s rest, circuit-style at higher levels
-- Muscle Building: 8-12 reps, 60-90s rest
-- Strength Gaining: 3-10 reps, 90s-3min rest, heavier/periodized at higher levels
-- Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
-- Apex: see APEX RULE below
+EXERCISE COUNT BY LEVEL: Beginner = 6-7 exercises. Intermediate = 8-9 exercises. Advanced = 10-11 exercises. (Exception: if the user has noted a time restriction, you may reduce the count accordingly.)
 
-APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises with Metcon exercises for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions.
+MUSCLE GROUP SELECTION: If the user selected multiple specific muscle groups (not Full Body), order them larger-to-smaller per the Exercise Order above, and distribute exercises as evenly as possible across the selected groups (see STRICT BALANCE RULE below).
 
-TYPE A — MUSCLE BUILDING (use ONLY these patterns): traditional resistance exercises with a clear muscle target trained for 8-12 reps at 60s-2min rest — squats, deadlifts, bench/overhead presses, rows, curls, extensions, lunges, lateral raises, pull-ups/pulldowns. If an exercise is performed for reps with a barbell/dumbbell/machine/bodyweight in a controlled tempo targeting 1-2 specific muscles, it is Type A.
+METCON AS A MUSCLE GROUP: If "Metcon" is selected alongside other muscle groups, alternate between exercises for the selected muscle group(s) and Metcon/conditioning exercises for the entire workout: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon... Never two of the same type in a row. If "Metcon" is selected alone with no other muscle group, the entire workout is conditioning exercises only, following the standard Exercise Order/Count rules for structure.
 
-TYPE B — METCON (use ONLY these patterns): conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest). If an exercise is timed, full-body, and elevates heart rate rather than targeting a specific muscle, it is Type B.
+STRICT BALANCE RULE: When multiple non-Metcon muscle groups are selected, count them and divide total exercises as evenly as possible. Never give more than 1 extra exercise to any single group versus the others. Label each exercise with its target muscle group in your own planning to self-check before output.
 
-EXPANDED METCON POOL — rotate widely across this list, do not default to the same 2-3 exercises every time: burpees, mountain climbers, ski erg sprints, jump rope, box jumps, battle ropes (alternating waves, slams), kettlebell swings, sled push, sled pull/drag, rowing machine sprints, assault bike sprints, farmer's carry, suitcase carry, devil press, thrusters, wall balls, high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, medicine ball slams, tire flips, shuttle runs.
+STRAIGHT SETS ONLY: Every exercise uses the SAME rep number across all its sets (e.g. "4 sets x 10 reps"). NEVER use a descending/pyramid rep sequence like "10-8-6-4". This is a hard rule with no exceptions.
 
-METCON VARIETY RULE — MANDATORY: Battle ropes are ONE option among 25+ in the pool above — do NOT default to them repeatedly. Within a single workout, never repeat the same metcon exercise twice. Across sessions, actively rotate to different metcon exercises than recent workouts — if battle ropes appeared in the user's last 1-2 sessions (check workout history), avoid them this time and pick something different from the pool.
+WORKOUT TYPE DEFINITIONS:
 
-LOADED CARRIES AND HYBRID MOVEMENTS: Farmer carries, suitcase carries, sled drags, and similar loaded carry exercises ARE allowed in Apex and classify as TYPE B — METCON (timed/distance-based, full-body, heart-rate elevating, minimal rest). Classify them as B, never as A.
+FAT LOSS: 8-12 reps per exercise. Prioritize compound lifts that engage larger muscle groups. 90 second rest between sets.
 
-Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscle focus is "Full Body" AND level is "Advanced", use exactly 10 exercises (5 muscle building + 5 metcon) per the EXERCISE COUNT RULE FOR ADVANCED WORKOUTS above — this takes priority. Otherwise, use 8-12 total exercises, never exceeding 12.
+MUSCLE BUILDING: 8-12 reps per exercise. Mix of compound lifts and isolation exercises. 90-120 second rest between sets.
 
-MANDATORY PRE-OUTPUT STEP — DO THIS BEFORE WRITING THE FINAL WORKOUT: First, draft your exercise list as numbered pairs in this exact format: "1. [Exercise Name] = A" then "2. [Exercise Name] = B" then "3. [Exercise Name] = A" and so on, alternating A/B explicitly for every single exercise you plan to include. Look at this draft list. If exercise 3 and exercise 4 are both A, or both B, that is a violation — replace one of them with the opposite type immediately in your draft before proceeding. Only after your draft list shows perfect A,B,A,B,A,B alternation with NO exceptions should you write out the final formatted workout using that exact exercise order. Do not skip this draft step — workouts that drift into multiple same-type exercises in a row (e.g. 3 or 4 strength exercises back to back) are a critical failure of this program.
+STRENGTH GAINING: 3-5 reps per exercise (heavier weight, lower reps). 2-4 minute rest between sets.
 
-METCON MUSCLE GROUP RULE — APPLIES IF "Metcon" IS SELECTED AS ONE OF THE MUSCLE GROUPS, REGARDLESS OF WORKOUT TYPE/GOAL: When "Metcon" appears alongside other selected muscle groups (e.g. Back + Metcon, or Chest + Shoulders + Metcon), alternate between exercises targeting the OTHER selected muscle group(s) and Metcon/conditioning exercises for the ENTIRE workout: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon...
 
-TYPE A — MUSCLE GROUP EXERCISE: A traditional resistance exercise targeting one of the user's selected non-Metcon muscle groups (e.g. if Back is also selected, all Type A exercises target back), trained at the rep range appropriate to the selected Workout Type/Goal (e.g. 8-12 reps for Muscle Building).
+APEX: A hybrid of full-body Muscle Building and metabolic conditioning. Alternate between Muscle Building exercises and Metcon exercises for the entire workout: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row. Cover ALL major muscle groups across the Muscle Building slots — Legs, Back, Chest, Shoulders, Biceps, Triceps, Abs/Core — distributed evenly per the Exercise Order/Balance rules. Muscle Building slots use 8-12 reps at 90-120s rest. Metcon slots use 30-60s of work at 20-30s rest, drawn from the Metcon Exercise Pool below. Exercise count for Apex follows the standard Exercise Count By Level above (the full count splits evenly between Muscle Building and Metcon — e.g. Advanced = 10-11 total means 5-6 Muscle Building + 5-6 Metcon).
 
-TYPE B — METCON: conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest). These do NOT need to target the selected muscle group(s) — they are general conditioning.
+THE MARLA: Advanced-level Muscle Building program exclusively for Glutes and Hamstrings. ALWAYS treat as: Level = Advanced, Equipment = Full Gym, Muscle Focus = Legs/Glutes (hamstring-emphasis) — regardless of what the user has selected elsewhere, The Marla overrides level/equipment/muscle selection. 8-12 reps per exercise, 90-120s rest, 4 sets (Advanced), 10-11 exercises. Every exercise must target glutes and/or hamstrings specifically — NO quad-dominant exercises (squats targeting quads, leg press, leg extensions), NO cardio/conditioning/metcon exercises of any kind. Focus exclusively on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, curtsy lunges, back extensions, hamstring curls, and TRX hamstring curls/exercises.
 
-EXPANDED METCON POOL — rotate widely across this list, do not default to the same 2-3 exercises every time: burpees, mountain climbers, ski erg sprints, jump rope, box jumps, battle ropes (alternating waves, slams), kettlebell swings, sled push, sled pull/drag, rowing machine sprints, assault bike sprints, farmer's carry, suitcase carry, devil press, thrusters, wall balls, high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, medicine ball slams, tire flips, shuttle runs.
+NO METCON WITHOUT SELECTION — MANDATORY: Conditioning/cardio-style exercises (from the Metcon Exercise Pool below) must ONLY appear if "Metcon" is explicitly selected as a muscle group, OR the Workout Type is Apex. If neither applies, do NOT include ANY conditioning/cardio exercises — every exercise must be traditional resistance training. This rule overrides any general variety guidance.
 
-METCON VARIETY RULE — MANDATORY: Battle ropes are ONE option among 25+ in the pool above — do NOT default to them repeatedly. Within a single workout, never repeat the same metcon exercise twice. Across sessions, actively rotate to different metcon exercises than recent workouts — if battle ropes appeared in the user's last 1-2 sessions (check workout history), avoid them this time and pick something different from the pool.
+METCON EXERCISE POOL — rotate widely, never default to the same 2-3 exercises, never repeat one exercise twice in the same workout: burpees, mountain climbers, ski erg sprints, jump rope, box jumps, battle ropes (alternating waves, slams), kettlebell swings, sled push, sled pull/drag, rowing machine sprints, assault bike sprints, farmer's carry, suitcase carry, devil press, thrusters, wall balls, high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, medicine ball slams, tire flips, shuttle runs. Check workout history — if an exercise appeared in the last 1-2 sessions, avoid it this time.
 
-If "Metcon" is selected together with "Full Body" (or no other specific muscle group), Type A exercises can come from any muscle group, following the standard Exercise Order Rule and Strict Balance Rule.
+VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
-If "Metcon" is selected ALONE with no other muscle group, treat the entire workout as Type B only — all conditioning exercises, no alternation needed.
+VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group — these are last resorts only. Rotate movement patterns. Across the 30 days, ensure later weeks don't repeat the same exercises as earlier weeks for the same muscle groups.
 
-Never two of the same type in a row when alternating, anywhere in the workout, no exceptions. Cap at 8-12 total exercises. Before outputting, draft your exercise list as numbered pairs labeled A/B, verify perfect alternation, and fix any violations before writing the final output.
-
-TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
-
-0. NO METCON WITHOUT SELECTION — MANDATORY: Conditioning/cardio-style exercises (kettlebell swings, battle ropes, assault bike sprints, box jumps, burpees, mountain climbers, ski erg, jump rope, sled work, rowing sprints, etc.) must ONLY appear if "Metcon" is explicitly one of the selected muscle groups. If "Metcon" was NOT selected, do not include ANY conditioning/cardio exercises — every exercise must be traditional resistance training targeting the selected muscle groups, regardless of the Workout Type/Goal selected (including Fat Loss or Athletic Performance). This rule overrides any general variety/dynamic-movement guidance below.
-
-1. CALORIC OUTPUT: Unless the goal is Muscle Building, design workouts that burn approximately 100 calories per hour minimum. Achieve this through:
-   - Compound multi-joint movements over isolation exercises
-   - Short rest periods (30-60s) for fat loss/endurance goals
-   - Supersets or circuits where appropriate for the level
-   - Keeping the trainee moving — minimize idle time
-
-2. DYNAMIC MOVEMENT: Workouts must use varied angles, planes, and movement patterns. This means:
-   - Mix of sagittal (forward/back), frontal (side to side), and transverse (rotational) plane movements
-   - Vary between bilateral and unilateral exercises
-   - Include at least one rotational or multi-planar movement per session
-   - Use different grip widths, stances, and tempos across exercises
-
-3. UPRIGHT BIAS (Intermediate & Advanced): Unless an exercise specifically requires it, avoid programming exercises done seated or lying down. Prefer:
-   - Standing, half-kneeling, or single-leg stance variations
-   - Standing cable work over seated machines
-   - Standing dumbbell work over seated variations
-   - Floor work (planks, deadbugs) is acceptable for core — avoid seated ab machines
-   - Beginners may use more seated/lying exercises for safety and stability
-   - Muscle Building goal may include more isolation work seated/lying — this is acceptable
-
-VARIETY — CRITICAL. You are a creative programmer, not a template filler. Every session must be meaningfully different.
-
-SEED: ${Date.now()} — use this to pick a different starting point each time. Seed ends in 0-2: start HINGE | 3-4: start PULL | 5-6: start LEGS | 7-8: start PUSH | 9: start CORE.
-
-OVERUSED DEFAULTS (last resorts only, avoid unless no alternative exists): Push-Up, Squat, Plank, Burpee, Jumping Jack, Mountain Climber, Lunge, Glute Bridge. Never use the most obvious exercise for a muscle group as your default pick.
-
-RULES: (1) Never repeat an exercise within the same workout. (2) Rotate movement patterns each session — Push: horizontal/vertical/decline/unilateral | Pull: horizontal row/vertical pull/unilateral/face pull | Legs: squat/hinge/lunge/single-leg/plyo | Core: anti-extension/anti-rotation/flexion/carry. (3) Vary rep scheme per session (strength 3-6, hypertrophy 8-12, or endurance 15-20 — commit to one). (4) Never start with the same exercise two sessions running. (5) For Bodyweight: spread across PUSH/PULL/LEGS/HINGE/CORE, max 2 per subcategory.
-
-FINAL CHECK: Before output, ask "would someone who did this yesterday recognize these exercises?" If yes, swap at least 3.
-# ${leadData.name}'s 30-Day Plan
-## Overview & Goals
-## How To Use This Plan
 NUTRITION GUIDELINES — APPLY BASED ON THE USER'S GOAL. Use their weight (convert to kg if needed: lbs / 2.2 = kg) to calculate exact numbers, not vague ranges. Show your math briefly (e.g. "180 lb = ~82 kg").
 
-IF GOAL IS BUILD MUSCLE:
+IF GOAL IS MUSCLE BUILDING:
 - Calories: small surplus, 5-15% above estimated maintenance. Target weight gain of 0.25-0.5% of bodyweight per week (e.g. 180 lb person gains ~0.5-1 lb/week).
 - Protein: 1.6-2.2 g/kg bodyweight (0.73-1.0 g/lb). Spread across 3-5 meals daily.
 - Fat: 20-35% of total calories. Do not go extremely low-fat for extended periods.
 - Carbs: fill remaining calories, typically 3-7 g/kg depending on training volume.
 - Note importance of progressive overload and 7-9 hours sleep for muscle growth.
 
-IF GOAL IS BURN FAT:
+IF GOAL IS FAT LOSS:
 - Calories: deficit of 10-25% below estimated maintenance. Target fat loss of 0.5-1% of bodyweight per week.
 - Protein: HIGHER than maintenance to preserve muscle — 1.8-2.7 g/kg (0.8-1.2 g/lb).
 - Fat: minimum 20% of calories, often well-served around 0.3-0.4 g/lb.
 - Carbs: fill remaining calories — higher carbs support better training performance, avoid going too low.
 - Recommend continued resistance training and daily activity (walking, etc). Avoid suggesting aggressive crash diets.
 
-IF GOAL IS STRENGTH GAINING or ATHLETIC PERFORMANCE:
+IF GOAL IS STRENGTH GAINING:
 - Calories: generally at or near maintenance. High-volume training may require more.
 - Protein: 1.4-2.0 g/kg (0.64-0.91 g/lb).
 - Fat: 20-35% of calories.
-- Carbs: moderate amount, 3-5 g/kg — sufficient to fuel training without being high-carb. These goals are not endurance-focused.
+- Carbs: moderate amount, 3-5 g/kg — sufficient to fuel training without being high-carb.
 - Mention hydration for training sessions.
 
-IF GOAL IS APEX or BODY RECOMP (hybrid muscle + fat loss):
+IF GOAL IS APEX (hybrid muscle building + metabolic conditioning):
 - Calories: at or slightly below maintenance (0-10% deficit) to support simultaneous muscle retention/gain and fat loss.
 - Protein: high end of range — 1.8-2.4 g/kg (0.8-1.0 g/lb) to support recomposition.
 - Fat: 25-30% of calories.
-- Carbs: fill remaining calories, moderate-to-higher given the metcon conditioning demands of Apex.
+- Carbs: fill remaining calories, moderate amount given the metcon conditioning demands.
 
-IF GOAL IS THE MARLA (glutes/hamstrings focus, advanced muscle building):
-- Treat as Muscle Building nutrition guidance above.
+IF GOAL IS THE MARLA: Treat as Muscle Building nutrition guidance above.
 
 PRIORITY ORDER TO MENTION (most to least important): 1) Total calories 2) Protein intake 3) Training consistency 4) Sleep and recovery 5) Carbohydrate intake 6) Food timing 7) Supplements. Make clear that calories, protein, consistency, and sleep drive the vast majority of results — supplements and precise meal timing matter far less.
 
-Default fallback if no goal matches the above (or for general balance): Protein 0.8-1.0 g/lb, Fat 0.3-0.4 g/lb, Carbs fill the rest, calories adjusted based on whether the aim is gaining or losing weight.
+Default fallback if no goal matches the above: Protein 0.8-1.0 g/lb, Fat 0.3-0.4 g/lb, Carbs fill the rest, calories adjusted based on whether the aim is gaining or losing weight.
 
 DISCLAIMER — INCLUDE THIS VERBATIM AT THE END OF THE NUTRITION STRATEGY SECTION: "These nutrition recommendations are general guidelines based on widely accepted sports nutrition principles, not personalized medical or dietary prescriptions. Individual needs vary based on health history, medical conditions, and other factors. Please consult a registered dietitian or physician with any specific questions or concerns before making significant changes to your diet."
 
+Then create a complete 30-DAY plan:
+# ${leadData.name}'s 30-Day Plan
+## Overview & Goals
+## How To Use This Plan
 ## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
-## The 30-Day Schedule (4 weeks, every training day with: day number, focus, exactly 3 warm-up moves, 5-6 main exercises, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"). STRAIGHT SETS RULE — MANDATORY: same rep number across all sets, NEVER a descending sequence like "8-7-6-5". One short sentence on what it works. One coaching note per day.)
+## The 30-Day Schedule (4 weeks, every training day with: day number, focus, exactly 3 warm-up moves, then main exercises per the Exercise Count By Level rule, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"). One short sentence on what it works. One coaching note per day.)
 ## Recovery Protocol
 ## End of 30 Days
 
@@ -1738,162 +1611,95 @@ PROFILE:
 - Weight: ${currentForm.weight||"Not specified"}
 - Height: ${currentForm.height||"Not specified"}
 - Goal: ${currentForm.goal}
-- Level: ${currentForm.level}
-- Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout — use them when they fit naturally into the variety/rotation, not by default.":""}
-- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups. Do not program exercises for muscles not listed here.${currentForm.goal === "The Marla" ? " THIS IS THE MARLA WORKOUT — every single exercise must target glutes and/or hamstrings specifically. No quad-dominant exercises (squats targeting quads, leg press, leg extensions). No cardio/conditioning/metcon exercises of any kind (no jump rope, no battle ropes, no burpees, no mountain climbers, no jumping jacks, no sprints, no plyometric jumps) — this is a pure muscle-building program, not conditioning. Focus on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, curtsy lunges, back extensions, hamstring curls, and TRX hamstring curls/TRX hamstring exercises. This is an advanced-level muscle building workout exclusively for glutes and hamstrings." : ""}
-
-STRICT BALANCE RULE — THIS IS MANDATORY:
-- EXCEPTION: If "Metcon" is one of the selected muscle groups, exclude it from this balance calculation — it follows the separate METCON MUSCLE GROUP RULE instead (alternation, not equal distribution). Apply this balance rule only to the remaining non-Metcon muscle groups.
-- Count the number of (non-Metcon) muscle groups selected. Divide total exercises equally among them.
-- Example: Chest + Triceps + Shoulders = 3 groups. With 9 exercises: exactly 3 per group.
-- Example: Back + Biceps = 2 groups. With 8 exercises: exactly 4 per group.
-- NEVER give more than 1 extra exercise to any single group vs the others.
-- Each exercise must target a DISTINCTLY different movement — no clustering (e.g. do not include overhead press + Arnold press + push press all as "shoulder" exercises).
-- Before writing the workout, mentally assign each exercise to its muscle group and verify the count is equal.
-- Violating this balance rule is the #1 error to avoid.
-
-EXERCISE ORDER RULE — MANDATORY: When multiple muscle groups are selected, order exercises by muscle group size, largest to smallest: Legs first, then Chest and Back (these two can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Core last. Within each muscle group's exercises, keep them grouped together before moving to the next muscle group in this order.
-
-FULL BODY CORE RULE — MANDATORY: Every Full Body workout MUST include at least one core/abdominal exercise (e.g. plank, hanging leg raise, cable crunch, ab wheel, dead bug, Russian twist, etc.), and that core exercise MUST be the final exercise in the Main Workout — the very last one listed before cool-down.
-- Days/week: ${currentForm.days}
+- Level: ${currentForm.goal === "The Marla" ? "Advanced" : currentForm.level}
+- Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
+- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
 - Injuries: ${currentForm.injuries||"None"}
 - Notes / Hard Constraints: ${currentForm.notes||"None"}${currentForm.notes && currentForm.notes.includes("HARD CONSTRAINT") ? " ← THESE ARE MANDATORY REQUIREMENTS. READ THEM CAREFULLY AND FOLLOW THEM EXACTLY. DO NOT GENERATE EXERCISES THAT VIOLATE ANY CONSTRAINT LISTED HERE." : ""}
-${workoutHistory.length > 0 ? `
-PREVIOUS WORKOUT HISTORY (last ${Math.min(workoutHistory.length, 3)} sessions):
-${workoutHistory.slice(0,3).map((h,i) => {
-  const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : [];
-  return `Session ${i+1} (${h.date}): ${h.muscles} — Difficulty ${h.difficulty}/5${h.difficulty >= 4 ? " (very hard)" : h.difficulty <= 2 ? " (easy)" : " (moderate)"}${exList.length > 0 ? `\nExercises used: ${exList.join(", ")}` : ""}`;
-}).join("\n\n")}
+${workoutHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(workoutHistory.length, 3) + " sessions):\n" + workoutHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
 
-CRITICAL EXERCISE ROTATION RULES:
-1. DO NOT use any exercise listed above from the last 2 sessions
-2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session
-3. If an exercise appears in only session 1 or only session 2, avoid it if possible
-4. The goal is NO repeated exercises until at least 3 sessions have passed
-5. Choose completely different movement variations — if Romanian Deadlift was used, use Conventional Deadlift or Good Mornings instead; if Barbell Squat was used, use Goblet Squat, Bulgarian Split Squat or Hack Squat instead
-
-PROGRESSIVE OVERLOAD: 
+PROGRESSIVE OVERLOAD:
 - Difficulty 4-5 last session: maintain volume, focus on form
 - Difficulty 1-2 last session: increase reps by 2-3 or add a set
-- Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)` : ""}
+- Difficulty 3 last session: add small overload (1-2 extra reps or slightly heavier)
 
-EXERCISE COUNT RULE FOR ADVANCED WORKOUTS — MANDATORY: If level is "Advanced" AND (equipment is "Bodyweight Only" OR muscle focus is "Full Body"), the Main Workout MUST contain exactly 10 exercises, each with 4 sets, as the standard — unless the user has explicitly noted a time restriction in their notes. This is a hard rule, not a suggestion.
+CORE TRAINING RULES — APPLY TO EVERY WORKOUT REGARDLESS OF TYPE:
 
-TRAINING LEVEL DEFINITIONS — apply strictly based on selected level. Sets/exercises by level: Beginner = 3 sets, 5-6 exercises (no plyometrics/drop sets/supersets, focus on movement quality). Intermediate = 3-4 sets, 6-8 exercises (drop sets/tempo/moderate plyo OK, focus on overload + mind-muscle connection). Advanced = 4-5 sets, 8-10 exercises (10 exercises of 4 sets each for Bodyweight Only OR Full Body muscle focus, unless time-restricted; cluster sets/rest-pause/complex periodization OK, focus on specificity + peak performance).
+EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order: Legs/Glutes first, then Back and Chest (can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Abs/Core last. Every workout MUST end with at least one Abs/Core exercise as the final exercise in the Main Workout, before cool-down.
 
-REP RANGES BY GOAL (scale rest/intensity to level — Beginner=moderate, Intermediate=harder, Advanced=hardest):
-- Fat Loss: 10-20 reps, 30-45s rest, circuit-style at higher levels
-- Muscle Building: 8-12 reps, 60-90s rest
-- Strength Gaining: 3-10 reps, 90s-3min rest, heavier/periodized at higher levels
-- Athletic Performance: 3-12 reps, explosive/power-focused, 60-90s rest
-- Apex: see APEX RULE below
+SETS BY LEVEL: Beginner = 3 sets per exercise. Intermediate = 3 sets per exercise. Advanced = 4 sets per exercise.
 
-APEX RULE — APPLIES AT ALL LEVELS: Apex's mission is to look good and perform at a high level — alternate Muscle Building exercises with Metcon exercises for the ENTIRE workout, exercise by exercise: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row, anywhere in the workout, no exceptions.
+EXERCISE COUNT BY LEVEL: Beginner = 6-7 exercises. Intermediate = 8-9 exercises. Advanced = 10-11 exercises. (Exception: if the user has noted a time restriction, you may reduce the count accordingly.)
 
-TYPE A — MUSCLE BUILDING (use ONLY these patterns): traditional resistance exercises with a clear muscle target trained for 8-12 reps at 60s-2min rest — squats, deadlifts, bench/overhead presses, rows, curls, extensions, lunges, lateral raises, pull-ups/pulldowns. If an exercise is performed for reps with a barbell/dumbbell/machine/bodyweight in a controlled tempo targeting 1-2 specific muscles, it is Type A.
+MUSCLE GROUP SELECTION: If the user selected multiple specific muscle groups (not Full Body), order them larger-to-smaller per the Exercise Order above, and distribute exercises as evenly as possible across the selected groups (see STRICT BALANCE RULE below).
 
-TYPE B — METCON (use ONLY these patterns): conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest). If an exercise is timed, full-body, and elevates heart rate rather than targeting a specific muscle, it is Type B.
+METCON AS A MUSCLE GROUP: If "Metcon" is selected alongside other muscle groups, alternate between exercises for the selected muscle group(s) and Metcon/conditioning exercises for the entire workout: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon... Never two of the same type in a row. If "Metcon" is selected alone with no other muscle group, the entire workout is conditioning exercises only, following the standard Exercise Order/Count rules for structure.
 
-EXPANDED METCON POOL — rotate widely across this list, do not default to the same 2-3 exercises every time: burpees, mountain climbers, ski erg sprints, jump rope, box jumps, battle ropes (alternating waves, slams), kettlebell swings, sled push, sled pull/drag, rowing machine sprints, assault bike sprints, farmer's carry, suitcase carry, devil press, thrusters, wall balls, high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, medicine ball slams, tire flips, shuttle runs.
+STRICT BALANCE RULE: When multiple non-Metcon muscle groups are selected, count them and divide total exercises as evenly as possible. Never give more than 1 extra exercise to any single group versus the others. Label each exercise with its target muscle group in your own planning to self-check before output.
 
-METCON VARIETY RULE — MANDATORY: Battle ropes are ONE option among 25+ in the pool above — do NOT default to them repeatedly. Within a single workout, never repeat the same metcon exercise twice. Across sessions, actively rotate to different metcon exercises than recent workouts — if battle ropes appeared in the user's last 1-2 sessions (check workout history), avoid them this time and pick something different from the pool.
+STRAIGHT SETS ONLY: Every exercise uses the SAME rep number across all its sets (e.g. "4 sets x 10 reps"). NEVER use a descending/pyramid rep sequence like "10-8-6-4". This is a hard rule with no exceptions.
 
-LOADED CARRIES AND HYBRID MOVEMENTS: Farmer carries, suitcase carries, sled drags, and similar loaded carry exercises ARE allowed in Apex and classify as TYPE B — METCON (timed/distance-based, full-body, heart-rate elevating, minimal rest). Classify them as B, never as A.
+WORKOUT TYPE DEFINITIONS:
 
-Burpees/mountain climbers are reliable metcon defaults. EXERCISE COUNT: If muscle focus is "Full Body" AND level is "Advanced", use exactly 10 exercises (5 muscle building + 5 metcon) per the EXERCISE COUNT RULE FOR ADVANCED WORKOUTS above — this takes priority. Otherwise, use 8-12 total exercises, never exceeding 12.
+FAT LOSS: 8-12 reps per exercise. Prioritize compound lifts that engage larger muscle groups. 90 second rest between sets.
 
-MANDATORY PRE-OUTPUT STEP — DO THIS BEFORE WRITING THE FINAL WORKOUT: First, draft your exercise list as numbered pairs in this exact format: "1. [Exercise Name] = A" then "2. [Exercise Name] = B" then "3. [Exercise Name] = A" and so on, alternating A/B explicitly for every single exercise you plan to include. Look at this draft list. If exercise 3 and exercise 4 are both A, or both B, that is a violation — replace one of them with the opposite type immediately in your draft before proceeding. Only after your draft list shows perfect A,B,A,B,A,B alternation with NO exceptions should you write out the final formatted workout using that exact exercise order. Do not skip this draft step — workouts that drift into multiple same-type exercises in a row (e.g. 3 or 4 strength exercises back to back) are a critical failure of this program.
+MUSCLE BUILDING: 8-12 reps per exercise. Mix of compound lifts and isolation exercises. 90-120 second rest between sets.
 
-METCON MUSCLE GROUP RULE — APPLIES IF "Metcon" IS SELECTED AS ONE OF THE MUSCLE GROUPS, REGARDLESS OF WORKOUT TYPE/GOAL: When "Metcon" appears alongside other selected muscle groups (e.g. Back + Metcon, or Chest + Shoulders + Metcon), alternate between exercises targeting the OTHER selected muscle group(s) and Metcon/conditioning exercises for the ENTIRE workout: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon...
+STRENGTH GAINING: 3-5 reps per exercise (heavier weight, lower reps). 2-4 minute rest between sets.
 
-TYPE A — MUSCLE GROUP EXERCISE: A traditional resistance exercise targeting one of the user's selected non-Metcon muscle groups (e.g. if Back is also selected, all Type A exercises target back), trained at the rep range appropriate to the selected Workout Type/Goal (e.g. 8-12 reps for Muscle Building).
 
-TYPE B — METCON: conditioning exercises performed for TIME or high reps with minimal rest (30-60s work, 20-30s rest). These do NOT need to target the selected muscle group(s) — they are general conditioning.
+APEX: A hybrid of full-body Muscle Building and metabolic conditioning. Alternate between Muscle Building exercises and Metcon exercises for the entire workout: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row. Cover ALL major muscle groups across the Muscle Building slots — Legs, Back, Chest, Shoulders, Biceps, Triceps, Abs/Core — distributed evenly per the Exercise Order/Balance rules. Muscle Building slots use 8-12 reps at 90-120s rest. Metcon slots use 30-60s of work at 20-30s rest, drawn from the Metcon Exercise Pool below. Exercise count for Apex follows the standard Exercise Count By Level above (the full count splits evenly between Muscle Building and Metcon — e.g. Advanced = 10-11 total means 5-6 Muscle Building + 5-6 Metcon).
 
-EXPANDED METCON POOL — rotate widely across this list, do not default to the same 2-3 exercises every time: burpees, mountain climbers, ski erg sprints, jump rope, box jumps, battle ropes (alternating waves, slams), kettlebell swings, sled push, sled pull/drag, rowing machine sprints, assault bike sprints, farmer's carry, suitcase carry, devil press, thrusters, wall balls, high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, medicine ball slams, tire flips, shuttle runs.
+THE MARLA: Advanced-level Muscle Building program exclusively for Glutes and Hamstrings. ALWAYS treat as: Level = Advanced, Equipment = Full Gym, Muscle Focus = Legs/Glutes (hamstring-emphasis) — regardless of what the user has selected elsewhere, The Marla overrides level/equipment/muscle selection. 8-12 reps per exercise, 90-120s rest, 4 sets (Advanced), 10-11 exercises. Every exercise must target glutes and/or hamstrings specifically — NO quad-dominant exercises (squats targeting quads, leg press, leg extensions), NO cardio/conditioning/metcon exercises of any kind. Focus exclusively on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, curtsy lunges, back extensions, hamstring curls, and TRX hamstring curls/exercises.
 
-METCON VARIETY RULE — MANDATORY: Battle ropes are ONE option among 25+ in the pool above — do NOT default to them repeatedly. Within a single workout, never repeat the same metcon exercise twice. Across sessions, actively rotate to different metcon exercises than recent workouts — if battle ropes appeared in the user's last 1-2 sessions (check workout history), avoid them this time and pick something different from the pool.
+NO METCON WITHOUT SELECTION — MANDATORY: Conditioning/cardio-style exercises (from the Metcon Exercise Pool below) must ONLY appear if "Metcon" is explicitly selected as a muscle group, OR the Workout Type is Apex. If neither applies, do NOT include ANY conditioning/cardio exercises — every exercise must be traditional resistance training. This rule overrides any general variety guidance.
 
-If "Metcon" is selected together with "Full Body" (or no other specific muscle group), Type A exercises can come from any muscle group, following the standard Exercise Order Rule and Strict Balance Rule.
+METCON EXERCISE POOL — rotate widely, never default to the same 2-3 exercises, never repeat one exercise twice in the same workout: burpees, mountain climbers, ski erg sprints, jump rope, box jumps, battle ropes (alternating waves, slams), kettlebell swings, sled push, sled pull/drag, rowing machine sprints, assault bike sprints, farmer's carry, suitcase carry, devil press, thrusters, wall balls, high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, medicine ball slams, tire flips, shuttle runs. Check workout history — if an exercise appeared in the last 1-2 sessions, avoid it this time.
 
-If "Metcon" is selected ALONE with no other muscle group, treat the entire workout as Type B only — all conditioning exercises, no alternation needed.
+VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
-Never two of the same type in a row when alternating, anywhere in the workout, no exceptions. Cap at 8-12 total exercises. Before outputting, draft your exercise list as numbered pairs labeled A/B, verify perfect alternation, and fix any violations before writing the final output.
+VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group — these are last resorts only. Rotate movement patterns. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
-TRAINING PHILOSOPHY — APPLY THESE PRINCIPLES TO EVERY WORKOUT:
-
-0. NO METCON WITHOUT SELECTION — MANDATORY: Conditioning/cardio-style exercises (kettlebell swings, battle ropes, assault bike sprints, box jumps, burpees, mountain climbers, ski erg, jump rope, sled work, rowing sprints, etc.) must ONLY appear if "Metcon" is explicitly one of the selected muscle groups. If "Metcon" was NOT selected, do not include ANY conditioning/cardio exercises — every exercise must be traditional resistance training targeting the selected muscle groups, regardless of the Workout Type/Goal selected (including Fat Loss or Athletic Performance). This rule overrides any general variety/dynamic-movement guidance below.
-
-1. CALORIC OUTPUT: Unless the goal is Muscle Building, design workouts that burn approximately 100 calories per hour minimum. Achieve this through:
-   - Compound multi-joint movements over isolation exercises
-   - Short rest periods (30-60s) for fat loss/endurance goals
-   - Supersets or circuits where appropriate for the level
-   - Keeping the trainee moving — minimize idle time
-
-2. DYNAMIC MOVEMENT: Workouts must use varied angles, planes, and movement patterns. This means:
-   - Mix of sagittal (forward/back), frontal (side to side), and transverse (rotational) plane movements
-   - Vary between bilateral and unilateral exercises
-   - Include at least one rotational or multi-planar movement per session
-   - Use different grip widths, stances, and tempos across exercises
-
-3. UPRIGHT BIAS (Intermediate & Advanced): Unless an exercise specifically requires it, avoid programming exercises done seated or lying down. Prefer:
-   - Standing, half-kneeling, or single-leg stance variations
-   - Standing cable work over seated machines
-   - Standing dumbbell work over seated variations
-   - Floor work (planks, deadbugs) is acceptable for core — avoid seated ab machines
-   - Beginners may use more seated/lying exercises for safety and stability
-   - Muscle Building goal may include more isolation work seated/lying — this is acceptable
-
-VARIETY — CRITICAL. You are a creative programmer, not a template filler. Every session must be meaningfully different.
-
-SEED: ${Date.now()} — use this to pick a different starting point each time. Seed ends in 0-2: start HINGE | 3-4: start PULL | 5-6: start LEGS | 7-8: start PUSH | 9: start CORE.
-
-OVERUSED DEFAULTS (last resorts only, avoid unless no alternative exists): Push-Up, Squat, Plank, Burpee, Jumping Jack, Mountain Climber, Lunge, Glute Bridge. Never use the most obvious exercise for a muscle group as your default pick.
-
-RULES: (1) Never repeat an exercise within the same workout. (2) Rotate movement patterns each session — Push: horizontal/vertical/decline/unilateral | Pull: horizontal row/vertical pull/unilateral/face pull | Legs: squat/hinge/lunge/single-leg/plyo | Core: anti-extension/anti-rotation/flexion/carry. (3) Vary rep scheme per session (strength 3-6, hypertrophy 8-12, or endurance 15-20 — commit to one). (4) Never start with the same exercise two sessions running. (5) For Bodyweight: spread across PUSH/PULL/LEGS/HINGE/CORE, max 2 per subcategory.
-
-FINAL CHECK: Before output, ask "would someone who did this yesterday recognize these exercises?" If yes, swap at least 3.
-# ${leadData.name}'s Personalized Plan
-## Overview
-## Workout Plans (each day: name, muscle focus, exactly 3 warm-up moves, 5-7 main exercises, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period. STRAIGHT SETS RULE — MANDATORY, NO EXCEPTIONS: Every exercise must use the SAME rep number across all sets (e.g. "4 sets x 10 reps" — write ONE number, not a range or descending sequence). NEVER write formats like "8-7-6-5" or "15-12-10-8" or any descending/ascending rep sequence. If you write a hyphenated rep range for an exercise's set count, you are violating this rule. Then one short sentence describing what it works and why it's in this workout.)
 NUTRITION GUIDELINES — APPLY BASED ON THE USER'S GOAL. Use their weight (convert to kg if needed: lbs / 2.2 = kg) to calculate exact numbers, not vague ranges. Show your math briefly (e.g. "180 lb = ~82 kg").
 
-IF GOAL IS BUILD MUSCLE:
+IF GOAL IS MUSCLE BUILDING:
 - Calories: small surplus, 5-15% above estimated maintenance. Target weight gain of 0.25-0.5% of bodyweight per week (e.g. 180 lb person gains ~0.5-1 lb/week).
 - Protein: 1.6-2.2 g/kg bodyweight (0.73-1.0 g/lb). Spread across 3-5 meals daily.
 - Fat: 20-35% of total calories. Do not go extremely low-fat for extended periods.
 - Carbs: fill remaining calories, typically 3-7 g/kg depending on training volume.
 - Note importance of progressive overload and 7-9 hours sleep for muscle growth.
 
-IF GOAL IS BURN FAT:
+IF GOAL IS FAT LOSS:
 - Calories: deficit of 10-25% below estimated maintenance. Target fat loss of 0.5-1% of bodyweight per week.
 - Protein: HIGHER than maintenance to preserve muscle — 1.8-2.7 g/kg (0.8-1.2 g/lb).
 - Fat: minimum 20% of calories, often well-served around 0.3-0.4 g/lb.
 - Carbs: fill remaining calories — higher carbs support better training performance, avoid going too low.
 - Recommend continued resistance training and daily activity (walking, etc). Avoid suggesting aggressive crash diets.
 
-IF GOAL IS STRENGTH GAINING or ATHLETIC PERFORMANCE:
+IF GOAL IS STRENGTH GAINING:
 - Calories: generally at or near maintenance. High-volume training may require more.
 - Protein: 1.4-2.0 g/kg (0.64-0.91 g/lb).
 - Fat: 20-35% of calories.
-- Carbs: moderate amount, 3-5 g/kg — sufficient to fuel training without being high-carb. These goals are not endurance-focused.
+- Carbs: moderate amount, 3-5 g/kg — sufficient to fuel training without being high-carb.
 - Mention hydration for training sessions.
 
-IF GOAL IS APEX or BODY RECOMP (hybrid muscle + fat loss):
+IF GOAL IS APEX (hybrid muscle building + metabolic conditioning):
 - Calories: at or slightly below maintenance (0-10% deficit) to support simultaneous muscle retention/gain and fat loss.
 - Protein: high end of range — 1.8-2.4 g/kg (0.8-1.0 g/lb) to support recomposition.
 - Fat: 25-30% of calories.
-- Carbs: fill remaining calories, moderate-to-higher given the metcon conditioning demands of Apex.
+- Carbs: fill remaining calories, moderate amount given the metcon conditioning demands.
 
-IF GOAL IS THE MARLA (glutes/hamstrings focus, advanced muscle building):
-- Treat as Muscle Building nutrition guidance above.
+IF GOAL IS THE MARLA: Treat as Muscle Building nutrition guidance above.
 
 PRIORITY ORDER TO MENTION (most to least important): 1) Total calories 2) Protein intake 3) Training consistency 4) Sleep and recovery 5) Carbohydrate intake 6) Food timing 7) Supplements. Make clear that calories, protein, consistency, and sleep drive the vast majority of results — supplements and precise meal timing matter far less.
 
-Default fallback if no goal matches the above (or for general balance): Protein 0.8-1.0 g/lb, Fat 0.3-0.4 g/lb, Carbs fill the rest, calories adjusted based on whether the aim is gaining or losing weight.
+Default fallback if no goal matches the above: Protein 0.8-1.0 g/lb, Fat 0.3-0.4 g/lb, Carbs fill the rest, calories adjusted based on whether the aim is gaining or losing weight.
 
 DISCLAIMER — INCLUDE THIS VERBATIM AT THE END OF THE NUTRITION STRATEGY SECTION: "These nutrition recommendations are general guidelines based on widely accepted sports nutrition principles, not personalized medical or dietary prescriptions. Individual needs vary based on health history, medical conditions, and other factors. Please consult a registered dietitian or physician with any specific questions or concerns before making significant changes to your diet."
 
+# ${leadData.name}'s Personalized Plan
+## Overview
+## Workout Plans (each day: name, muscle focus, exactly 3 warm-up moves, then main exercises per the Exercise Count By Level rule, exactly 3 cool-down stretches. For each main exercise: **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period. Then one short sentence describing what it works and why it's in this workout.)
 ## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
 ## Recovery Protocol
 ## 4-Week Progression
@@ -2849,10 +2655,6 @@ Be specific. Use tables where helpful.`
                 <div>
                   <div style={{color:"var(--acid)",fontWeight:500,fontSize:14,marginBottom:4}}>Apex</div>
                   <div style={{fontSize:13,color:"#999",lineHeight:1.6}}>Alternates muscle-building strength sets with metcon conditioning (burpees, mountain climbers, etc.) — look good and perform at a high level.</div>
-                </div>
-                <div>
-                  <div style={{color:"var(--acid)",fontWeight:500,fontSize:14,marginBottom:4}}>Athletic Performance</div>
-                  <div style={{fontSize:13,color:"#999",lineHeight:1.6}}>Explosive, power-focused training built for speed, agility, and sport-specific performance.</div>
                 </div>
                 <div>
                   <div style={{color:"var(--acid)",fontWeight:500,fontSize:14,marginBottom:4}}>Fat Loss</div>
