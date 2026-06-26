@@ -938,6 +938,7 @@ function fixApexAlternation(planText, level) {
     // Check minimum exercise count by level
     const minCounts = { "Beginner": 6, "Intermediate": 8, "Advanced": 10 };
     const minExpected = minCounts[level] || 4;
+    console.log("[WeightedAI] Detected", exerciseLineIndices.length, "exercises. Level:", level, "Min expected:", minExpected, "Classifications:", JSON.stringify(classifications));
     if (exerciseLineIndices.length < minExpected) {
       return { __needsRegeneration: true, reason: "too_few_exercises", count: exerciseLineIndices.length, expected: minExpected };
     }
