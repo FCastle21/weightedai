@@ -963,7 +963,8 @@ function fixApexAlternation(planText, level) {
         if (boldMatch) {
           const exName = boldMatch[1].split("—")[0].split("–")[0].trim().toLowerCase();
           const junkPatterns = /^(warm-?up|cool-?down|day \d|week \d)/i;
-          if (junkPatterns.test(exName)) continue;
+          const stretchMobilityPatterns = /stretch|cat-cow|cat cow|leg swing|arm swing|band pull-?apart|child'?s pose|world'?s greatest|inchworm|hip circle|torso (rotation|twist|circle)|shoulder (circle|roll)|jumping jack$|knee hug|quad pull|ankle (circle|roll)|wrist (circle|roll)|neck (roll|stretch)|pigeon pose|cobra pose|downward dog|foam roll/i;
+          if (junkPatterns.test(exName) || stretchMobilityPatterns.test(exName)) continue;
           const isMetcon = metconKeywords.some(kw => exName.includes(kw));
           exerciseLineIndices.push(idx);
           classifications.push(isMetcon ? "B" : "A");
