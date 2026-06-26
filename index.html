@@ -1829,8 +1829,8 @@ Be specific. Use tables where helpful.`
           cleanPlan = fixResult;
         }
       }
-      // Safety net: if Metcon was NOT selected, but conditioning exercises leaked in anyway, strip them out entirely
-      const metconNotSelected = !currentForm.muscles || !currentForm.muscles.includes("Metcon");
+      // Safety net: if Metcon was NOT selected AND this isn't Apex, but conditioning exercises leaked in anyway, strip them out entirely
+      const metconNotSelected = (!currentForm.muscles || !currentForm.muscles.includes("Metcon")) && currentForm.goal !== "Apex";
       if (metconNotSelected) {
         const violations = detectUnwantedMetcon(cleanPlan);
         if (violations.length > 0) {
