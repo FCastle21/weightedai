@@ -863,6 +863,57 @@ function removeUnwantedMetconBlocks(planText) {
   }
 }
 
+// Last-resort fallback: programmatically inject metcon exercises if the AI fails twice to include any
+function injectMetconExercises(planText, neededCount) {
+  try {
+    const metconPool = [
+      { name: "Burpees", desc: "Full-body explosive movement that spikes heart rate and burns calories fast." },
+      { name: "Mountain Climbers", desc: "Dynamic core and cardio exercise that keeps the body moving continuously." },
+      { name: "Kettlebell Swings", desc: "Full-body conditioning that elevates heart rate and maintains work capacity between strength blocks." },
+      { name: "Box Jumps", desc: "Explosive plyometric movement building power while elevating heart rate." },
+      { name: "Battle Ropes (Alternating Waves)", desc: "Upper body and core conditioning that drives metabolic demand." },
+      { name: "Jump Rope", desc: "Classic cardio conditioning that builds coordination and elevates heart rate." },
+      { name: "Mountain Climber Sprints", desc: "High-intensity core and cardio finisher between strength movements." },
+      { name: "Assault Bike Sprints", desc: "Full-body cardio conditioning that maintains intensity throughout the session." }
+    ];
+    const lines = planText.split("\n");
+    const exerciseLineIndices = [];
+    lines.forEach((line, idx) => {
+      if (line.match(/\*\*([^*]+)\*\*/)) exerciseLineIndices.push(idx);
+    });
+    if (exerciseLineIndices.length === 0) return planText;
+
+    // Build blocks from existing exercises (all currently Type A since this is the fallback path)
+    const blocks = [];
+    for (let i = 0; i < exerciseLineIndices.length; i++) {
+      const startIdx = exerciseLineIndices[i];
+      const endIdx = i + 1 < exerciseLineIndices.length ? exerciseLineIndices[i + 1] : lines.length;
+      blocks.push(lines.slice(startIdx, endIdx));
+    }
+
+    // Interleave existing (Type A) blocks with injected metcon (Type B) blocks
+    const interleaved = [];
+    let metconIdx = 0;
+    blocks.forEach((block, i) => {
+      interleaved.push(block);
+      if (metconIdx < metconPool.length && (i < blocks.length - 1 || neededCount > blocks.length)) {
+        const m = metconPool[metconIdx % metconPool.length];
+        interleaved.push([`**${m.name}** — 4 sets x 40 seconds work, 30s rest`, m.desc, ""]);
+        metconIdx++;
+      }
+    });
+
+    const firstBlockStart = exerciseLineIndices[0];
+    const before = lines.slice(0, firstBlockStart);
+    const after = lines.slice(exerciseLineIndices[exerciseLineIndices.length - 1] + blocks[blocks.length - 1].length);
+    const newLines = interleaved.flat();
+
+    return [...before, ...newLines, ...after].join("\n");
+  } catch (e) {
+    return planText;
+  }
+}
+
 // Safety net: detect and fix broken Apex muscle-building/metcon alternation
 function fixApexAlternation(planText, level) {
   try {
@@ -1736,6 +1787,10 @@ Be specific. Use tables where helpful.`
             };
             await generatePlan(leadData, existingProfile, retryForm);
             return;
+          } else {
+            // Retry already happened and STILL failed - guarantee correctness via direct injection
+            const targetCount = fixResult.expected || 10;
+            cleanPlan = injectMetconExercises(cleanPlan, targetCount);
           }
         } else {
           cleanPlan = fixResult;
