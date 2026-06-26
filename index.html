@@ -864,7 +864,7 @@ function removeUnwantedMetconBlocks(planText) {
 }
 
 // Safety net: detect and fix broken Apex muscle-building/metcon alternation
-function fixApexAlternation(planText) {
+function fixApexAlternation(planText, level) {
   try {
     // Metcon keywords - if an exercise name contains any of these, classify as Metcon (B)
     const metconKeywords = ["burpee", "mountain climber", "ski erg", "jump rope", "box jump", "battle rope", "kettlebell swing", "sled", "row sprint", "rowing sprint", "rowing machine", "sprint", "carry", "drag", "jump squat", "broad jump", "skater", "plyo", "tuck jump", "high knee", "jumping jack", "shuttle", "assault bike", "devil press", "thruster", "wall ball", "butt kicker", "lateral shuffle", "plank jack", "bear crawl", "crab walk", "jumping lunge", "star jump", "squat jump", "slam", "tire flip", "farmer"];
@@ -884,6 +884,13 @@ function fixApexAlternation(planText) {
       }
     });
 
+    // Check minimum exercise count by level
+    const minCounts = { "Beginner": 6, "Intermediate": 8, "Advanced": 10 };
+    const minExpected = minCounts[level] || 4;
+    if (exerciseLineIndices.length < minExpected) {
+      return { __needsRegeneration: true, reason: "too_few_exercises", count: exerciseLineIndices.length, expected: minExpected };
+    }
+
     // Only operate on the Main Workout section - skip if fewer than 4 exercises found (not enough to validate meaningfully)
     if (exerciseLineIndices.length < 4) return planText;
 
@@ -896,6 +903,13 @@ function fixApexAlternation(planText) {
       }
     }
     if (isValid) return planText; // Already alternates correctly, no changes needed
+
+    // If there are zero Metcon exercises (or zero Muscle Building), reordering can't fix it - flag for regeneration instead
+    const hasA = classifications.includes("A");
+    const hasB = classifications.includes("B");
+    if (!hasA || !hasB) {
+      return { __needsRegeneration: true, reason: !hasB ? "no_metcon_found" : "no_muscle_building_found" };
+    }
 
     // Alternation is broken - reorder the exercise blocks (each block = bold line + its following description lines until next bold line or blank-blank)
     // Build exercise blocks
@@ -1451,7 +1465,7 @@ MUSCLE BUILDING: Write "8-12 reps" and "90-120 second rest" on EVERY exercise �
 STRENGTH GAINING: Write "3-5 reps" and "2-4 minute rest" on EVERY exercise — use this exact range/time on all exercises, do not pick a single specific number like "4 reps" or vary the rest time. Heavier weight, lower reps.
 
 
-APEX: A hybrid of full-body Muscle Building and metabolic conditioning. Alternate between Muscle Building exercises and Metcon exercises for the entire workout: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row. Cover ALL major muscle groups across the Muscle Building slots — Legs, Back, Chest, Shoulders, Biceps, Triceps, Abs/Core — distributed evenly per the Exercise Order/Balance rules. Muscle Building slots: write "8-12 reps" and "90-120 second rest" on EVERY one of these exercises — use this exact range, do not pick a single specific number. Metcon slots: write "30-60 seconds work" and "20-30 second rest" on EVERY one of these exercises, drawn from the Metcon Exercise Pool below. Exercise count for Apex follows the standard Exercise Count By Level above (the full count splits evenly between Muscle Building and Metcon — e.g. Advanced = 10-11 total means 5-6 Muscle Building + 5-6 Metcon).
+APEX: A hybrid of full-body Muscle Building and metabolic conditioning. Alternate between Muscle Building exercises and Metcon exercises for the entire workout: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row. Cover ALL major muscle groups across the Muscle Building slots — Legs, Back, Chest, Shoulders, Biceps, Triceps, Abs/Core — distributed evenly per the Exercise Order/Balance rules. Muscle Building slots: write "8-12 reps" and "90-120 second rest" on EVERY one of these exercises — use this exact range, do not pick a single specific number. Metcon slots: write "30-60 seconds work" and "20-30 second rest" on EVERY one of these exercises, drawn from the Metcon Exercise Pool below. Exercise count for Apex follows the standard Exercise Count By Level above (the full count splits evenly between Muscle Building and Metcon — e.g. Advanced = 10-11 total means 5-6 Muscle Building + 5-6 Metcon). CRITICAL: This workout is INVALID if it contains zero Metcon exercises OR zero Muscle Building exercises — both types MUST appear roughly equally. Before finalizing, count how many of each type you have planned; if either count is zero, you have failed this workout type entirely and must restart your exercise selection.
 
 THE MARLA: Advanced-level Muscle Building program exclusively for Glutes and Hamstrings. ALWAYS treat as: Level = Advanced, Equipment = Full Gym, Muscle Focus = Legs/Glutes (hamstring-emphasis) — regardless of what the user has selected elsewhere, The Marla overrides level/equipment/muscle selection. Write "8-12 reps" and "90-120 second rest" on EVERY exercise — use this exact range/time on all exercises, do not pick a single specific number. 4 sets (Advanced), 10-11 exercises. Every exercise must target glutes and/or hamstrings specifically — NO quad-dominant exercises (squats targeting quads, leg press, leg extensions), NO cardio/conditioning/metcon exercises of any kind. Focus exclusively on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, curtsy lunges, back extensions, hamstring curls, and TRX hamstring curls/exercises.
 
@@ -1534,7 +1548,7 @@ MUSCLE BUILDING: Write "8-12 reps" and "90-120 second rest" on EVERY exercise �
 STRENGTH GAINING: Write "3-5 reps" and "2-4 minute rest" on EVERY exercise — use this exact range/time on all exercises, do not pick a single specific number like "4 reps" or vary the rest time. Heavier weight, lower reps.
 
 
-APEX: A hybrid of full-body Muscle Building and metabolic conditioning. Alternate between Muscle Building exercises and Metcon exercises for the entire workout: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row. Cover ALL major muscle groups across the Muscle Building slots — Legs, Back, Chest, Shoulders, Biceps, Triceps, Abs/Core — distributed evenly per the Exercise Order/Balance rules. Muscle Building slots: write "8-12 reps" and "90-120 second rest" on EVERY one of these exercises — use this exact range, do not pick a single specific number. Metcon slots: write "30-60 seconds work" and "20-30 second rest" on EVERY one of these exercises, drawn from the Metcon Exercise Pool below. Exercise count for Apex follows the standard Exercise Count By Level above (the full count splits evenly between Muscle Building and Metcon — e.g. Advanced = 10-11 total means 5-6 Muscle Building + 5-6 Metcon).
+APEX: A hybrid of full-body Muscle Building and metabolic conditioning. Alternate between Muscle Building exercises and Metcon exercises for the entire workout: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row. Cover ALL major muscle groups across the Muscle Building slots — Legs, Back, Chest, Shoulders, Biceps, Triceps, Abs/Core — distributed evenly per the Exercise Order/Balance rules. Muscle Building slots: write "8-12 reps" and "90-120 second rest" on EVERY one of these exercises — use this exact range, do not pick a single specific number. Metcon slots: write "30-60 seconds work" and "20-30 second rest" on EVERY one of these exercises, drawn from the Metcon Exercise Pool below. Exercise count for Apex follows the standard Exercise Count By Level above (the full count splits evenly between Muscle Building and Metcon — e.g. Advanced = 10-11 total means 5-6 Muscle Building + 5-6 Metcon). CRITICAL: This workout is INVALID if it contains zero Metcon exercises OR zero Muscle Building exercises — both types MUST appear roughly equally. Before finalizing, count how many of each type you have planned; if either count is zero, you have failed this workout type entirely and must restart your exercise selection.
 
 THE MARLA: Advanced-level Muscle Building program exclusively for Glutes and Hamstrings. ALWAYS treat as: Level = Advanced, Equipment = Full Gym, Muscle Focus = Legs/Glutes (hamstring-emphasis) — regardless of what the user has selected elsewhere, The Marla overrides level/equipment/muscle selection. Write "8-12 reps" and "90-120 second rest" on EVERY exercise — use this exact range/time on all exercises, do not pick a single specific number. 4 sets (Advanced), 10-11 exercises. Every exercise must target glutes and/or hamstrings specifically — NO quad-dominant exercises (squats targeting quads, leg press, leg extensions), NO cardio/conditioning/metcon exercises of any kind. Focus exclusively on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, curtsy lunges, back extensions, hamstring curls, and TRX hamstring curls/exercises.
 
@@ -1640,7 +1654,7 @@ MUSCLE BUILDING: Write "8-12 reps" and "90-120 second rest" on EVERY exercise �
 STRENGTH GAINING: Write "3-5 reps" and "2-4 minute rest" on EVERY exercise — use this exact range/time on all exercises, do not pick a single specific number like "4 reps" or vary the rest time. Heavier weight, lower reps.
 
 
-APEX: A hybrid of full-body Muscle Building and metabolic conditioning. Alternate between Muscle Building exercises and Metcon exercises for the entire workout: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row. Cover ALL major muscle groups across the Muscle Building slots — Legs, Back, Chest, Shoulders, Biceps, Triceps, Abs/Core — distributed evenly per the Exercise Order/Balance rules. Muscle Building slots: write "8-12 reps" and "90-120 second rest" on EVERY one of these exercises — use this exact range, do not pick a single specific number. Metcon slots: write "30-60 seconds work" and "20-30 second rest" on EVERY one of these exercises, drawn from the Metcon Exercise Pool below. Exercise count for Apex follows the standard Exercise Count By Level above (the full count splits evenly between Muscle Building and Metcon — e.g. Advanced = 10-11 total means 5-6 Muscle Building + 5-6 Metcon).
+APEX: A hybrid of full-body Muscle Building and metabolic conditioning. Alternate between Muscle Building exercises and Metcon exercises for the entire workout: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row. Cover ALL major muscle groups across the Muscle Building slots — Legs, Back, Chest, Shoulders, Biceps, Triceps, Abs/Core — distributed evenly per the Exercise Order/Balance rules. Muscle Building slots: write "8-12 reps" and "90-120 second rest" on EVERY one of these exercises — use this exact range, do not pick a single specific number. Metcon slots: write "30-60 seconds work" and "20-30 second rest" on EVERY one of these exercises, drawn from the Metcon Exercise Pool below. Exercise count for Apex follows the standard Exercise Count By Level above (the full count splits evenly between Muscle Building and Metcon — e.g. Advanced = 10-11 total means 5-6 Muscle Building + 5-6 Metcon). CRITICAL: This workout is INVALID if it contains zero Metcon exercises OR zero Muscle Building exercises — both types MUST appear roughly equally. Before finalizing, count how many of each type you have planned; if either count is zero, you have failed this workout type entirely and must restart your exercise selection.
 
 THE MARLA: Advanced-level Muscle Building program exclusively for Glutes and Hamstrings. ALWAYS treat as: Level = Advanced, Equipment = Full Gym, Muscle Focus = Legs/Glutes (hamstring-emphasis) — regardless of what the user has selected elsewhere, The Marla overrides level/equipment/muscle selection. Write "8-12 reps" and "90-120 second rest" on EVERY exercise — use this exact range/time on all exercises, do not pick a single specific number. 4 sets (Advanced), 10-11 exercises. Every exercise must target glutes and/or hamstrings specifically — NO quad-dominant exercises (squats targeting quads, leg press, leg extensions), NO cardio/conditioning/metcon exercises of any kind. Focus exclusively on hip hinge patterns, glute bridges, hip thrusts, RDLs, cable kickbacks, glute-focused lunges, curtsy lunges, back extensions, hamstring curls, and TRX hamstring curls/exercises.
 
@@ -1706,7 +1720,26 @@ Be specific. Use tables where helpful.`
       let cleanPlan = raw.trim();
       // Safety net: if this is Apex, or Metcon is selected as a muscle group, validate and fix alternation if the AI broke it
       if (currentForm.goal === "Apex" || (currentForm.muscles && currentForm.muscles.includes("Metcon"))) {
-        cleanPlan = fixApexAlternation(cleanPlan);
+        const fixResult = fixApexAlternation(cleanPlan, currentForm.level);
+        if (fixResult && typeof fixResult === "object" && fixResult.__needsRegeneration) {
+          // Reordering alone can't fix this - the AI gave zero of one type, or too few exercises. Regenerate once with explicit correction.
+          if (!formOverride?.__apexRetry) {
+            const reasonText = fixResult.reason === "no_metcon_found"
+              ? "The previous attempt generated ZERO metcon/conditioning exercises — this is a CRITICAL FAILURE for Apex. You MUST include metcon exercises (burpees, mountain climbers, kettlebell swings, box jumps, etc.) alternating with muscle building exercises. Roughly half the workout must be metcon."
+              : fixResult.reason === "no_muscle_building_found"
+              ? "The previous attempt generated ZERO traditional muscle-building exercises — this is a CRITICAL FAILURE for Apex. You MUST include resistance training exercises alternating with metcon exercises. Roughly half the workout must be muscle building."
+              : "The previous attempt only generated " + fixResult.count + " exercises, but the user's level requires at least " + fixResult.expected + " exercises. You MUST generate the full exercise count for this level — do not stop early.";
+            const retryForm = {
+              ...currentForm,
+              __apexRetry: true,
+              notes: (currentForm.notes ? currentForm.notes + ". " : "") + "CRITICAL CORRECTION REQUIRED: " + reasonText
+            };
+            await generatePlan(leadData, existingProfile, retryForm);
+            return;
+          }
+        } else {
+          cleanPlan = fixResult;
+        }
       }
       // Safety net: if Metcon was NOT selected, but conditioning exercises leaked in anyway, strip them out entirely
       const metconNotSelected = !currentForm.muscles || !currentForm.muscles.includes("Metcon");
