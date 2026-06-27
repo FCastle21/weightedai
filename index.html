@@ -905,6 +905,45 @@ function removeNonMetconBlocks(planText) {
   }
 }
 
+// Safety net: strip equipment-requiring metcon exercises (rowing machine, assault bike, battle ropes, kettlebells, sleds, etc.) from Bodyweight Only workouts
+function removeEquipmentMetconForBodyweight(planText) {
+  try {
+    const equipmentKeywords = ["rowing machine", "row sprint", "rowing sprint", "assault bike", "battle rope", "kettlebell", "sled", "ski erg", "farmer", "carry", "thruster", "wall ball", "medicine ball", "tire flip"];
+    const lines = planText.split("\n");
+    const exerciseLineIndices = [];
+    const isViolation = [];
+
+    lines.forEach((line, idx) => {
+      const boldMatch = line.match(/\*\*([^*]+)\*\*/);
+      if (boldMatch) {
+        const exName = boldMatch[1].split("—")[0].split("–")[0].trim().toLowerCase();
+        exerciseLineIndices.push(idx);
+        isViolation.push(equipmentKeywords.some(kw => exName.includes(kw)));
+      }
+    });
+
+    if (!isViolation.some(v => v)) return planText; // nothing to remove
+
+    const blocks = [];
+    for (let i = 0; i < exerciseLineIndices.length; i++) {
+      const startIdx = exerciseLineIndices[i];
+      const endIdx = i + 1 < exerciseLineIndices.length ? exerciseLineIndices[i + 1] : lines.length;
+      blocks.push({ lines: lines.slice(startIdx, endIdx), violation: isViolation[i] });
+    }
+
+    const keptBlocks = blocks.filter(b => !b.violation);
+    const firstBlockStart = exerciseLineIndices[0];
+    const lastBlockEnd = exerciseLineIndices[exerciseLineIndices.length - 1] + blocks[blocks.length - 1].lines.length;
+    const before = lines.slice(0, firstBlockStart);
+    const after = lines.slice(lastBlockEnd);
+    const keptLines = keptBlocks.flatMap(b => b.lines);
+
+    return [...before, ...keptLines, ...after].join("\n");
+  } catch (e) {
+    return planText;
+  }
+}
+
 // Last-resort fallback: programmatically inject metcon exercises if the AI fails twice to include any
 function injectMetconExercises(planText, neededCount) {
   try {
@@ -1598,7 +1637,13 @@ THE MARLA: Advanced-level Muscle Building program exclusively for Glutes and Ham
 
 NO METCON WITHOUT SELECTION — MANDATORY: Conditioning/cardio-style exercises (from the Metcon Exercise Pool below) must ONLY appear if "Metcon" is explicitly selected as a muscle group, OR the Workout Type is Apex or HIIT. If neither applies, do NOT include ANY conditioning/cardio exercises — every exercise must be traditional resistance training. This rule overrides any general variety guidance.
 
-METCON EXERCISE POOL — rotate widely, never default to the same 2-3 exercises, never repeat one exercise twice in the same workout: burpees, mountain climbers, ski erg sprints, jump rope, box jumps, battle ropes (alternating waves, slams), kettlebell swings, sled push, sled pull/drag, rowing machine sprints, assault bike sprints, farmer's carry, suitcase carry, devil press, thrusters, wall balls, high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, medicine ball slams, tire flips, shuttle runs. Check workout history — if an exercise appeared in the last 1-2 sessions, avoid it this time.
+METCON EXERCISE POOL — rotate widely, never default to the same 2-3 exercises, never repeat one exercise twice in the same workout. Check workout history — if an exercise appeared in the last 1-2 sessions, avoid it this time.
+
+BODYWEIGHT-ONLY METCON (use these if equipment is "Bodyweight Only" — NO equipment of any kind): burpees, mountain climbers, jump rope (if available, otherwise mimic without rope), high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, shuttle runs, jumping jacks, box jumps (if a sturdy surface is available).
+
+EQUIPMENT-BASED METCON (use ONLY if the user's equipment selection includes the required equipment — NEVER use these for Bodyweight Only): battle ropes (alternating waves, slams) [requires ropes], kettlebell swings [requires kettlebell], sled push, sled pull/drag [requires sled], rowing machine sprints [requires rower], assault bike sprints [requires bike], ski erg sprints [requires ski erg], farmer's carry, suitcase carry [requires dumbbells/kettlebells], devil press, thrusters, wall balls [requires dumbbells/medicine ball], medicine ball slams [requires medicine ball], tire flips [requires tire].
+
+CRITICAL EQUIPMENT RULE: If equipment is "Bodyweight Only", you may ONLY select from the Bodyweight-Only Metcon list above. Using any Equipment-Based Metcon exercise (rowing machine, assault bike, battle ropes, kettlebells, sleds, etc.) in a Bodyweight Only workout is a hard violation with zero exceptions.
 
 VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
@@ -1683,7 +1728,13 @@ THE MARLA: Advanced-level Muscle Building program exclusively for Glutes and Ham
 
 NO METCON WITHOUT SELECTION — MANDATORY: Conditioning/cardio-style exercises (from the Metcon Exercise Pool below) must ONLY appear if "Metcon" is explicitly selected as a muscle group, OR the Workout Type is Apex or HIIT. If neither applies, do NOT include ANY conditioning/cardio exercises — every exercise must be traditional resistance training. This rule overrides any general variety guidance.
 
-METCON EXERCISE POOL — rotate widely, never default to the same 2-3 exercises, never repeat one exercise twice in the same workout: burpees, mountain climbers, ski erg sprints, jump rope, box jumps, battle ropes (alternating waves, slams), kettlebell swings, sled push, sled pull/drag, rowing machine sprints, assault bike sprints, farmer's carry, suitcase carry, devil press, thrusters, wall balls, high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, medicine ball slams, tire flips, shuttle runs. Check workout history — if an exercise appeared in the last 1-2 sessions, avoid it this time.
+METCON EXERCISE POOL — rotate widely, never default to the same 2-3 exercises, never repeat one exercise twice in the same workout. Check workout history — if an exercise appeared in the last 1-2 sessions, avoid it this time.
+
+BODYWEIGHT-ONLY METCON (use these if equipment is "Bodyweight Only" — NO equipment of any kind): burpees, mountain climbers, jump rope (if available, otherwise mimic without rope), high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, shuttle runs, jumping jacks, box jumps (if a sturdy surface is available).
+
+EQUIPMENT-BASED METCON (use ONLY if the user's equipment selection includes the required equipment — NEVER use these for Bodyweight Only): battle ropes (alternating waves, slams) [requires ropes], kettlebell swings [requires kettlebell], sled push, sled pull/drag [requires sled], rowing machine sprints [requires rower], assault bike sprints [requires bike], ski erg sprints [requires ski erg], farmer's carry, suitcase carry [requires dumbbells/kettlebells], devil press, thrusters, wall balls [requires dumbbells/medicine ball], medicine ball slams [requires medicine ball], tire flips [requires tire].
+
+CRITICAL EQUIPMENT RULE: If equipment is "Bodyweight Only", you may ONLY select from the Bodyweight-Only Metcon list above. Using any Equipment-Based Metcon exercise (rowing machine, assault bike, battle ropes, kettlebells, sleds, etc.) in a Bodyweight Only workout is a hard violation with zero exceptions.
 
 VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
@@ -1791,7 +1842,13 @@ THE MARLA: Advanced-level Muscle Building program exclusively for Glutes and Ham
 
 NO METCON WITHOUT SELECTION — MANDATORY: Conditioning/cardio-style exercises (from the Metcon Exercise Pool below) must ONLY appear if "Metcon" is explicitly selected as a muscle group, OR the Workout Type is Apex or HIIT. If neither applies, do NOT include ANY conditioning/cardio exercises — every exercise must be traditional resistance training. This rule overrides any general variety guidance.
 
-METCON EXERCISE POOL — rotate widely, never default to the same 2-3 exercises, never repeat one exercise twice in the same workout: burpees, mountain climbers, ski erg sprints, jump rope, box jumps, battle ropes (alternating waves, slams), kettlebell swings, sled push, sled pull/drag, rowing machine sprints, assault bike sprints, farmer's carry, suitcase carry, devil press, thrusters, wall balls, high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, medicine ball slams, tire flips, shuttle runs. Check workout history — if an exercise appeared in the last 1-2 sessions, avoid it this time.
+METCON EXERCISE POOL — rotate widely, never default to the same 2-3 exercises, never repeat one exercise twice in the same workout. Check workout history — if an exercise appeared in the last 1-2 sessions, avoid it this time.
+
+BODYWEIGHT-ONLY METCON (use these if equipment is "Bodyweight Only" — NO equipment of any kind): burpees, mountain climbers, jump rope (if available, otherwise mimic without rope), high knees, butt kickers, lateral shuffles, skater jumps, tuck jumps, broad jumps, plank jacks, bear crawls, crab walks, jumping lunges, star jumps, squat jumps, shuttle runs, jumping jacks, box jumps (if a sturdy surface is available).
+
+EQUIPMENT-BASED METCON (use ONLY if the user's equipment selection includes the required equipment — NEVER use these for Bodyweight Only): battle ropes (alternating waves, slams) [requires ropes], kettlebell swings [requires kettlebell], sled push, sled pull/drag [requires sled], rowing machine sprints [requires rower], assault bike sprints [requires bike], ski erg sprints [requires ski erg], farmer's carry, suitcase carry [requires dumbbells/kettlebells], devil press, thrusters, wall balls [requires dumbbells/medicine ball], medicine ball slams [requires medicine ball], tire flips [requires tire].
+
+CRITICAL EQUIPMENT RULE: If equipment is "Bodyweight Only", you may ONLY select from the Bodyweight-Only Metcon list above. Using any Equipment-Based Metcon exercise (rowing machine, assault bike, battle ropes, kettlebells, sleds, etc.) in a Bodyweight Only workout is a hard violation with zero exceptions.
 
 VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
@@ -1887,6 +1944,10 @@ Be specific. Use tables where helpful.`
       // Safety net: if this IS HIIT, strip any non-metcon (traditional strength) exercises that leaked in
       if (currentForm.goal === "HIIT") {
         cleanPlan = removeNonMetconBlocks(cleanPlan);
+      }
+      // Safety net: if equipment is Bodyweight Only, strip any equipment-requiring metcon exercises (rowing machine, assault bike, battle ropes, kettlebells, sleds, etc.)
+      if (currentForm.equipment === "Bodyweight Only") {
+        cleanPlan = removeEquipmentMetconForBodyweight(cleanPlan);
       }
       setIsStreaming(false);
       setPlan(cleanPlan);
