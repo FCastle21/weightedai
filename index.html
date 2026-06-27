@@ -1838,6 +1838,7 @@ Be specific. Use tables where helpful.`
         }
       }
       setIsStreaming(false);
+      console.log("[WeightedAI] FINAL cleanPlan being set to state. Length:", cleanPlan.length, "Bold exercise count:", (cleanPlan.match(/\*\*([^*]+)\*\*/g) || []).length, "All bold names:", JSON.stringify((cleanPlan.match(/\*\*([^*]+)\*\*/g) || []).map(m => m.replace(/\*\*/g, ""))));
       setPlan(cleanPlan);
       setStep("plan");
       setUnlocked(tier === "free");
