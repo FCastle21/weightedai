@@ -863,6 +863,48 @@ function removeUnwantedMetconBlocks(planText) {
   }
 }
 
+// Safety net for HIIT: strip any exercise that is NOT in the metcon pool (the opposite check of removeUnwantedMetconBlocks)
+function removeNonMetconBlocks(planText) {
+  try {
+    const metconKeywords = ["burpee", "mountain climber", "ski erg", "jump rope", "box jump", "battle rope", "kettlebell swing", "sled", "row sprint", "rowing sprint", "rowing machine", "sprint", "carry", "drag", "jump squat", "broad jump", "skater", "plyo", "tuck jump", "high knee", "jumping jack", "shuttle", "assault bike", "devil press", "thruster", "wall ball", "butt kicker", "lateral shuffle", "plank jack", "bear crawl", "crab walk", "jumping lunge", "star jump", "squat jump", "slam", "tire flip", "farmer"];
+    const stretchMobilityPatterns = /stretch|cat-cow|cat cow|leg swing|arm swing|band pull-?apart|child'?s pose|world'?s greatest|inchworm|hip circle|torso (rotation|twist|circle)|shoulder (circle|roll)|knee hug|quad pull|ankle (circle|roll)|wrist (circle|roll)|neck (roll|stretch)|pigeon pose|cobra pose|downward dog|foam roll/i;
+    const lines = planText.split("\n");
+    const exerciseLineIndices = [];
+    const isNonMetcon = [];
+
+    lines.forEach((line, idx) => {
+      const boldMatch = line.match(/\*\*([^*]+)\*\*/);
+      if (boldMatch) {
+        const exName = boldMatch[1].split("—")[0].split("–")[0].trim().toLowerCase();
+        if (stretchMobilityPatterns.test(exName)) return; // skip warm-up/cool-down entirely, don't flag as violation
+        exerciseLineIndices.push(idx);
+        const isMetcon = metconKeywords.some(kw => exName.includes(kw));
+        isNonMetcon.push(!isMetcon);
+      }
+    });
+
+    if (!isNonMetcon.some(v => v)) return planText; // nothing to remove
+
+    const blocks = [];
+    for (let i = 0; i < exerciseLineIndices.length; i++) {
+      const startIdx = exerciseLineIndices[i];
+      const endIdx = i + 1 < exerciseLineIndices.length ? exerciseLineIndices[i + 1] : lines.length;
+      blocks.push({ lines: lines.slice(startIdx, endIdx), violation: isNonMetcon[i] });
+    }
+
+    const keptBlocks = blocks.filter(b => !b.violation);
+    const firstBlockStart = exerciseLineIndices[0];
+    const lastBlockEnd = exerciseLineIndices[exerciseLineIndices.length - 1] + blocks[blocks.length - 1].lines.length;
+    const before = lines.slice(0, firstBlockStart);
+    const after = lines.slice(lastBlockEnd);
+    const keptLines = keptBlocks.flatMap(b => b.lines);
+
+    return [...before, ...keptLines, ...after].join("\n");
+  } catch (e) {
+    return planText;
+  }
+}
+
 // Last-resort fallback: programmatically inject metcon exercises if the AI fails twice to include any
 function injectMetconExercises(planText, neededCount) {
   try {
@@ -1438,6 +1480,10 @@ function WeightedAI() {
       // Auto-set The Marla defaults
       return { ...f, goal: f.goal===val?"":val, level: "Advanced", equipment: "Full Gym", muscles: f.goal===val ? [] : ["Legs / Glutes"] };
     }
+    if (key === "goal" && val === "HIIT" && f.goal !== val) {
+      // Auto-set HIIT to default Full Body muscle selection if nothing else is selected
+      return { ...f, goal: val, muscles: f.muscles.length === 0 ? ["Full Body"] : f.muscles };
+    }
     return {...f,[key]:f[key]===val?"":val};
   });
   const toggleMuscle = (val) => setForm(f => ({...f, muscles: f.muscles.includes(val)?f.muscles.filter(m=>m!==val):[...f.muscles,val]}));
@@ -1543,7 +1589,7 @@ MUSCLE BUILDING: Write "8-12 reps" and "90-120 second rest" on EVERY exercise �
 
 STRENGTH GAINING: Write "3-5 reps" and "2-4 minute rest" on EVERY exercise — use this exact range/time on all exercises, do not pick a single specific number like "4 reps" or vary the rest time. Heavier weight, lower reps.
 
-HIIT (High Intensity Interval Training): ALL exercises are Metcon/conditioning exercises drawn from the Metcon Exercise Pool below — this is the only workout type that is 100% conditioning with NO traditional resistance training exercises. Every exercise uses 40 seconds work / 20 seconds rest intervals — write "40 seconds work" and "20 second rest" on EVERY exercise, exactly this format, no variation. Sets follow the standard Sets By Level rule (3 sets for Beginner/Intermediate, 4 sets for Advanced) — each "set" is one 40s work/20s rest round, repeated per the set count. Exercise count overrides the standard Exercise Count By Level rule: Beginner = 6 exercises, Intermediate = 8 exercises, Advanced = 10 exercises. Exercise Order rule (largest to smallest muscle) does not strictly apply here — prioritize full-body and varied movement patterns instead, but still end with a core-focused metcon exercise (e.g. mountain climbers, plank jacks) as the final exercise.
+HIIT (High Intensity Interval Training): ALL exercises are Metcon/conditioning exercises drawn ONLY from the Metcon Exercise Pool below — this is the only workout type that is 100% conditioning with ZERO traditional resistance training exercises. CRITICAL: Do NOT include dips, push-ups, rows, pull-ups, squats, lunges, or any standard strength/bodyweight resistance exercise, even though they could technically be done at a fast pace — if an exercise is NOT explicitly listed in the Metcon Exercise Pool below, it does not belong in a HIIT workout. Every exercise uses 40 seconds work / 20 seconds rest intervals — write "40 seconds work" and "20 second rest" on EVERY exercise, exactly this format, no variation. Sets follow the standard Sets By Level rule (3 sets for Beginner/Intermediate, 4 sets for Advanced) — each "set" is one 40s work/20s rest round, repeated per the set count. Exercise count overrides the standard Exercise Count By Level rule: Beginner = 6 exercises, Intermediate = 8 exercises, Advanced = 10 exercises. Exercise Order rule (largest to smallest muscle) does not strictly apply here — prioritize full-body and varied movement patterns instead, but still end with a core-focused metcon exercise (e.g. mountain climbers, plank jacks) as the final exercise.
 
 
 APEX: A hybrid of full-body Muscle Building and metabolic conditioning. Alternate between Muscle Building exercises and Metcon exercises for the entire workout: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row. Cover ALL major muscle groups across the Muscle Building slots — Legs, Back, Chest, Shoulders, Biceps, Triceps, Abs/Core — distributed evenly per the Exercise Order/Balance rules. Muscle Building slots: write "8-12 reps" and "90-120 second rest" on EVERY one of these exercises — use this exact range, do not pick a single specific number. Metcon slots: write "30-60 seconds work" and "20-30 second rest" on EVERY one of these exercises, drawn from the Metcon Exercise Pool below. Exercise count for Apex follows the standard Exercise Count By Level above (the full count splits evenly between Muscle Building and Metcon — e.g. Advanced = 10-11 total means 5-6 Muscle Building + 5-6 Metcon). CRITICAL: This workout is INVALID if it contains zero Metcon exercises OR zero Muscle Building exercises — both types MUST appear roughly equally. Before finalizing, count how many of each type you have planned; if either count is zero, you have failed this workout type entirely and must restart your exercise selection.
@@ -1628,7 +1674,7 @@ MUSCLE BUILDING: Write "8-12 reps" and "90-120 second rest" on EVERY exercise �
 
 STRENGTH GAINING: Write "3-5 reps" and "2-4 minute rest" on EVERY exercise — use this exact range/time on all exercises, do not pick a single specific number like "4 reps" or vary the rest time. Heavier weight, lower reps.
 
-HIIT (High Intensity Interval Training): ALL exercises are Metcon/conditioning exercises drawn from the Metcon Exercise Pool below — this is the only workout type that is 100% conditioning with NO traditional resistance training exercises. Every exercise uses 40 seconds work / 20 seconds rest intervals — write "40 seconds work" and "20 second rest" on EVERY exercise, exactly this format, no variation. Sets follow the standard Sets By Level rule (3 sets for Beginner/Intermediate, 4 sets for Advanced) — each "set" is one 40s work/20s rest round, repeated per the set count. Exercise count overrides the standard Exercise Count By Level rule: Beginner = 6 exercises, Intermediate = 8 exercises, Advanced = 10 exercises. Exercise Order rule (largest to smallest muscle) does not strictly apply here — prioritize full-body and varied movement patterns instead, but still end with a core-focused metcon exercise (e.g. mountain climbers, plank jacks) as the final exercise.
+HIIT (High Intensity Interval Training): ALL exercises are Metcon/conditioning exercises drawn ONLY from the Metcon Exercise Pool below — this is the only workout type that is 100% conditioning with ZERO traditional resistance training exercises. CRITICAL: Do NOT include dips, push-ups, rows, pull-ups, squats, lunges, or any standard strength/bodyweight resistance exercise, even though they could technically be done at a fast pace — if an exercise is NOT explicitly listed in the Metcon Exercise Pool below, it does not belong in a HIIT workout. Every exercise uses 40 seconds work / 20 seconds rest intervals — write "40 seconds work" and "20 second rest" on EVERY exercise, exactly this format, no variation. Sets follow the standard Sets By Level rule (3 sets for Beginner/Intermediate, 4 sets for Advanced) — each "set" is one 40s work/20s rest round, repeated per the set count. Exercise count overrides the standard Exercise Count By Level rule: Beginner = 6 exercises, Intermediate = 8 exercises, Advanced = 10 exercises. Exercise Order rule (largest to smallest muscle) does not strictly apply here — prioritize full-body and varied movement patterns instead, but still end with a core-focused metcon exercise (e.g. mountain climbers, plank jacks) as the final exercise.
 
 
 APEX: A hybrid of full-body Muscle Building and metabolic conditioning. Alternate between Muscle Building exercises and Metcon exercises for the entire workout: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row. Cover ALL major muscle groups across the Muscle Building slots — Legs, Back, Chest, Shoulders, Biceps, Triceps, Abs/Core — distributed evenly per the Exercise Order/Balance rules. Muscle Building slots: write "8-12 reps" and "90-120 second rest" on EVERY one of these exercises — use this exact range, do not pick a single specific number. Metcon slots: write "30-60 seconds work" and "20-30 second rest" on EVERY one of these exercises, drawn from the Metcon Exercise Pool below. Exercise count for Apex follows the standard Exercise Count By Level above (the full count splits evenly between Muscle Building and Metcon — e.g. Advanced = 10-11 total means 5-6 Muscle Building + 5-6 Metcon). CRITICAL: This workout is INVALID if it contains zero Metcon exercises OR zero Muscle Building exercises — both types MUST appear roughly equally. Before finalizing, count how many of each type you have planned; if either count is zero, you have failed this workout type entirely and must restart your exercise selection.
@@ -1736,7 +1782,7 @@ MUSCLE BUILDING: Write "8-12 reps" and "90-120 second rest" on EVERY exercise �
 
 STRENGTH GAINING: Write "3-5 reps" and "2-4 minute rest" on EVERY exercise — use this exact range/time on all exercises, do not pick a single specific number like "4 reps" or vary the rest time. Heavier weight, lower reps.
 
-HIIT (High Intensity Interval Training): ALL exercises are Metcon/conditioning exercises drawn from the Metcon Exercise Pool below — this is the only workout type that is 100% conditioning with NO traditional resistance training exercises. Every exercise uses 40 seconds work / 20 seconds rest intervals — write "40 seconds work" and "20 second rest" on EVERY exercise, exactly this format, no variation. Sets follow the standard Sets By Level rule (3 sets for Beginner/Intermediate, 4 sets for Advanced) — each "set" is one 40s work/20s rest round, repeated per the set count. Exercise count overrides the standard Exercise Count By Level rule: Beginner = 6 exercises, Intermediate = 8 exercises, Advanced = 10 exercises. Exercise Order rule (largest to smallest muscle) does not strictly apply here — prioritize full-body and varied movement patterns instead, but still end with a core-focused metcon exercise (e.g. mountain climbers, plank jacks) as the final exercise.
+HIIT (High Intensity Interval Training): ALL exercises are Metcon/conditioning exercises drawn ONLY from the Metcon Exercise Pool below — this is the only workout type that is 100% conditioning with ZERO traditional resistance training exercises. CRITICAL: Do NOT include dips, push-ups, rows, pull-ups, squats, lunges, or any standard strength/bodyweight resistance exercise, even though they could technically be done at a fast pace — if an exercise is NOT explicitly listed in the Metcon Exercise Pool below, it does not belong in a HIIT workout. Every exercise uses 40 seconds work / 20 seconds rest intervals — write "40 seconds work" and "20 second rest" on EVERY exercise, exactly this format, no variation. Sets follow the standard Sets By Level rule (3 sets for Beginner/Intermediate, 4 sets for Advanced) — each "set" is one 40s work/20s rest round, repeated per the set count. Exercise count overrides the standard Exercise Count By Level rule: Beginner = 6 exercises, Intermediate = 8 exercises, Advanced = 10 exercises. Exercise Order rule (largest to smallest muscle) does not strictly apply here — prioritize full-body and varied movement patterns instead, but still end with a core-focused metcon exercise (e.g. mountain climbers, plank jacks) as the final exercise.
 
 
 APEX: A hybrid of full-body Muscle Building and metabolic conditioning. Alternate between Muscle Building exercises and Metcon exercises for the entire workout: Muscle Building, Metcon, Muscle Building, Metcon... Never two of the same type in a row. Cover ALL major muscle groups across the Muscle Building slots — Legs, Back, Chest, Shoulders, Biceps, Triceps, Abs/Core — distributed evenly per the Exercise Order/Balance rules. Muscle Building slots: write "8-12 reps" and "90-120 second rest" on EVERY one of these exercises — use this exact range, do not pick a single specific number. Metcon slots: write "30-60 seconds work" and "20-30 second rest" on EVERY one of these exercises, drawn from the Metcon Exercise Pool below. Exercise count for Apex follows the standard Exercise Count By Level above (the full count splits evenly between Muscle Building and Metcon — e.g. Advanced = 10-11 total means 5-6 Muscle Building + 5-6 Metcon). CRITICAL: This workout is INVALID if it contains zero Metcon exercises OR zero Muscle Building exercises — both types MUST appear roughly equally. Before finalizing, count how many of each type you have planned; if either count is zero, you have failed this workout type entirely and must restart your exercise selection.
@@ -1837,6 +1883,10 @@ Be specific. Use tables where helpful.`
         if (violations.length > 0) {
           cleanPlan = removeUnwantedMetconBlocks(cleanPlan);
         }
+      }
+      // Safety net: if this IS HIIT, strip any non-metcon (traditional strength) exercises that leaked in
+      if (currentForm.goal === "HIIT") {
+        cleanPlan = removeNonMetconBlocks(cleanPlan);
       }
       setIsStreaming(false);
       setPlan(cleanPlan);
