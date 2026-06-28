@@ -972,11 +972,13 @@ function ensureHiitWarmup(planText) {
     for (let i = warmupStart + 1; i < lines.length; i++) {
       if (/##?#?\s*(Main Workout|Workout Plans?)/i.test(lines[i])) { warmupEnd = i; break; }
     }
+    console.log("[HIIT-DEBUG] After Main Workout search. warmupEnd:", warmupEnd, "line at warmupEnd:", warmupEnd >= 0 ? JSON.stringify(lines[warmupEnd]) : "N/A");
     // Fallback: if no Main Workout header found, look for Cool-Down header instead
     if (warmupEnd === -1) {
       for (let i = warmupStart + 1; i < lines.length; i++) {
         if (/##?#?\s*(Cool-?Down|Cooldown)/i.test(lines[i])) { warmupEnd = i; break; }
       }
+      console.log("[HIIT-DEBUG] After Cool-Down fallback search. warmupEnd:", warmupEnd, "line at warmupEnd:", warmupEnd >= 0 ? JSON.stringify(lines[warmupEnd]) : "N/A");
     }
     // Final fallback: no header markers found at all - the AI likely merged warm-up and main workout
     // with no separator. Find the 3rd bolded exercise line and insert a synthetic boundary right after it,
@@ -1000,13 +1002,25 @@ function ensureHiitWarmup(planText) {
       console.log("[HIIT-DEBUG] Synthetic header inserted. warmupEnd:", warmupEnd, "insertedSyntheticHeader:", insertedSyntheticHeader);
     }
 
-    // Safety guard: if the detected "warm-up section" is suspiciously large (likely means we failed
-    // to find the real Main Workout boundary and would wipe out real content), bail out entirely.
-    // This guard does NOT apply when we deliberately built a synthetic boundary - that path is already safe by construction.
-    console.log("[HIIT-DEBUG] About to check size guard. warmupEnd-warmupStart:", warmupEnd-warmupStart, "insertedSyntheticHeader:", insertedSyntheticHeader);
-    if (!insertedSyntheticHeader && (warmupEnd - warmupStart > 15)) {
-      console.log("[HIIT-DEBUG] BAILING due to size guard");
-      return planText;
+    // Safety guard: if the detected "warm-up section" contains far too many exercises for a 3-move warm-up,
+    // it likely means real Main Workout content got swept in before we found the right boundary.
+    // Rather than bailing, treat this the same as the "no header found" case - find the 3rd bolded exercise
+    // and use that as our synthetic split point instead of trusting the (wrong) detected header position.
+    const preGuardWarmupLines = lines.slice(warmupStart, warmupEnd);
+    const preGuardBoldCount = preGuardWarmupLines.filter(l => l.match(/\*\*([^*]+)\*\*/)).length;
+    if (!insertedSyntheticHeader && preGuardBoldCount > 4) {
+      const boldLineIndices = [];
+      for (let i = warmupStart + 1; i < warmupEnd; i++) {
+        if (lines[i].match(/\*\*([^*]+)\*\*/)) boldLineIndices.push(i);
+        if (boldLineIndices.length === 3) break;
+      }
+      if (boldLineIndices.length === 3) {
+        const thirdBoldIdx = boldLineIndices[2];
+        let splitPoint = thirdBoldIdx + 1;
+        while (splitPoint < lines.length && lines[splitPoint].trim() !== "") splitPoint++;
+        warmupEnd = splitPoint;
+        insertedSyntheticHeader = true;
+      }
     }
 
     // Check if warm-up section contains metcon-style exercises (the bug) or is empty
