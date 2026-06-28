@@ -966,10 +966,27 @@ function ensureHiitWarmup(planText) {
       if (/##?#?\s*Warm-?Up/i.test(lines[i])) { warmupStart = i; break; }
     }
     if (warmupStart === -1) return planText; // no warm-up header found at all, leave as-is (rare edge case)
+
+    // Try to find Main Workout header first
     for (let i = warmupStart + 1; i < lines.length; i++) {
       if (/##?#?\s*(Main Workout|Workout Plans?)/i.test(lines[i])) { warmupEnd = i; break; }
     }
-    if (warmupEnd === -1) warmupEnd = lines.length;
+    // Fallback: if no Main Workout header found, look for Cool-Down header instead (warmup section would end right before whatever comes after it, but this means structure is unusual - safer to bail)
+    if (warmupEnd === -1) {
+      for (let i = warmupStart + 1; i < lines.length; i++) {
+        if (/##?#?\s*(Cool-?Down|Cooldown)/i.test(lines[i])) { warmupEnd = i; break; }
+      }
+    }
+    // If still not found, bail out entirely rather than guessing - too risky to assume end of document
+    if (warmupEnd === -1) {
+      return planText;
+    }
+
+    // Safety guard: if the detected "warm-up section" is suspiciously large (likely means we failed
+    // to find the real Main Workout boundary and would wipe out real content), bail out entirely.
+    if (warmupEnd - warmupStart > 15) {
+      return planText;
+    }
 
     // Check if warm-up section contains metcon-style exercises (the bug) or is empty
     const warmupLines = lines.slice(warmupStart, warmupEnd);
