@@ -662,6 +662,12 @@ const styles = `
   .plan-content h1 { font-size: 42px; color: var(--acid); }
   .plan-content h2 { font-size: 28px; border-bottom: 1px solid #1e1e1e; padding-bottom: 10px; }
   .plan-content h3 { font-size: 20px; color: var(--acid); border-top: 1px solid #1e1e1e; padding-top: 24px; }
+  .collapsible-section { margin: 16px 0; border: 1px solid #1c1c1c; border-radius: 12px; overflow: hidden; }
+  .collapsible-header { width: 100%; background: #101010; border: none; color: var(--white); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; padding: 16px 18px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.15s; text-align: left; }
+  .collapsible-header:hover { background: #161616; }
+  .collapsible-chevron { color: var(--acid); font-size: 18px; transition: transform 0.2s ease; display: inline-block; }
+  .collapsible-body { padding: 4px 18px 18px; }
+  .collapsible-body p, .collapsible-body li { color: #bbb; }
   .plan-content p { margin-bottom: 14px; }
   .plan-content ul, .plan-content ol { padding-left: 24px; margin-bottom: 16px; }
   .plan-content li { margin-bottom: 8px; color: var(--white); }
@@ -1291,6 +1297,41 @@ function fixApexAlternation(planText, level) {
   }
 }
 
+// Splits the full plan text into sections by ## headers. Returns an array of
+// { title, content, alwaysOpen } objects. The main workout section (and the
+// top-level # title) stays always visible; secondary sections (Overview,
+// Nutrition Strategy, Recovery Protocol, Progression, Success Metrics) become
+// collapsible.
+function splitPlanIntoSections(text) {
+  if (!text) return [];
+  const lines = text.split("\n");
+  const sections = [];
+  let current = null;
+
+  const collapsibleTitles = /^(overview|nutrition strategy|recovery protocol|4-week progression|success metrics|how to use this plan|end of 30 days|overview & goals)/i;
+
+  lines.forEach(line => {
+    const h1Match = line.match(/^# (.+)$/);
+    const h2Match = line.match(/^## (.+)$/);
+    if (h1Match) {
+      // Top-level title - always shown, not collapsible, rendered separately
+      if (current) sections.push(current);
+      current = { title: null, content: [line], alwaysOpen: true, isTitle: true };
+    } else if (h2Match) {
+      if (current) sections.push(current);
+      const title = h2Match[1].trim();
+      const isCollapsible = collapsibleTitles.test(title);
+      current = { title, content: [], alwaysOpen: !isCollapsible };
+    } else {
+      if (!current) current = { title: null, content: [], alwaysOpen: true };
+      current.content.push(line);
+    }
+  });
+  if (current) sections.push(current);
+
+  return sections.map(s => ({ ...s, contentText: s.content.join("\n") }));
+}
+
 function parseMarkdown(text) {
   if (!text) return "";
   // Remove standalone ** and --- artifacts
@@ -1310,6 +1351,42 @@ function parseMarkdown(text) {
     .replace(/<p><\/p>/g, '')
     .replace(/\n{2,}/g, '\n');
   return html;
+}
+
+// Renders a plan with collapsible secondary sections (Overview, Nutrition Strategy,
+// Recovery Protocol, Progression, Success Metrics). The main workout content and
+// title always render expanded; everything else starts collapsed and toggles on click.
+function PlanRenderer({ plan, isStreaming, expandedSections, setExpandedSections, onExerciseClick }) {
+  const sections = React.useMemo(() => splitPlanIntoSections(plan), [plan]);
+
+  return (
+    <div className={`plan-content${isStreaming?" streaming-cursor":""}`} style={{cursor:'default'}}>
+      {sections.map((section, i) => {
+        if (section.isTitle || !section.title) {
+          return <div key={i} dangerouslySetInnerHTML={{__html: parseMarkdown(section.contentText)}} onClick={onExerciseClick} />;
+        }
+        if (section.alwaysOpen) {
+          return <div key={i} dangerouslySetInnerHTML={{__html: parseMarkdown("## " + section.title + "\n" + section.contentText)}} onClick={onExerciseClick} />;
+        }
+        // Collapsible section
+        const isOpen = !!expandedSections[section.title];
+        return (
+          <div key={i} className="collapsible-section">
+            <button
+              className="collapsible-header"
+              onClick={() => setExpandedSections(prev => ({ ...prev, [section.title]: !prev[section.title] }))}
+            >
+              <span>{section.title}</span>
+              <span className="collapsible-chevron" style={{transform: isOpen ? "rotate(90deg)" : "rotate(0deg)"}}>›</span>
+            </button>
+            {isOpen && (
+              <div className="collapsible-body" dangerouslySetInnerHTML={{__html: parseMarkdown(section.contentText)}} onClick={onExerciseClick} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 
@@ -1440,6 +1517,7 @@ function WeightedAI() {
   const [editingProfile, setEditingProfile] = useState(false);
   const [blocked, setBlocked]   = useState(false); // free tier weekly limit hit
   const [plan, setPlan]         = useState(null);
+  const [expandedSections, setExpandedSections] = useState({});
   const [error, setError]       = useState(null);
   const [unlocked, setUnlocked] = useState(false);
   const [musicVibe, setMusicVibe] = useState("");
@@ -2839,18 +2917,18 @@ Be specific. Use tables where helpful.`
                     )}
       
                     <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }}>START WORKOUT MODE</button>
-                    <div 
-  className={`plan-content${isStreaming?" streaming-cursor":""}`} 
-  dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}}
-  onClick={e => {
+                    <PlanRenderer
+  plan={plan}
+  isStreaming={isStreaming}
+  expandedSections={expandedSections}
+  setExpandedSections={setExpandedSections}
+  onExerciseClick={e => {
     if (e.target.tagName === 'STRONG') {
       const raw = e.target.textContent.split('—')[0].split('–')[0].trim();
-      // Strip leading number like "4. " or "4) "
       const exName = raw.replace(/^\d+[\.\)\s]+/, '').trim();
       if (exName.length > 3 && exName.length < 60) setVideoModal({ name: exName, query: exName + ' exercise tutorial how to' });
     }
   }}
-  style={{cursor:'default'}}
 />
                     {/* REGENERATE */}
                     {!isStreaming && (tier !== "individual" || regenCount < 1) && (
@@ -2996,18 +3074,18 @@ Be specific. Use tables where helpful.`
                       <div className="plan-preview-inner">
                         
                     <button className="start-workout-btn" onClick={() => { setWorkoutMode(true); window.__requestWakeLock && window.__requestWakeLock(); }}>START WORKOUT MODE</button>
-                    <div 
-  className={`plan-content${isStreaming?" streaming-cursor":""}`} 
-  dangerouslySetInnerHTML={{__html:parseMarkdown(plan)}}
-  onClick={e => {
+                    <PlanRenderer
+  plan={plan}
+  isStreaming={isStreaming}
+  expandedSections={expandedSections}
+  setExpandedSections={setExpandedSections}
+  onExerciseClick={e => {
     if (e.target.tagName === 'STRONG') {
       const raw = e.target.textContent.split('—')[0].split('–')[0].trim();
-      // Strip leading number like "4. " or "4) "
       const exName = raw.replace(/^\d+[\.\)\s]+/, '').trim();
       if (exName.length > 3 && exName.length < 60) setVideoModal({ name: exName, query: exName + ' exercise tutorial how to' });
     }
   }}
-  style={{cursor:'default'}}
 />
                       </div>
                       <div className="plan-preview-fade" />
