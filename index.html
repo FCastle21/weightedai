@@ -2721,20 +2721,20 @@ Be specific. Use tables where helpful.`
               </div>
               {tier==="unlimited" && (
                 <div className="field full">
-                  <label>Days Per Week</label>
-                  <div className="toggle-group">
-                    {DAYS.map(d=><button key={d} className={`toggle ${form.days===d?"active":""}`} onClick={()=>set("days",d)}>{d} Days</button>)}
-                  </div>
-                </div>
-              )}
-              {tier==="unlimited" && (
-                <div className="field full">
                   <label>Plan Type</label>
                   <div className="toggle-group">
                     <button className={`toggle ${!thirtyDayPlan?"active":""}`} onClick={()=>setThirtyDayPlan(false)}>Standard Program</button>
                     <button className={`toggle ${thirtyDayPlan?"active":""}`} onClick={()=>setThirtyDayPlan(true)}>30-Day Plan 🗓</button>
                   </div>
                   {thirtyDayPlan && <p style={{fontSize:13,color:"#666",marginTop:8,lineHeight:1.5}}>A complete day-by-day 30-day program built around your goals and schedule.</p>}
+                </div>
+              )}
+              {tier==="unlimited" && thirtyDayPlan && (
+                <div className="field full">
+                  <label>Days Per Week</label>
+                  <div className="toggle-group">
+                    {DAYS.map(d=><button key={d} className={`toggle ${form.days===d?"active":""}`} onClick={()=>set("days",d)}>{d} Days</button>)}
+                  </div>
                 </div>
               )}
               <div className="field full">
