@@ -1513,11 +1513,8 @@ function WeightedAI() {
         btn.style.border = "1px solid #5d8a7a";
         btn.style.color = "#5d8a7a";
         btn.onclick = () => {
-          if (confirm("Sign out of WeightedAI?")) {
-            localStorage.removeItem('weightedai_email');
-            localStorage.removeItem('weightedai_active_workout');
-            window.location.reload();
-          }
+          const appEl = document.getElementById("app");
+          if (appEl) appEl.scrollIntoView({ behavior: "smooth" });
         };
       }
     };
@@ -2643,6 +2640,12 @@ Be specific. Use tables where helpful.`
                           alert("Something went wrong. Please try again.");
                         }
                       }} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#555",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="#ff4444";e.currentTarget.style.color="#ff4444"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#555"}}>Delete Account</button>
+                      <button onClick={() => {
+                        if (!window.confirm("Sign out of WeightedAI?")) return;
+                        localStorage.removeItem('weightedai_email');
+                        localStorage.removeItem('weightedai_active_workout');
+                        window.location.reload();
+                      }} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#666",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#666"}}>Sign Out</button>
                     </div>
                   </div>
                 </div>
@@ -2729,9 +2732,14 @@ Be specific. Use tables where helpful.`
         {step==="plan" && (
           <section className="form-section">
             {lead && !blocked && (
-              <div className="email-confirmed">
-                <span>✓</span>
-                <span>Generated for <strong>{lead.name}</strong> · {lead.email}</span>
+              <div className="email-confirmed" style={{justifyContent:"space-between"}}>
+                <div style={{display:"flex",alignItems:"center",gap:12}}>
+                  <span>✓</span>
+                  <span>Generated for <strong>{lead.name}</strong> · {lead.email}</span>
+                </div>
+                {(tier === "unlimited" || tier === "annual") && (
+                  <span onClick={() => { setStep("form"); setTimeout(()=>{ const el=document.getElementById('form-top'); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:'smooth'}); }}, 50); }} style={{color:"var(--acid)",fontSize:12,letterSpacing:1,cursor:"pointer",textDecoration:"underline",whiteSpace:"nowrap"}}>Manage Account</span>
+                )}
               </div>
             )}
 
