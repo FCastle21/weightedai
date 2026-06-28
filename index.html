@@ -954,7 +954,60 @@ function removeEquipmentMetconForBodyweight(planText) {
   }
 }
 
-// Last-resort fallback: programmatically inject metcon exercises if the AI fails twice to include any
+// Safety net: ensure HIIT workouts have a proper Warm-Up section without timed/metcon exercises bleeding in
+function ensureHiitWarmup(planText) {
+  try {
+    const metconKeywords = ["burpee", "mountain climber", "ski erg", "jump rope", "box jump", "battle rope", "kettlebell swing", "sled", "sprint", "carry", "drag", "jump squat", "broad jump", "skater", "plyo", "tuck jump", "high knee", "jumping jack", "shuttle", "assault bike", "devil press", "thruster", "wall ball", "butt kicker", "lateral shuffle", "plank jack", "bear crawl", "crab walk", "jumping lunge", "star jump", "squat jump", "slam", "tire flip", "farmer"];
+    const lines = planText.split("\n");
+
+    // Find Warm-Up section boundaries
+    let warmupStart = -1, warmupEnd = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (/##?#?\s*Warm-?Up/i.test(lines[i])) { warmupStart = i; break; }
+    }
+    if (warmupStart === -1) return planText; // no warm-up header found at all, leave as-is (rare edge case)
+    for (let i = warmupStart + 1; i < lines.length; i++) {
+      if (/##?#?\s*(Main Workout|Workout Plans?)/i.test(lines[i])) { warmupEnd = i; break; }
+    }
+    if (warmupEnd === -1) warmupEnd = lines.length;
+
+    // Check if warm-up section contains metcon-style exercises (the bug) or is empty
+    const warmupLines = lines.slice(warmupStart, warmupEnd);
+    const warmupBoldMatches = warmupLines.filter(l => l.match(/\*\*([^*]+)\*\*/));
+    const hasMetconInWarmup = warmupBoldMatches.some(l => {
+      const match = l.match(/\*\*([^*]+)\*\*/);
+      const name = match[1].split("—")[0].split("–")[0].trim().toLowerCase();
+      return metconKeywords.some(kw => name.includes(kw));
+    });
+    const warmupIsEmpty = warmupLines.filter(l => l.trim().length > 0 && !/##?#?\s*Warm-?Up/i.test(l)).length === 0;
+
+    if (!hasMetconInWarmup && !warmupIsEmpty) return planText; // warm-up looks fine, leave as-is
+
+    // Replace the warm-up section with standard, safe warm-up moves
+    const standardWarmup = [
+      "**Arm Circles** — 30 seconds each direction",
+      "Loosens shoulders and upper body before conditioning work.",
+      "",
+      "**Leg Swings** — 10 reps each leg",
+      "Opens up the hips and warms the legs for explosive movement.",
+      "",
+      "**Inchworm Walk** — 8 reps",
+      "Full-body dynamic stretch that primes the posterior chain and shoulders.",
+      ""
+    ];
+    const warmupHeaderLine = lines[warmupStart];
+    const newWarmupBlock = [warmupHeaderLine, ...standardWarmup];
+
+    const before = lines.slice(0, warmupStart);
+    const after = lines.slice(warmupEnd);
+
+    return [...before, ...newWarmupBlock, ...after].join("\n");
+  } catch (e) {
+    return planText;
+  }
+}
+
+
 function injectMetconExercises(planText, neededCount) {
   try {
     const metconPool = [
@@ -1954,6 +2007,7 @@ Be specific. Use tables where helpful.`
       // Safety net: if this IS HIIT, strip any non-metcon (traditional strength) exercises that leaked in
       if (currentForm.goal === "HIIT") {
         cleanPlan = removeNonMetconBlocks(cleanPlan);
+        cleanPlan = ensureHiitWarmup(cleanPlan);
       }
       // Safety net: if equipment is Bodyweight Only, strip any equipment-requiring metcon exercises (rowing machine, assault bike, battle ropes, kettlebells, sleds, etc.)
       if (currentForm.equipment === "Bodyweight Only") {
@@ -2023,7 +2077,12 @@ Be specific. Use tables where helpful.`
       setForm(BLANK_FORM);
       setProfileLoaded(false);
     }
-    window.scrollTo({top:0,behavior:"smooth"});
+    const appEl = document.getElementById("app");
+    if (appEl) {
+      appEl.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.scrollTo({top:0,behavior:"smooth"});
+    }
   };
 
   const handleWaiverAccept = async () => {
