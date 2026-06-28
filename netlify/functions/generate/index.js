@@ -143,6 +143,55 @@ exports.handler = async function(event, context) {
       }) };
     }
 
+    if (action === "sendWelcomeEmail") {
+      if (!email) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "No email provided" }) };
+      }
+      const name = parsed.name || "there";
+
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; background: #0a0a0a; color: #f2f0eb;">
+          <div style="font-size: 22px; font-weight: bold; margin-bottom: 24px;">
+            WEIGHT<span style="color: #5d8a7a;">ED[AI]</span>
+          </div>
+          <h1 style="font-size: 24px; color: #f2f0eb; margin-bottom: 16px;">Welcome, ${name}!</h1>
+          <p style="font-size: 15px; line-height: 1.6; color: #ccc;">
+            Thanks for joining WeightedAI. Your account is ready — head back to the app to generate your first workout, built from real coaching logic, not generic AI guesswork.
+          </p>
+          <p style="font-size: 15px; line-height: 1.6; color: #ccc; margin-top: 20px;">
+            If you have any questions, just reply to this email.
+          </p>
+          <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #222; font-size: 12px; color: #666;">
+            WeightedAI &middot; weightedai.net
+          </div>
+        </div>
+      `;
+
+      const postData = JSON.stringify({
+        from: "WeightedAI <hello@weightedai.net>",
+        to: [email],
+        subject: "Welcome to WeightedAI",
+        html: emailHtml
+      });
+
+      try {
+        const res = await httpsRequest({
+          hostname: "api.resend.com",
+          path: "/emails",
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.RESEND_API_KEY}`,
+            "Content-Length": Buffer.byteLength(postData)
+          }
+        }, postData);
+        return { statusCode: 200, headers, body: JSON.stringify({ ok: true, resendStatus: res.status }) };
+      } catch (emailErr) {
+        console.error("Welcome email failed:", emailErr);
+        return { statusCode: 200, headers, body: JSON.stringify({ ok: false, error: "Email send failed but not blocking signup" }) };
+      }
+    }
+
     if (action === "loadProfile") {
       const res = await supabase("GET", `profiles?email=eq.${encodeURIComponent(email)}&select=*`);
       const data = JSON.parse(res.body);
