@@ -1063,6 +1063,65 @@ function ensureHiitWarmup(planText) {
   }
 }
 
+// Safety net: pad HIIT workouts up to the correct exercise count by level if the AI generated too few
+function padHiitExerciseCount(planText, level) {
+  try {
+    const minCounts = { "Beginner": 6, "Intermediate": 8, "Advanced": 10 };
+    const setsCounts = { "Beginner": 3, "Intermediate": 3, "Advanced": 4 };
+    const targetCount = minCounts[level] || 6;
+    const setsCount = setsCounts[level] || 3;
+    const additionalPool = [
+      { name: "Tuck Jumps", desc: "Explosive plyometric movement that builds power while keeping heart rate elevated." },
+      { name: "Star Jumps", desc: "Full-body explosive jump that maximizes calorie burn and coordination." },
+      { name: "Lateral Shuffles", desc: "Dynamic lateral movement that conditions the legs and improves agility." },
+      { name: "Butt Kickers", desc: "High-intensity lower-body conditioning that keeps heart rate elevated." },
+      { name: "Skater Jumps", desc: "Lateral plyometric movement that builds hip stability and power." },
+      { name: "Squat Jumps", desc: "Explosive lower-body movement targeting glutes and quads at high intensity." },
+      { name: "Shuttle Runs", desc: "Sprint-based conditioning drill that builds speed and cardiovascular capacity." },
+      { name: "Broad Jumps", desc: "Explosive horizontal jump that builds full-body power and coordination." }
+    ];
+
+    const lines = planText.split("\n");
+    let mainStart = -1, mainEnd = lines.length;
+    for (let i = 0; i < lines.length; i++) {
+      if (/##?#?\s*(Main Workout|Workout Plans?)/i.test(lines[i])) { mainStart = i; break; }
+    }
+    if (mainStart === -1) return planText; // can't safely locate Main Workout, leave as-is
+    for (let i = mainStart + 1; i < lines.length; i++) {
+      if (/##?#?\s*(Cool-?Down|Cooldown|Recovery)/i.test(lines[i])) { mainEnd = i; break; }
+    }
+
+    const existingNames = new Set();
+    let exerciseCount = 0;
+    for (let i = mainStart; i < mainEnd; i++) {
+      const m = lines[i].match(/\*\*([^*]+)\*\*/);
+      if (m) {
+        exerciseCount++;
+        existingNames.add(m[1].split("—")[0].split("–")[0].trim().toLowerCase());
+      }
+    }
+
+    if (exerciseCount >= targetCount) return planText; // already enough, no padding needed
+
+    const needed = targetCount - exerciseCount;
+    const toAdd = additionalPool.filter(ex => !existingNames.has(ex.name.toLowerCase())).slice(0, needed);
+    if (toAdd.length === 0) return planText;
+
+    const newLines = [];
+    toAdd.forEach(ex => {
+      newLines.push(`**${ex.name}** — ${setsCount} sets x 40 seconds work, 20 second rest`);
+      newLines.push(ex.desc);
+      newLines.push("");
+    });
+
+    const before = lines.slice(0, mainEnd);
+    const after = lines.slice(mainEnd);
+    return [...before, ...newLines, ...after].join("\n");
+  } catch (e) {
+    return planText;
+  }
+}
+
 
 function injectMetconExercises(planText, neededCount) {
   try {
@@ -2064,6 +2123,7 @@ Be specific. Use tables where helpful.`
       if (currentForm.goal === "HIIT") {
         cleanPlan = removeNonMetconBlocks(cleanPlan);
         cleanPlan = ensureHiitWarmup(cleanPlan);
+        cleanPlan = padHiitExerciseCount(cleanPlan, currentForm.level);
       }
       // Safety net: if equipment is Bodyweight Only, strip any equipment-requiring metcon exercises (rowing machine, assault bike, battle ropes, kettlebells, sleds, etc.)
       if (currentForm.equipment === "Bodyweight Only") {
