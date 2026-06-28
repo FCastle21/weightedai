@@ -777,12 +777,13 @@ const styles = `
 `;
 
 const GOALS     = ["Muscle Building", "Strength Gaining", "HIIT", "The Marla", "Apex"];
+const THIRTY_DAY_GOALS = ["Fat Loss", "Muscle Building", "Strength Gaining", "General Fitness"];
 const EQUIPMENT = ["Full Gym", "Home Gym", "Dumbbells Only", "Bodyweight Only", "TRX", "Kettlebells"];
 const LEVELS    = ["Beginner", "Intermediate", "Advanced"];
 const DAYS      = ["3", "4", "5", "6"];
 const MUSCLES   = ["Full Body", "Back", "Biceps", "Chest", "Core / Abs", "Legs / Glutes", "Metcon", "Shoulders", "Triceps"];
 
-const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"" };
+const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"", thirtyDayGoal:"" };
 
 
 // ── Supabase helpers via Netlify Function ──────────────────────────────────────
@@ -820,6 +821,7 @@ async function saveProfile(email, data) {
       days: data.days,
       injuries: data.injuries,
       notes: data.notes,
+      thirty_day_goal: data.thirtyDayGoal,
       free_week_used: data.freeWeekUsed || null
     };
     await dbRequest("saveProfile", { email, profileData });
@@ -1627,7 +1629,8 @@ function WeightedAI() {
         equipment: profile.equipment || "",
         days: profile.days || "4",
         injuries: profile.injuries || "",
-        notes: profile.notes || ""
+        notes: profile.notes || "",
+        thirtyDayGoal: profile.thirty_day_goal || ""
       };
       setForm(f => ({ ...f, ...mappedProfile, muscles: [] }));
       // Only update shareWorkout from profile if explicitly set in Supabase
@@ -1847,8 +1850,8 @@ function WeightedAI() {
 
     // PAID TIERS: if returning user with saved profile, auto-fill (muscles reset each session)
     if ((tier === "unlimited" || tier === "annual" || tier === "individual") && existingProfile && !editingProfile) {
-      const { muscles, ...saved } = existingProfile;
-      setForm(f => ({ ...f, ...saved, muscles: f.muscles })); // keep muscles user chose
+      const { muscles, thirty_day_goal, ...saved } = existingProfile;
+      setForm(f => ({ ...f, ...saved, thirtyDayGoal: thirty_day_goal || "", muscles: f.muscles })); // keep muscles user chose
       setProfileLoaded(true);
       setHasActiveSubscription(!!existingProfile.stripe_subscription_id);
     }
@@ -2077,6 +2080,7 @@ PROFILE:
 - Weight: ${currentForm.weight||"Not specified"}
 - Height: ${currentForm.height||"Not specified"}
 - Goal: ${currentForm.goal}
+- 30-Day Goal: ${currentForm.thirtyDayGoal || "Not specified"}${currentForm.thirtyDayGoal ? " — IMPORTANT: base the Nutrition Strategy section on THIS 30-Day Goal, not on the daily Workout Type above. The Workout Type changes session to session, but nutrition should stay consistent with the user's actual longer-term objective." : ""}
 - Level: ${currentForm.goal === "The Marla" ? "Advanced" : currentForm.level}
 - Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
 - Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
@@ -2133,7 +2137,7 @@ VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different sta
 
 VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group — these are last resorts only. Rotate movement patterns. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
-NUTRITION GUIDELINES — APPLY BASED ON THE USER'S GOAL. Use their weight (convert to kg if needed: lbs / 2.2 = kg) to calculate exact numbers, not vague ranges. Show your math briefly (e.g. "180 lb = ~82 kg").
+NUTRITION GUIDELINES — APPLY BASED ON THE USER'S 30-DAY GOAL IF SPECIFIED ABOVE, OTHERWISE FALL BACK TO THE WORKOUT TYPE/GOAL. Use their weight (convert to kg if needed: lbs / 2.2 = kg) to calculate exact numbers, not vague ranges. Show your math briefly (e.g. "180 lb = ~82 kg").
 
 IF GOAL IS MUSCLE BUILDING:
 Building muscle increases resting metabolic rate, making it an effective long-term strategy for fat loss as well as strength and aesthetics. Offer the user TWO calorie approaches depending on their stated priority (mention both options if their goal/notes are unclear):
@@ -2776,6 +2780,21 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                   <span>Workout Type</span>
                   <span onClick={()=>setShowGoalDescriptions(true)} style={{color:"#666",textTransform:"none",letterSpacing:0,fontSize:11,cursor:"pointer",textDecoration:"underline",fontWeight:400}}>Descriptions</span>
                 </label>
+                {form.thirtyDayGoal && (() => {
+                  const suggestionMap = {
+                    "Fat Loss": "Muscle Building or HIIT tend to support fat loss best, but any consistent training helps.",
+                    "Muscle Building": "Muscle Building sessions directly support this goal — Strength Gaining also helps build a base.",
+                    "Strength Gaining": "Strength Gaining sessions directly support this goal — Muscle Building also builds useful size.",
+                    "General Fitness": "Mix it up — variety across Muscle Building, Strength Gaining, and HIIT works well for general fitness."
+                  };
+                  const tip = suggestionMap[form.thirtyDayGoal];
+                  if (!tip) return null;
+                  return (
+                    <div style={{fontSize:12,color:"#888",marginBottom:8,lineHeight:1.5}}>
+                      💡 Your 30-Day Goal is <strong style={{color:"var(--acid)"}}>{form.thirtyDayGoal}</strong> — {tip}
+                    </div>
+                  );
+                })()}
                 <div className="toggle-group">
                   {GOALS.map(g=><button key={g} className={`toggle ${form.goal===g?"active":""}`} onClick={()=>toggle("goal",g)}>{g}</button>)}
                 </div>
@@ -2815,6 +2834,15 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     <button className={`toggle ${thirtyDayPlan?"active":""}`} onClick={()=>setThirtyDayPlan(true)}>30-Day Plan 🗓</button>
                   </div>
                   {thirtyDayPlan && <p style={{fontSize:13,color:"#666",marginTop:8,lineHeight:1.5}}>A complete day-by-day 30-day program built around your goals and schedule.</p>}
+                </div>
+              )}
+              {tier==="unlimited" && !thirtyDayPlan && (
+                <div className="field full">
+                  <label>30-Day Goal</label>
+                  <div className="toggle-group">
+                    {THIRTY_DAY_GOALS.map(g=><button key={g} className={`toggle ${form.thirtyDayGoal===g?"active":""}`} onClick={()=>set("thirtyDayGoal",g)}>{g}</button>)}
+                  </div>
+                  <p style={{fontSize:13,color:"#666",marginTop:8,lineHeight:1.5}}>Your overall goal for the next 30 days — this drives your nutrition guidance and helps suggest a workout type each session, even though your daily workout type may vary.</p>
                 </div>
               )}
               {tier==="unlimited" && thirtyDayPlan && (
