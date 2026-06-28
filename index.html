@@ -2604,6 +2604,22 @@ Be specific. Use tables where helpful.`
                         </div>
                       </div>
                       <button onClick={handleEditProfile} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#666",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#666"}}>Edit Profile</button>
+                      {(tier === "unlimited" || tier === "annual") && (
+                        <button onClick={async () => {
+                          if (!window.confirm("Cancel your subscription? You'll keep access until the end of your current billing period, then it won't renew.")) return;
+                          try {
+                            const res = await dbRequest("cancelSubscription", { email: lead.email });
+                            if (res.error) {
+                              alert(res.error);
+                            } else {
+                              const endDate = res.periodEnd ? new Date(res.periodEnd * 1000).toLocaleDateString() : "the end of your billing period";
+                              alert("Your subscription has been cancelled. You'll keep access until " + endDate + ".");
+                            }
+                          } catch(e) {
+                            alert("Something went wrong. Please try again or contact support.");
+                          }
+                        }} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#999",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.color="var(--orange)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#999"}}>Cancel Subscription</button>
+                      )}
                       <button onClick={async () => {
                         if (!window.confirm("Delete your account? This will permanently remove your profile and all workout history. This cannot be undone.")) return;
                         if (!window.confirm("Are you sure? All your data will be deleted permanently.")) return;
