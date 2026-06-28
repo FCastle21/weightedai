@@ -1459,6 +1459,8 @@ function WeightedAI() {
   const [regenCount, setRegenCount] = useState(0);
   const [showGoalDescriptions, setShowGoalDescriptions] = useState(false);
   const [showWorkoutHistory, setShowWorkoutHistory] = useState(false);
+  const [equipmentScanModal, setEquipmentScanModal] = useState(null); // { status: "loading"|"results"|"error", detected: [], image: base64 }
+  const [equipmentScanChecked, setEquipmentScanChecked] = useState({});
   const [shareWorkout, setShareWorkout] = useState(() => { try { const v = localStorage.getItem("weightedai_share_workout"); return v === null ? true : v === "true"; } catch { return true; } });
 
   useEffect(() => {
@@ -1707,6 +1709,80 @@ function WeightedAI() {
   const toggleMuscle = (val) => setForm(f => ({...f, muscles: f.muscles.includes(val)?f.muscles.filter(m=>m!==val):[...f.muscles,val]}));
 
   const handleTierSelect = (t) => { setTier(t); setStep("form"); setTimeout(()=>{ const el=document.getElementById('form-top'); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:'smooth'}); }}, 50); };
+
+  const fileToDataUrl = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const detectEquipmentInImage = async (dataUrl, mediaType) => {
+    const base64 = dataUrl.split(",")[1];
+    const res = await fetch("/.netlify/functions/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "detectEquipment", imageBase64: base64, mediaType })
+    });
+    const data = await res.json();
+    const rawText = data.content?.find(b => b.type === "text")?.text || "[]";
+    try {
+      const cleaned = rawText.trim().replace(/^```json\s*/i, "").replace(/```\s*$/, "");
+      const parsed = JSON.parse(cleaned);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (parseErr) {
+      return [];
+    }
+  };
+
+  const handleEquipmentPhoto = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    e.target.value = ""; // reset input so the same files can be re-selected later
+
+    try {
+      const dataUrls = await Promise.all(files.map(f => fileToDataUrl(f)));
+      setEquipmentScanModal({ status: "loading", images: dataUrls, detected: [] });
+
+      const allResults = await Promise.all(
+        files.map((file, i) => detectEquipmentInImage(dataUrls[i], file.type || "image/jpeg").catch(() => []))
+      );
+
+      // Merge and de-duplicate detected equipment across all photos
+      const mergedSet = new Set();
+      allResults.forEach(list => list.forEach(item => mergedSet.add(item)));
+      const detected = Array.from(mergedSet);
+
+      const initialChecked = {};
+      detected.forEach(item => { initialChecked[item] = true; });
+      setEquipmentScanChecked(initialChecked);
+      setEquipmentScanModal({ status: detected.length > 0 ? "results" : "empty", images: dataUrls, detected });
+    } catch (err) {
+      setEquipmentScanModal({ status: "error", images: [], detected: [] });
+    }
+  };
+
+  const applyEquipmentScanResults = () => {
+    const confirmedItems = Object.keys(equipmentScanChecked).filter(k => equipmentScanChecked[k]);
+    if (confirmedItems.length === 0) {
+      setEquipmentScanModal(null);
+      return;
+    }
+    // Map detected items to the closest matching equipment category, or default to "Home Gym" if mixed/unclear
+    const hasFullGymSignal = confirmedItems.some(i => /barbell|squat rack|cable machine|bench/i.test(i));
+    const hasOnlyDumbbells = confirmedItems.every(i => /dumbbell/i.test(i));
+    const hasOnlyKettlebells = confirmedItems.every(i => /kettlebell/i.test(i));
+    const hasOnlyTRX = confirmedItems.every(i => /trx|suspension/i.test(i));
+
+    let suggestedEquipment = "Home Gym";
+    if (hasFullGymSignal) suggestedEquipment = "Full Gym";
+    else if (hasOnlyDumbbells) suggestedEquipment = "Dumbbells Only";
+    else if (hasOnlyKettlebells) suggestedEquipment = "Kettlebells";
+    else if (hasOnlyTRX) suggestedEquipment = "TRX";
+
+    setForm(f => ({ ...f, equipment: suggestedEquipment, notes: (f.notes ? f.notes + ". " : "") + "Available equipment detected from photo: " + confirmedItems.join(", ") + "." }));
+    setEquipmentScanModal(null);
+  };
 
   const handleFormSubmit = () => {
     if (!form.goal||!form.level||!form.equipment) { setError("Please select your goal, level, and equipment."); return; }
@@ -2630,7 +2706,11 @@ Be specific. Use tables where helpful.`
                 </div>
               </div>
               <div className="field full">
-                <label>Available Equipment</label>
+                <label style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <span>Available Equipment</span>
+                  <span onClick={() => document.getElementById("equipment-photo-input").click()} style={{color:"var(--acid)",textTransform:"none",letterSpacing:0,fontSize:11,cursor:"pointer",textDecoration:"underline",fontWeight:400}}>📷 Scan Equipment</span>
+                  <input type="file" id="equipment-photo-input" accept="image/*" capture="environment" multiple style={{display:"none"}} onChange={handleEquipmentPhoto} />
+                </label>
                 <div className="toggle-group">
                   {EQUIPMENT.map(e=><button key={e} className={`toggle ${form.equipment===e?"active":""}`} onClick={()=>toggle("equipment",e)}>{e}</button>)}
                 </div>
@@ -3078,6 +3158,55 @@ Be specific. Use tables where helpful.`
                 >
                   VIEW ON YOUTUBE
                 </a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {equipmentScanModal && (
+          <div className="info-overlay" onClick={e => e.target===e.currentTarget && setEquipmentScanModal(null)}>
+            <div className="info-modal" style={{maxWidth:480,maxHeight:"85vh",overflowY:"auto"}}>
+              <div className="info-modal-header">
+                <div className="info-modal-title">EQUIPMENT SCAN</div>
+                <button className="info-modal-close" onClick={() => setEquipmentScanModal(null)}>✕</button>
+              </div>
+              <div style={{padding:"20px 22px"}}>
+                {equipmentScanModal.images && equipmentScanModal.images.length > 0 && (
+                  <div style={{display:"flex",gap:8,marginBottom:18,overflowX:"auto"}}>
+                    {equipmentScanModal.images.map((img,i) => (
+                      <img key={i} src={img} style={{width:equipmentScanModal.images.length===1?"100%":90,height:equipmentScanModal.images.length===1?160:90,objectFit:"cover",borderRadius:10,flexShrink:0}} />
+                    ))}
+                  </div>
+                )}
+                {equipmentScanModal.status === "loading" && (
+                  <div style={{textAlign:"center",padding:"20px 0",color:"#999",fontSize:14}}>Analyzing photo{equipmentScanModal.images && equipmentScanModal.images.length > 1 ? "s" : ""}...</div>
+                )}
+                {equipmentScanModal.status === "error" && (
+                  <div style={{textAlign:"center",padding:"20px 0",color:"#999",fontSize:14}}>
+                    Couldn't analyze that photo. Try again with better lighting or a clearer shot of your equipment.
+                  </div>
+                )}
+                {equipmentScanModal.status === "empty" && (
+                  <div style={{textAlign:"center",padding:"20px 0",color:"#999",fontSize:14}}>
+                    No equipment detected in this photo. Try again, or just select your equipment manually below.
+                  </div>
+                )}
+                {equipmentScanModal.status === "results" && (
+                  <>
+                    <div style={{fontSize:13,color:"#999",marginBottom:14}}>Here's what we detected — uncheck anything that's wrong or not actually available:</div>
+                    <div style={{display:"flex",flexDirection:"column",gap:10,marginBottom:20}}>
+                      {equipmentScanModal.detected.map((item,i) => (
+                        <label key={i} style={{display:"flex",alignItems:"center",gap:10,fontSize:14,color:"var(--white)",cursor:"pointer"}}>
+                          <input type="checkbox" checked={!!equipmentScanChecked[item]} onChange={(e) => setEquipmentScanChecked(prev => ({...prev, [item]: e.target.checked}))} style={{width:18,height:18,accentColor:"var(--acid)"}} />
+                          {item}
+                        </label>
+                      ))}
+                    </div>
+                    <button onClick={applyEquipmentScanResults} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Bebas Neue',sans-serif",fontSize:15,letterSpacing:2,padding:"14px",cursor:"pointer",borderRadius:500}}>
+                      USE THIS EQUIPMENT →
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
