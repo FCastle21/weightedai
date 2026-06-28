@@ -965,6 +965,7 @@ function ensureHiitWarmup(planText) {
     for (let i = 0; i < lines.length; i++) {
       if (/##?#?\s*Warm-?Up/i.test(lines[i])) { warmupStart = i; break; }
     }
+    console.log("[HIIT-DEBUG] warmupStart:", warmupStart, "line:", warmupStart >= 0 ? JSON.stringify(lines[warmupStart]) : "N/A");
     if (warmupStart === -1) return planText; // no warm-up header found at all, leave as-is (rare edge case)
 
     // Try to find Main Workout header first
@@ -987,6 +988,7 @@ function ensureHiitWarmup(planText) {
         if (lines[i].match(/\*\*([^*]+)\*\*/)) boldLineIndices.push(i);
         if (boldLineIndices.length === 3) break;
       }
+      console.log("[HIIT-DEBUG] No header found, boldLineIndices:", JSON.stringify(boldLineIndices));
       if (boldLineIndices.length < 3) return planText; // not enough content to safely split, bail
       // End of the 3rd exercise's block = start of the 4th bolded line, or a reasonable line after the 3rd's description
       const thirdBoldIdx = boldLineIndices[2];
@@ -995,6 +997,7 @@ function ensureHiitWarmup(planText) {
       while (splitPoint < lines.length && lines[splitPoint].trim() !== "") splitPoint++;
       warmupEnd = splitPoint;
       insertedSyntheticHeader = true;
+      console.log("[HIIT-DEBUG] Synthetic header inserted. warmupEnd:", warmupEnd, "insertedSyntheticHeader:", insertedSyntheticHeader);
     }
 
     // Safety guard: if the detected "warm-up section" is suspiciously large (likely means we failed
@@ -1013,6 +1016,7 @@ function ensureHiitWarmup(planText) {
     });
     const warmupIsEmpty = warmupLines.filter(l => l.trim().length > 0 && !/##?#?\s*Warm-?Up/i.test(l)).length === 0;
 
+    console.log("[HIIT-DEBUG] hasMetconInWarmup:", hasMetconInWarmup, "warmupIsEmpty:", warmupIsEmpty, "warmupEnd-warmupStart:", warmupEnd-warmupStart, "insertedSyntheticHeader:", insertedSyntheticHeader);
     if (!hasMetconInWarmup && !warmupIsEmpty) return planText; // warm-up looks fine, leave as-is
 
     // Replace the warm-up section with standard, safe warm-up moves
