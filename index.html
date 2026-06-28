@@ -1338,6 +1338,16 @@ function parseMarkdown(text) {
   text = text.replace(/^\*\*\s*$/gm, '');
   text = text.replace(/^---+\s*$/gm, '');
   text = text.replace(/^___+\s*$/gm, '');
+  // Safety net: convert any markdown table rows that slipped through into bullet points,
+  // since this app doesn't render tables and the AI is instructed not to use them.
+  // Remove separator rows entirely (e.g. |---|---|---|)
+  text = text.replace(/^\|[\s\-:|]+\|\s*$/gm, '');
+  // Convert remaining table rows (| cell | cell | cell |) into a bullet line joining the cells
+  text = text.replace(/^\|(.+)\|\s*$/gm, function(match, inner) {
+    const cells = inner.split('|').map(c => c.trim()).filter(c => c.length > 0);
+    if (cells.length === 0) return '';
+    return '- ' + cells.join(' — ');
+  });
   var html = text
     .replace(/^### (.+)$/gm, '<h3>$1</h3>')
     .replace(/^## (.+)$/gm, '<h2>$1</h2>')
@@ -1859,7 +1869,7 @@ BOLD TEXT RULE — STRICT: Use **bold** markdown ONLY for the exercise name itse
 
 NUMBERING RULE — STRICT: If you list exercises with a number/letter prefix, ALWAYS use plain sequential numbers (1, 2, 3, 4...) for the Main Workout section. NEVER use letters (A, B, C, G, H, I...) as exercise labels in the output — letters are reserved for your own internal Apex alternation tracking only and must never appear in the visible numbering.
 
-FORMATTING RULE: Do NOT include a weekly schedule table, days-per-week breakdown, rest day calendar, or "Week | Mon | Tue..." style grid anywhere in the output. Do NOT use #### (4+ hashtags) for headers — use at most ### for sub-sections. Keep formatting clean and minimal: workout day titles, exercise lists, brief notes. No calendar grids, no schedule tables.
+FORMATTING RULE: Do NOT use markdown tables ANYWHERE in the output — no | pipe characters, no |---|---| separator rows, no "Week | Mon | Tue..." style grids, no nutrient/macro tables. This includes weekly schedules, rest day calendars, and macronutrient breakdowns — convert all of these to bullet points or bold labels with colons instead (e.g. "**Protein:** 155-207g"). Do NOT use #### (4+ hashtags) for headers — use at most ### for sub-sections. Keep formatting clean and minimal: workout day titles, exercise lists, brief notes. No calendar grids, no tables of any kind.
 
 You are an elite fitness engine. Generate a single full-body workout for ${leadData.name}.
 
@@ -1941,7 +1951,7 @@ BOLD TEXT RULE — STRICT: Use **bold** markdown ONLY for the exercise name itse
 
 NUMBERING RULE — STRICT: If you list exercises with a number/letter prefix, ALWAYS use plain sequential numbers (1, 2, 3, 4...) for the Main Workout section. NEVER use letters (A, B, C, G, H, I...) as exercise labels in the output — letters are reserved for your own internal Apex alternation tracking only and must never appear in the visible numbering.
 
-FORMATTING RULE: Do NOT include a weekly schedule table, days-per-week breakdown, rest day calendar, or "Week | Mon | Tue..." style grid anywhere in the output. Do NOT use #### (4+ hashtags) for headers — use at most ### for sub-sections. Keep formatting clean and minimal: workout day titles, exercise lists, brief notes. No calendar grids, no schedule tables.
+FORMATTING RULE: Do NOT use markdown tables ANYWHERE in the output — no | pipe characters, no |---|---| separator rows, no "Week | Mon | Tue..." style grids, no nutrient/macro tables. This includes weekly schedules, rest day calendars, and macronutrient breakdowns — convert all of these to bullet points or bold labels with colons instead (e.g. "**Protein:** 155-207g"). Do NOT use #### (4+ hashtags) for headers — use at most ### for sub-sections. Keep formatting clean and minimal: workout day titles, exercise lists, brief notes. No calendar grids, no tables of any kind.
 
 You are an elite fitness engine. Create a complete 30-DAY training plan for ${leadData.name}.
 
@@ -2050,14 +2060,14 @@ Then create a complete 30-DAY plan:
 ## Recovery Protocol
 ## End of 30 Days
 
-Be thorough and specific. Use tables where helpful.`
+Be thorough and specific. Do NOT use markdown tables (no | pipe characters or |---|---| separator rows) — they do not render correctly in this app. Instead, use bullet points or bold labels with colons (e.g. "**Protein:** 155-207g — use high end to preserve muscle") for any data you would otherwise put in a table.`
       : `CRITICAL OUTPUT RULE: All verification steps, self-checks, sequence labels (like A/B), randomization notes, rotation checks, balance checks, and internal reasoning described in this prompt are for YOUR INTERNAL USE ONLY when constructing the workout. NEVER include any of this meta-commentary in your actual output. The user-facing output must contain ONLY the workout content itself — exercise names, sets, reps, rest, and brief descriptions. Do not mention "Type A", "Type B", "balanced", "verified", "rotation check", "sequence", "randomization seed", or any other planning/verification language in your response. NEVER write a heading like "Critical Analysis", "Internal Planning", "Self-Check", "Verification Step", "Planning Notes", or anything similar — your response must begin directly with the workout title/heading (e.g. "## This Week's Full-Body Workout"), with zero preamble, meta-commentary, or visible planning process of any kind before it.
 
 BOLD TEXT RULE — STRICT: Use **bold** markdown ONLY for the exercise name itself (e.g. **Bulgarian Split Squat**), nothing else. NEVER bold phrases like "Exercise 1:", "MUSCLE GROUP BALANCE CHECK:", "Total: X exercises", section labels, or any planning text. If you bold anything other than a clean exercise name, you are breaking this rule.
 
 NUMBERING RULE — STRICT: If you list exercises with a number/letter prefix, ALWAYS use plain sequential numbers (1, 2, 3, 4...) for the Main Workout section. NEVER use letters (A, B, C, G, H, I...) as exercise labels in the output — letters are reserved for your own internal Apex alternation tracking only and must never appear in the visible numbering.
 
-FORMATTING RULE: Do NOT include a weekly schedule table, days-per-week breakdown, rest day calendar, or "Week | Mon | Tue..." style grid anywhere in the output. Do NOT use #### (4+ hashtags) for headers — use at most ### for sub-sections. Keep formatting clean and minimal: workout day titles, exercise lists, brief notes. No calendar grids, no schedule tables.
+FORMATTING RULE: Do NOT use markdown tables ANYWHERE in the output — no | pipe characters, no |---|---| separator rows, no "Week | Mon | Tue..." style grids, no nutrient/macro tables. This includes weekly schedules, rest day calendars, and macronutrient breakdowns — convert all of these to bullet points or bold labels with colons instead (e.g. "**Protein:** 155-207g"). Do NOT use #### (4+ hashtags) for headers — use at most ### for sub-sections. Keep formatting clean and minimal: workout day titles, exercise lists, brief notes. No calendar grids, no tables of any kind.
 
 You are an elite fitness engine. Create a complete personalized program for ${leadData.name}.
 
@@ -2163,7 +2173,7 @@ DISCLAIMER — INCLUDE THIS VERBATIM AT THE END OF THE NUTRITION STRATEGY SECTIO
 ## 4-Week Progression
 ## Success Metrics
 
-Be specific. Use tables where helpful.`
+Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separator rows) — they do not render correctly in this app. Instead, use bullet points or bold labels with colons (e.g. "**Protein:** 155-207g — use high end to preserve muscle") for any data you would otherwise put in a table.`
 
     setIsStreaming(true);
     try {
