@@ -50,7 +50,7 @@ exports.handler = async function(event, context) {
 
   try {
     const parsed = JSON.parse(event.body);
-    const { action, prompt, email, profileData, logEntry, historyEntry, accessToken } = parsed;
+    const { action, prompt, email, profileData, logEntry, historyEntry, accessToken, imageBase64, mediaType } = parsed;
     
     console.log("Action:", action, "Email:", email || "(none)");
     console.log("SUPABASE_URL:", process.env.SUPABASE_URL ? "SET" : "MISSING");
@@ -173,6 +173,40 @@ exports.handler = async function(event, context) {
     if (action === "saveHistory") {
       const res = await supabase("POST", "workout_history", { ...historyEntry, email });
       return { statusCode: 200, headers, body: JSON.stringify({ ok: true, status: res.status }) };
+    }
+
+    if (action === "detectEquipment") {
+      if (!imageBase64) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "No image provided" }) };
+      }
+
+      const detectionPrompt = `Look at this photo of a workout space/equipment. Identify ONLY the fitness equipment that is clearly visible in the image. Respond with ONLY a JSON array of equipment names, nothing else, no markdown formatting, no explanation. Use these exact category names when applicable: "Barbell", "Dumbbells", "Kettlebells", "Pull-Up Bar", "Resistance Bands", "Bench", "Squat Rack", "Cable Machine", "TRX/Suspension Trainer", "Medicine Ball", "Jump Rope", "Treadmill", "Rowing Machine", "Assault Bike", "Battle Ropes", "Sled", "Plyo Box", "Foam Roller". If you see equipment that doesn't match these categories, describe it briefly in 1-3 words. If the image shows an empty room or no equipment is visible, respond with an empty array []. Be conservative - only include equipment you can clearly identify, do not guess.`;
+
+      const postData = JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 500,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: mediaType || "image/jpeg", data: imageBase64 } },
+            { type: "text", text: detectionPrompt }
+          ]
+        }]
+      });
+
+      const res = await httpsRequest({
+        hostname: "api.anthropic.com",
+        path: "/v1/messages",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "Content-Length": Buffer.byteLength(postData)
+        }
+      }, postData);
+
+      return { statusCode: 200, headers, body: res.body };
     }
 
     if (action === "generate" || prompt) {
