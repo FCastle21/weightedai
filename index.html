@@ -1802,6 +1802,14 @@ function WeightedAI() {
     const isExistingUser = existingProfile && existingProfile.name;
     const hasAcceptedWaiver = existingProfile && existingProfile.waiver_accepted;
     if (!isExistingUser && !hasAcceptedWaiver) {
+      // Brand new user - fire welcome email (non-blocking, fire-and-forget)
+      try {
+        fetch("/.netlify/functions/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "sendWelcomeEmail", email: leadData.email, name: leadData.name })
+        }).catch(() => {});
+      } catch (e) {}
       setPendingEmailSubmit({ leadData, existingProfile });
       setShowWaiver(true);
       return;
