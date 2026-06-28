@@ -137,10 +137,71 @@ exports.handler = async function(event, context) {
       });
 
       const sessionData = JSON.parse(res.body);
+      const isPaid = sessionData.payment_status === "paid" || sessionData.status === "complete";
+      const customerEmail = sessionData.customer_details?.email || sessionData.customer_email;
+
+      // If this was a subscription purchase, save the Stripe subscription/customer IDs to the user's profile
+      // so we can later allow them to self-cancel.
+      if (isPaid && sessionData.mode === "subscription" && sessionData.subscription && customerEmail) {
+        try {
+          await supabase("POST", "profiles", {
+            email: customerEmail,
+            stripe_subscription_id: sessionData.subscription,
+            stripe_customer_id: sessionData.customer,
+            updated_at: new Date().toISOString()
+          });
+        } catch (saveErr) {
+          console.error("Failed to save subscription ID:", saveErr);
+        }
+      }
+
       return { statusCode: 200, headers, body: JSON.stringify({ 
-        paid: sessionData.payment_status === "paid" || sessionData.status === "complete",
-        customerEmail: sessionData.customer_details?.email || sessionData.customer_email
+        paid: isPaid,
+        customerEmail: customerEmail
       }) };
+    }
+
+    if (action === "cancelSubscription") {
+      if (!email) return { statusCode: 400, headers, body: JSON.stringify({ error: "email required" }) };
+
+      const profileRes = await supabase("GET", `profiles?email=eq.${encodeURIComponent(email)}&select=stripe_subscription_id`);
+      const profileData = JSON.parse(profileRes.body);
+      const subscriptionId = profileData?.[0]?.stripe_subscription_id;
+
+      if (!subscriptionId) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "No active subscription found for this account." }) };
+      }
+
+      // Cancel at period end (not immediately) so the user keeps access through what they already paid for
+      const params = new URLSearchParams();
+      params.append("cancel_at_period_end", "true");
+      const postData = params.toString();
+
+      const cancelRes = await httpsRequest({
+        hostname: "api.stripe.com",
+        path: "/v1/subscriptions/" + subscriptionId,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Authorization": "Bearer " + process.env.STRIPE_SECRET_KEY,
+          "Content-Length": Buffer.byteLength(postData)
+        }
+      }, postData);
+
+      const cancelData = JSON.parse(cancelRes.body);
+      if (cancelData.error) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: cancelData.error.message }) };
+      }
+
+      // Save cancellation status to profile so the UI can reflect it
+      await supabase("POST", "profiles", {
+        email,
+        subscription_cancel_at_period_end: true,
+        subscription_period_end: cancelData.current_period_end ? new Date(cancelData.current_period_end * 1000).toISOString() : null,
+        updated_at: new Date().toISOString()
+      });
+
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, periodEnd: cancelData.current_period_end }) };
     }
 
     if (action === "sendWelcomeEmail") {
