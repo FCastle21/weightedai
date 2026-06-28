@@ -972,20 +972,17 @@ function ensureHiitWarmup(planText) {
     for (let i = 0; i < lines.length; i++) {
       if (/##?#?\s*Warm-?Up/i.test(lines[i])) { warmupStart = i; break; }
     }
-    console.log("[HIIT-DEBUG] warmupStart:", warmupStart, "line:", warmupStart >= 0 ? JSON.stringify(lines[warmupStart]) : "N/A");
     if (warmupStart === -1) return planText; // no warm-up header found at all, leave as-is (rare edge case)
 
     // Try to find Main Workout header first
     for (let i = warmupStart + 1; i < lines.length; i++) {
       if (/##?#?\s*(Main Workout|Workout Plans?)/i.test(lines[i])) { warmupEnd = i; break; }
     }
-    console.log("[HIIT-DEBUG] After Main Workout search. warmupEnd:", warmupEnd, "line at warmupEnd:", warmupEnd >= 0 ? JSON.stringify(lines[warmupEnd]) : "N/A");
     // Fallback: if no Main Workout header found, look for Cool-Down header instead
     if (warmupEnd === -1) {
       for (let i = warmupStart + 1; i < lines.length; i++) {
         if (/##?#?\s*(Cool-?Down|Cooldown)/i.test(lines[i])) { warmupEnd = i; break; }
       }
-      console.log("[HIIT-DEBUG] After Cool-Down fallback search. warmupEnd:", warmupEnd, "line at warmupEnd:", warmupEnd >= 0 ? JSON.stringify(lines[warmupEnd]) : "N/A");
     }
     // Final fallback: no header markers found at all - the AI likely merged warm-up and main workout
     // with no separator. Find the 3rd bolded exercise line and insert a synthetic boundary right after it,
@@ -997,7 +994,6 @@ function ensureHiitWarmup(planText) {
         if (lines[i].match(/\*\*([^*]+)\*\*/)) boldLineIndices.push(i);
         if (boldLineIndices.length === 3) break;
       }
-      console.log("[HIIT-DEBUG] No header found, boldLineIndices:", JSON.stringify(boldLineIndices));
       if (boldLineIndices.length < 3) return planText; // not enough content to safely split, bail
       // End of the 3rd exercise's block = start of the 4th bolded line, or a reasonable line after the 3rd's description
       const thirdBoldIdx = boldLineIndices[2];
@@ -1006,7 +1002,6 @@ function ensureHiitWarmup(planText) {
       while (splitPoint < lines.length && lines[splitPoint].trim() !== "") splitPoint++;
       warmupEnd = splitPoint;
       insertedSyntheticHeader = true;
-      console.log("[HIIT-DEBUG] Synthetic header inserted. warmupEnd:", warmupEnd, "insertedSyntheticHeader:", insertedSyntheticHeader);
     }
 
     // Safety guard: if the detected "warm-up section" contains far too many exercises for a 3-move warm-up,
@@ -1040,7 +1035,6 @@ function ensureHiitWarmup(planText) {
     });
     const warmupIsEmpty = warmupLines.filter(l => l.trim().length > 0 && !/##?#?\s*Warm-?Up/i.test(l)).length === 0;
 
-    console.log("[HIIT-DEBUG] hasMetconInWarmup:", hasMetconInWarmup, "warmupIsEmpty:", warmupIsEmpty, "warmupEnd-warmupStart:", warmupEnd-warmupStart, "insertedSyntheticHeader:", insertedSyntheticHeader);
     if (!hasMetconInWarmup && !warmupIsEmpty) return planText; // warm-up looks fine, leave as-is
 
     // Replace the warm-up section with standard, safe warm-up moves
