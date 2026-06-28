@@ -971,15 +971,30 @@ function ensureHiitWarmup(planText) {
     for (let i = warmupStart + 1; i < lines.length; i++) {
       if (/##?#?\s*(Main Workout|Workout Plans?)/i.test(lines[i])) { warmupEnd = i; break; }
     }
-    // Fallback: if no Main Workout header found, look for Cool-Down header instead (warmup section would end right before whatever comes after it, but this means structure is unusual - safer to bail)
+    // Fallback: if no Main Workout header found, look for Cool-Down header instead
     if (warmupEnd === -1) {
       for (let i = warmupStart + 1; i < lines.length; i++) {
         if (/##?#?\s*(Cool-?Down|Cooldown)/i.test(lines[i])) { warmupEnd = i; break; }
       }
     }
-    // If still not found, bail out entirely rather than guessing - too risky to assume end of document
+    // Final fallback: no header markers found at all - the AI likely merged warm-up and main workout
+    // with no separator. Find the 3rd bolded exercise line and insert a synthetic boundary right after it,
+    // treating everything before as warm-up-replacement-eligible and everything after as the real main workout.
+    let insertedSyntheticHeader = false;
     if (warmupEnd === -1) {
-      return planText;
+      const boldLineIndices = [];
+      for (let i = warmupStart + 1; i < lines.length; i++) {
+        if (lines[i].match(/\*\*([^*]+)\*\*/)) boldLineIndices.push(i);
+        if (boldLineIndices.length === 3) break;
+      }
+      if (boldLineIndices.length < 3) return planText; // not enough content to safely split, bail
+      // End of the 3rd exercise's block = start of the 4th bolded line, or a reasonable line after the 3rd's description
+      const thirdBoldIdx = boldLineIndices[2];
+      // Find the next blank line after the 3rd bolded line to mark the end of its description
+      let splitPoint = thirdBoldIdx + 1;
+      while (splitPoint < lines.length && lines[splitPoint].trim() !== "") splitPoint++;
+      warmupEnd = splitPoint;
+      insertedSyntheticHeader = true;
     }
 
     // Safety guard: if the detected "warm-up section" is suspiciously large (likely means we failed
@@ -1014,6 +1029,9 @@ function ensureHiitWarmup(planText) {
     ];
     const warmupHeaderLine = lines[warmupStart];
     const newWarmupBlock = [warmupHeaderLine, ...standardWarmup];
+    if (insertedSyntheticHeader) {
+      newWarmupBlock.push("### Main Workout");
+    }
 
     const before = lines.slice(0, warmupStart);
     const after = lines.slice(warmupEnd);
@@ -1741,7 +1759,7 @@ Then provide:
 ### Warm-Up (5 min)
 Exactly 3 warm-up moves — simple mobility/activation movements (arm circles, leg swings, inchworms, etc.), formatted as **Move Name** — duration or reps only (e.g. "30 seconds" or "10 reps"), NO sets, NO "work/rest" interval format. Warm-up moves must be DIFFERENT from anything appearing in the Main Workout below — never repeat the same exercise name in both sections.
 ### Main Workout
-Exercise count and sets per the Exercise Count By Level and Sets By Level rules above. For each: **Exercise Name** — sets x reps, rest (use actual numbers, e.g. "3 sets x 10 reps"). Then one short sentence describing what it works and why it's in this workout.
+MANDATORY: You MUST write the literal heading "### Main Workout" here, exactly as shown, before listing any main exercises — even if every exercise (including HIIT/metcon ones) uses a timed work/rest format. Do not skip this heading or merge it with the Warm-Up section. Exercise count and sets per the Exercise Count By Level and Sets By Level rules above. For each: **Exercise Name** — sets x reps, rest (use actual numbers, e.g. "3 sets x 10 reps"). Then one short sentence describing what it works and why it's in this workout.
 ### Cool-Down (5 min)
 Exactly 3 stretches.
 
