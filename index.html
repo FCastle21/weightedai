@@ -1436,6 +1436,7 @@ function WeightedAI() {
   const [step, setStep]         = useState("home");
   const [lead, setLead]         = useState(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
+  const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
   const [blocked, setBlocked]   = useState(false); // free tier weekly limit hit
   const [plan, setPlan]         = useState(null);
@@ -1548,6 +1549,7 @@ function WeightedAI() {
         try { localStorage.setItem("weightedai_share_workout", String(shareVal)); } catch {}
       }
       setProfileLoaded(true);
+      setHasActiveSubscription(!!profile.stripe_subscription_id);
       setStep("form");
       // Load workout log and history from Supabase
       try {
@@ -1613,6 +1615,9 @@ function WeightedAI() {
             } catch(e) {}
 
             setTier(_paidTier || "unlimited");
+            if (_paidTier === "unlimited" || _paidTier === "annual" || !_paidTier) {
+              setHasActiveSubscription(true);
+            }
             if (restoredForm) setForm(f => ({ ...f, ...restoredForm }));
             if (restoredPlan) {
               setPlan(restoredPlan);
@@ -1757,6 +1762,7 @@ function WeightedAI() {
       const { muscles, ...saved } = existingProfile;
       setForm(f => ({ ...f, ...saved, muscles: f.muscles })); // keep muscles user chose
       setProfileLoaded(true);
+      setHasActiveSubscription(!!existingProfile.stripe_subscription_id);
     }
 
     setStep("loading");
@@ -2138,7 +2144,9 @@ Be specific. Use tables where helpful.`
       setIsStreaming(false);
       setPlan(cleanPlan);
       setStep("plan");
-      setUnlocked(tier === "free");
+      // Unlock immediately if: free tier, OR this user already has an active paid subscription
+      // (don't re-paywall someone who's already paying monthly/annually for unlimited access)
+      setUnlocked(tier === "free" || hasActiveSubscription);
       // Retry scroll a few times in case DOM hasn't rendered the button yet
       let scrollAttempts = 0;
       const trySCroll = () => {
