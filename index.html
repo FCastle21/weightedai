@@ -1002,7 +1002,10 @@ function ensureHiitWarmup(planText) {
 
     // Safety guard: if the detected "warm-up section" is suspiciously large (likely means we failed
     // to find the real Main Workout boundary and would wipe out real content), bail out entirely.
-    if (warmupEnd - warmupStart > 15) {
+    // This guard does NOT apply when we deliberately built a synthetic boundary - that path is already safe by construction.
+    console.log("[HIIT-DEBUG] About to check size guard. warmupEnd-warmupStart:", warmupEnd-warmupStart, "insertedSyntheticHeader:", insertedSyntheticHeader);
+    if (!insertedSyntheticHeader && (warmupEnd - warmupStart > 15)) {
+      console.log("[HIIT-DEBUG] BAILING due to size guard");
       return planText;
     }
 
