@@ -861,6 +861,7 @@ function removeUnwantedMetconBlocks(planText) {
     }
 
     const keptBlocks = blocks.filter(b => !b.violation);
+    if (keptBlocks.length === 0) return planText; // would wipe out all exercises - bail out instead
     const firstBlockStart = exerciseLineIndices[0];
     const lastBlockEnd = exerciseLineIndices[exerciseLineIndices.length - 1] + blocks[blocks.length - 1].lines.length;
     const before = lines.slice(0, firstBlockStart);
@@ -903,6 +904,11 @@ function removeNonMetconBlocks(planText) {
     }
 
     const keptBlocks = blocks.filter(b => !b.violation);
+    // Safety check: if removing violations would wipe out ALL exercises, something is wrong with our
+    // classification (e.g. unrecognized exercise names) - bail out rather than leaving an empty workout.
+    if (keptBlocks.length === 0) {
+      return planText;
+    }
     const firstBlockStart = exerciseLineIndices[0];
     const lastBlockEnd = exerciseLineIndices[exerciseLineIndices.length - 1] + blocks[blocks.length - 1].lines.length;
     const before = lines.slice(0, firstBlockStart);
@@ -942,6 +948,7 @@ function removeEquipmentMetconForBodyweight(planText) {
     }
 
     const keptBlocks = blocks.filter(b => !b.violation);
+    if (keptBlocks.length === 0) return planText; // would wipe out all exercises - bail out instead
     const firstBlockStart = exerciseLineIndices[0];
     const lastBlockEnd = exerciseLineIndices[exerciseLineIndices.length - 1] + blocks[blocks.length - 1].lines.length;
     const before = lines.slice(0, firstBlockStart);
