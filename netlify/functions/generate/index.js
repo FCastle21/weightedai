@@ -193,15 +193,19 @@ exports.handler = async function(event, context) {
         return { statusCode: 400, headers, body: JSON.stringify({ error: cancelData.error.message }) };
       }
 
+      // Stripe deprecated the top-level current_period_end field - it now lives on the
+      // subscription item's billing period instead (items.data[0].current_period_end)
+      const periodEnd = cancelData.current_period_end || cancelData.items?.data?.[0]?.current_period_end || null;
+
       // Save cancellation status to profile so the UI can reflect it
       await supabase("POST", "profiles", {
         email,
         subscription_cancel_at_period_end: true,
-        subscription_period_end: cancelData.current_period_end ? new Date(cancelData.current_period_end * 1000).toISOString() : null,
+        subscription_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
         updated_at: new Date().toISOString()
       });
 
-      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, periodEnd: cancelData.current_period_end }) };
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, periodEnd: periodEnd }) };
     }
 
     if (action === "sendWelcomeEmail") {
