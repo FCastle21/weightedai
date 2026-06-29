@@ -2307,7 +2307,13 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       console.error("Generation error:", err);
       setIsStreaming(false);
       setError("Something went wrong: " + (err.message || "Please try again."));
-      setStep("form");
+      // Guard against a race condition: if the user already navigated away (e.g. hit "Start
+      // Over") before this error fired, tier may now be null. Forcing step to "form" with no
+      // tier set would render nothing. Only force back to the form if we still have a tier.
+      setTier(currentTier => {
+        if (currentTier) setStep("form");
+        return currentTier;
+      });
     }
   };
 
@@ -3359,8 +3365,43 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
 }
 
 
-    const root = ReactDOM.createRoot(document.getElementById('app-root'));
-    root.render(<WeightedAI />);
+class AppErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError(error) {
+    console.error("App crashed:", error);
+    return { hasError: true };
+  }
+  componentDidCatch(error, info) {
+    console.error("App crash details:", error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{maxWidth: 600, margin: "60px auto", padding: "40px 24px", textAlign: "center"}}>
+          <div style={{fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 2, color: "#f2f0eb", marginBottom: 16}}>
+            Something went wrong
+          </div>
+          <p style={{color: "#999", fontSize: 15, lineHeight: 1.6, marginBottom: 28}}>
+            The app ran into an unexpected error. Refreshing usually fixes this — your progress and profile are saved.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{background: "var(--acid)", border: "none", color: "var(--black)", fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: 2, padding: "14px 32px", cursor: "pointer", borderRadius: 500}}
+          >
+            REFRESH PAGE
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+const root = ReactDOM.createRoot(document.getElementById('app-root'));
+root.render(<AppErrorBoundary><WeightedAI /></AppErrorBoundary>);
 
     // Sign in handler for landing page nav
     
