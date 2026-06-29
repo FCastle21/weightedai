@@ -330,7 +330,7 @@ IF GOAL IS GENERAL FITNESS:
 
 PRIORITY ORDER: 1) Total calories 2) Protein intake 3) Training consistency 4) Sleep and recovery 5) Carbohydrate intake 6) Food timing 7) Supplements.
 
-DISCLAIMER — INCLUDE THIS VERBATIM AT THE END: "These nutrition recommendations are general guidelines based on widely accepted sports nutrition principles, not personalized medical or dietary prescriptions. Individual needs vary based on health history, medical conditions, and other factors. Please consult a registered dietitian or physician with any specific questions or concerns before making significant changes to your diet."
+At the end of the Nutrition Strategy section, add a heading "**Disclaimer**" followed by this exact text verbatim (do not include any other instructional text, just this sentence): "These nutrition recommendations are general guidelines based on widely accepted sports nutrition principles, not personalized medical or dietary prescriptions. Individual needs vary based on health history, medical conditions, and other factors. Please consult a registered dietitian or physician with any specific questions or concerns before making significant changes to your diet."
 
 FORMATTING RULE: Do NOT use markdown tables — no | pipe characters or |---|---| separator rows. Use bullet points or bold labels with colons instead.
 
