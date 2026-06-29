@@ -646,15 +646,6 @@ const styles = `
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
   /* MUSIC CARD */
-  .music-card { background: linear-gradient(135deg, #131310 0%, #0a0a08 100%); border: 1px solid #232318; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; max-width: 100%; box-sizing: border-box; border-radius: 14px; }
-  .music-icon { font-size: 22px; flex-shrink: 0; }
-  .music-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #1a9e4a; margin-bottom: 8px; font-weight: 500; }
-  .music-input-row { display: flex; gap: 10px; flex: 1; min-width: 0; width: 100%; }
-  .music-input { background: #111; border: 1px solid #2a2a2a; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px 14px; outline: none; transition: border-color 0.2s; flex: 1; border-radius: 500px; }
-  .music-input:focus { border-color: #1a9e4a; }
-  .music-input::placeholder { color: #444; }
-  .music-btn { background: #1a9e4a; border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; padding: 10px 16px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; flex-shrink: 0; border-radius: 500px; }
-  .music-btn:hover { opacity: 0.85; }
 
   /* PLAN CONTENT */
   .plan-content { line-height: 1.8; font-size: 15px; color: var(--white); padding-bottom: 20px; }
@@ -723,9 +714,6 @@ const styles = `
     .gate { padding: 24px 16px; }
     .modal { padding: 24px 16px; }
     .modal-row { grid-template-columns: 1fr; }
-    .music-card { padding: 14px 16px; }
-    .music-input-row { flex-direction: column; }
-    .music-btn { width: 100%; text-align: center; }
     .regen-row { flex-direction: column; }
     .regen-submit { width: 100%; }
     .regen-input { width: 100%; }
@@ -763,7 +751,7 @@ const styles = `
     .gate-label, .gate-privacy, .modal-fine, .rating-sub,
     .rating-labels, .overload-text, .workout-log-date,
     .progress-stat-label, .footer-copy, .footer-links a,
-    .music-label, .regen-input, .plan-content,
+    .regen-input, .plan-content,
     .resume-banner-text, .profile-banner,
     .waiver-text, .tier-name { font-size: 13px !important; }
     
@@ -1547,7 +1535,6 @@ function WeightedAI() {
   const [expandedSections, setExpandedSections] = useState({});
   const [error, setError]       = useState(null);
   const [unlocked, setUnlocked] = useState(false);
-  const [musicVibe, setMusicVibe] = useState("");
   const [thirtyDayPlan, setThirtyDayPlan] = useState(false);
   const [showAllPlans, setShowAllPlans] = useState(false);
   const [regenNote, setRegenNote] = useState("");
@@ -2327,13 +2314,20 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
   const handleReset = () => {
     setRegenCount(0);
     setPlan(null); setUnlocked(false);
-    setBlocked(false); setEditingProfile(false); setMusicVibe(""); setThirtyDayPlan(false); setRegenNote(""); setIsStreaming(false); setDifficulty(0); setRatingSubmitted(false); setWorkoutMode(false); setSavedWorkout(null); try { localStorage.removeItem("weightedai_active_workout"); } catch(e) {}
-    setStep("home"); setTier(null);
-    // Keep the user signed in - only reset muscle selection, not their saved profile
-    if (lead && lead.email) {
+    setBlocked(false); setEditingProfile(false); setThirtyDayPlan(false); setRegenNote(""); setIsStreaming(false); setDifficulty(0); setRatingSubmitted(false); setWorkoutMode(false); setSavedWorkout(null); try { localStorage.removeItem("weightedai_active_workout"); } catch(e) {}
+    // Keep the user signed in - only reset muscle selection, not their saved profile.
+    // If they're already a signed-in subscriber, keep their tier set so "Start Over" takes
+    // them back to the form, not the "Try It Free" entry screen.
+    if (lead && lead.email && hasActiveSubscription) {
+      setStep("form");
+      setForm(f => ({ ...f, muscles: [] }));
+      setProfileLoaded(true);
+    } else if (lead && lead.email) {
+      setStep("home"); setTier(null);
       setForm(f => ({ ...f, muscles: [] }));
       setProfileLoaded(true);
     } else {
+      setStep("home"); setTier(null);
       setForm(BLANK_FORM);
       setProfileLoaded(false);
     }
@@ -3039,26 +3033,6 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                         <span><strong>Payment confirmed.</strong> {tier==="unlimited"?"Welcome to WeightedAI Unlimited! ":""}Your full plan is unlocked.</span>
                       </div>
                     )}
-                    
-                    <div className="music-card">
-                      <div className="music-icon">🎵</div>
-                      <div style={{flex:1}}>
-                        <div className="music-label">What's your music mood?</div>
-                        <div className="music-input-row">
-                          <input
-                            className="music-input"
-                            placeholder="e.g. heavy metal, hip hop, lo-fi, pump up..."
-                            value={musicVibe}
-                            onChange={e => setMusicVibe(e.target.value)}
-                            onKeyDown={e => { if(e.key==="Enter" && musicVibe.trim()) { const a=document.createElement("a"); a.href="spotify:search:"+encodeURIComponent(musicVibe.trim()+" workout playlist"); a.click(); }}}
-                          />
-                          <button
-                            className="music-btn"
-                            onClick={() => { if(musicVibe.trim()) { const a=document.createElement("a"); a.href="spotify:search:"+encodeURIComponent(musicVibe.trim()+" workout playlist"); a.click(); }}}
-                          >OPEN IN SPOTIFY →</button>
-                        </div>
-                      </div>
-                    </div>
                     {workoutHistory.length > 0 && (
                       <div className="overload-banner">
                         <div className="overload-label">⚡ Progressive Overload Active</div>
