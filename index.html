@@ -783,7 +783,7 @@ const LEVELS    = ["Beginner", "Intermediate", "Advanced"];
 const DAYS      = ["3", "4", "5", "6"];
 const MUSCLES   = ["Full Body", "Back", "Biceps", "Chest", "Core / Abs", "Legs / Glutes", "Metcon", "Shoulders", "Triceps"];
 
-const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"", thirtyDayGoal:"" };
+const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"", thirtyDayGoal:"", thirtyDayGoalSetAt:"" };
 
 
 // ── Supabase helpers via Netlify Function ──────────────────────────────────────
@@ -822,6 +822,7 @@ async function saveProfile(email, data) {
       injuries: data.injuries,
       notes: data.notes,
       thirty_day_goal: data.thirtyDayGoal,
+      thirty_day_goal_set_at: data.thirtyDayGoalSetAt || null,
       free_week_used: data.freeWeekUsed || null
     };
     await dbRequest("saveProfile", { email, profileData });
@@ -1644,7 +1645,8 @@ function WeightedAI() {
         days: profile.days || "4",
         injuries: profile.injuries || "",
         notes: profile.notes || "",
-        thirtyDayGoal: profile.thirty_day_goal || ""
+        thirtyDayGoal: profile.thirty_day_goal || "",
+        thirtyDayGoalSetAt: profile.thirty_day_goal_set_at || ""
       };
       setForm(f => ({ ...f, ...mappedProfile, muscles: [] }));
       // Only update shareWorkout from profile if explicitly set in Supabase
@@ -1864,8 +1866,8 @@ function WeightedAI() {
 
     // PAID TIERS: if returning user with saved profile, auto-fill (muscles reset each session)
     if ((tier === "unlimited" || tier === "annual" || tier === "individual") && existingProfile && !editingProfile) {
-      const { muscles, thirty_day_goal, ...saved } = existingProfile;
-      setForm(f => ({ ...f, ...saved, thirtyDayGoal: thirty_day_goal || "", muscles: f.muscles })); // keep muscles user chose
+      const { muscles, thirty_day_goal, thirty_day_goal_set_at, ...saved } = existingProfile;
+      setForm(f => ({ ...f, ...saved, thirtyDayGoal: thirty_day_goal || "", thirtyDayGoalSetAt: thirty_day_goal_set_at || "", muscles: f.muscles })); // keep muscles user chose
       setProfileLoaded(true);
       setHasActiveSubscription(!!existingProfile.stripe_subscription_id);
     }
@@ -2508,6 +2510,13 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
     return counts;
   };
 
+  const isThirtyDayGoalStale = (goalSetAt) => {
+    if (!goalSetAt) return true; // never set, needs to be asked
+    const setDate = new Date(goalSetAt);
+    const daysSince = (Date.now() - setDate.getTime()) / (1000 * 60 * 60 * 24);
+    return daysSince >= 30;
+  };
+
   const getSuggestedMuscleGroups = (log) => {
     if (!log || log.length === 0) return null;
     const allMuscleGroups = ["Back", "Biceps", "Chest", "Core / Abs", "Legs / Glutes", "Shoulders", "Triceps"];
@@ -2860,10 +2869,19 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               {tier==="unlimited" && (
                 <div className="field full">
                   <label>30-Day Goal</label>
-                  <div className="toggle-group">
-                    {THIRTY_DAY_GOALS.map(g=><button key={g} className={`toggle ${form.thirtyDayGoal===g?"active":""}`} onClick={()=>set("thirtyDayGoal",g)}>{g}</button>)}
-                  </div>
-                  <p style={{fontSize:13,color:"#666",marginTop:8,lineHeight:1.5}}>{thirtyDayPlan ? "Your overall goal for the 30 days — this shapes your nutrition guidance and the emphasis of your weekly training split." : "Your overall goal for the next 30 days — this drives your nutrition guidance and helps suggest a workout type each session, even though your daily workout type may vary."}</p>
+                  {!isThirtyDayGoalStale(form.thirtyDayGoalSetAt) && form.thirtyDayGoal ? (
+                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",fontSize:14,color:"#ccc"}}>
+                      <span>Current goal: <strong style={{color:"var(--acid)"}}>{form.thirtyDayGoal}</strong> ({Math.max(0, 30 - Math.floor((Date.now() - new Date(form.thirtyDayGoalSetAt).getTime())/(1000*60*60*24)))} days left)</span>
+                      <span onClick={()=>setForm(f=>({...f, thirtyDayGoalSetAt:""}))} style={{color:"#666",fontSize:12,cursor:"pointer",textDecoration:"underline",whiteSpace:"nowrap",marginLeft:12}}>Change</span>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="toggle-group">
+                        {THIRTY_DAY_GOALS.map(g=><button key={g} className={`toggle ${form.thirtyDayGoal===g?"active":""}`} onClick={()=>setForm(f=>({...f, thirtyDayGoal: g, thirtyDayGoalSetAt: new Date().toISOString()}))}>{g}</button>)}
+                      </div>
+                      <p style={{fontSize:13,color:"#666",marginTop:8,lineHeight:1.5}}>{thirtyDayPlan ? "Your overall goal for the 30 days — this shapes your nutrition guidance and the emphasis of your weekly training split." : "Your overall goal for the next 30 days — this drives your nutrition guidance and helps suggest a workout type each session, even though your daily workout type may vary."}</p>
+                    </>
+                  )}
                 </div>
               )}
               {tier==="unlimited" && thirtyDayPlan && (
