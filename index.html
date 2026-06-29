@@ -2936,7 +2936,13 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                   ) : (
                     <>
                       <div className="toggle-group">
-                        {THIRTY_DAY_GOALS.map(g=><button key={g} className={`toggle ${form.thirtyDayGoal===g?"active":""}`} onClick={()=>setForm(f=>({...f, thirtyDayGoal: g, thirtyDayGoalSetAt: new Date().toISOString()}))}>{g}</button>)}
+                        {THIRTY_DAY_GOALS.map(g=><button key={g} className={`toggle ${form.thirtyDayGoal===g?"active":""}`} onClick={()=>{
+                          const setAt = new Date().toISOString();
+                          setForm(f => ({ ...f, thirtyDayGoal: g, thirtyDayGoalSetAt: setAt }));
+                          if (lead?.email) {
+                            saveProfile(lead.email, { ...form, name: lead.name, tier, thirtyDayGoal: g, thirtyDayGoalSetAt: setAt });
+                          }
+                        }}>{g}</button>)}
                       </div>
                       <p style={{fontSize:13,color:"#666",marginTop:8,lineHeight:1.5}}>{thirtyDayPlan ? "Your overall goal for the 30 days — this shapes your nutrition guidance and the emphasis of your weekly training split." : "Your overall goal for the next 30 days — this drives your nutrition guidance and helps suggest a workout type each session, even though your daily workout type may vary."}</p>
                     </>
