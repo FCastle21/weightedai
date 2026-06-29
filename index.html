@@ -1549,6 +1549,7 @@ function WeightedAI() {
   const [unlocked, setUnlocked] = useState(false);
   const [musicVibe, setMusicVibe] = useState("");
   const [thirtyDayPlan, setThirtyDayPlan] = useState(false);
+  const [showAllPlans, setShowAllPlans] = useState(false);
   const [regenNote, setRegenNote] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [workoutLog, setWorkoutLog] = useState([]);
@@ -2631,11 +2632,9 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               }}>RESUME →</button>
             </div>
           )}
-          <p className="tier-label">Choose Your Plan</p>
-          <div className="tier-grid">
-
-            {/* FREE */}
-            <div className={`tier-card ${tier==="free"?"active":""}`} onClick={() => handleTierSelect("free")}>
+          <p className="tier-label">Get Started</p>
+          <div style={{maxWidth:420,margin:"0 auto"}}>
+            <div className={`tier-card active`} onClick={() => handleTierSelect("free")} style={{cursor:"pointer"}}>
               <div className="tier-name">Free</div>
               <div className="tier-price">$0</div>
               <div className="tier-price-note">1 workout per week · no card needed</div>
@@ -2644,6 +2643,16 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Profile saved</div>
               </div>
             </div>
+            <button onClick={() => handleTierSelect("free")} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Bebas Neue',sans-serif",fontSize:17,letterSpacing:3,padding:"16px",cursor:"pointer",borderRadius:500,marginTop:14}}>
+              TRY IT FREE →
+            </button>
+            <div onClick={() => setShowAllPlans(s => !s)} style={{textAlign:"center",marginTop:18,fontSize:13,color:"#888",cursor:"pointer",textDecoration:"underline"}}>
+              {showAllPlans ? "Hide other plans" : "Want unlimited workouts? See all plans"}
+            </div>
+          </div>
+
+          {showAllPlans && (
+          <div className="tier-grid" style={{marginTop:24}}>
 
             {/* A LA CARTE */}
             <div className={`tier-card ${tier==="individual"?"active":""}`} onClick={() => handleTierSelect("individual")}>
@@ -2685,6 +2694,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
             </div>
 
           </div>
+          )}
 
         </section>
 
