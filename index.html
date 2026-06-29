@@ -2826,7 +2826,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                       {(tier === "unlimited" || tier === "annual") && (
                         form.subscriptionCancelAtPeriodEnd ? (
                           <div style={{fontSize:11,letterSpacing:0.5,color:"#888",padding:"7px 12px",border:"1px solid #2a2a2a",borderRadius:500,whiteSpace:"nowrap"}}>
-                            Cancelled — access until {form.subscriptionPeriodEnd ? new Date(form.subscriptionPeriodEnd).toLocaleDateString() : "period end"}
+                            {form.subscriptionPeriodEnd ? `Cancelled — access until ${new Date(form.subscriptionPeriodEnd).toLocaleDateString()}` : "Cancelled — access continues through your current billing period"}
                           </div>
                         ) : (
                         <button onClick={async () => {
