@@ -783,7 +783,7 @@ const LEVELS    = ["Beginner", "Intermediate", "Advanced"];
 const DAYS      = ["3", "4", "5", "6"];
 const MUSCLES   = ["Full Body", "Back", "Biceps", "Chest", "Core / Abs", "Legs / Glutes", "Metcon", "Shoulders", "Triceps"];
 
-const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"", thirtyDayGoal:"", thirtyDayGoalSetAt:"" };
+const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"", thirtyDayGoal:"", thirtyDayGoalSetAt:"", thirtyDayOverviewCache:"" };
 
 
 // ── Supabase helpers via Netlify Function ──────────────────────────────────────
@@ -1566,6 +1566,7 @@ function WeightedAI() {
   const [regenCount, setRegenCount] = useState(0);
   const [showGoalDescriptions, setShowGoalDescriptions] = useState(false);
   const [showWorkoutHistory, setShowWorkoutHistory] = useState(false);
+  const [thirtyDayOverviewModal, setThirtyDayOverviewModal] = useState(null); // { status: "loading"|"ready"|"error", content: "" }
   const [shareWorkout, setShareWorkout] = useState(() => { try { const v = localStorage.getItem("weightedai_share_workout"); return v === null ? true : v === "true"; } catch { return true; } });
 
   useEffect(() => {
@@ -1647,7 +1648,8 @@ function WeightedAI() {
         injuries: profile.injuries || "",
         notes: profile.notes || "",
         thirtyDayGoal: profile.thirty_day_goal || "",
-        thirtyDayGoalSetAt: profile.thirty_day_goal_set_at || ""
+        thirtyDayGoalSetAt: profile.thirty_day_goal_set_at || "",
+        thirtyDayOverviewCache: profile.thirty_day_overview_cache || ""
       };
       setForm(f => ({ ...f, ...mappedProfile, muscles: [] }));
       // Only update shareWorkout from profile if explicitly set in Supabase
@@ -1867,8 +1869,8 @@ function WeightedAI() {
 
     // PAID TIERS: if returning user with saved profile, auto-fill (muscles reset each session)
     if ((tier === "unlimited" || tier === "annual" || tier === "individual") && existingProfile && !editingProfile) {
-      const { muscles, thirty_day_goal, thirty_day_goal_set_at, ...saved } = existingProfile;
-      setForm(f => ({ ...f, ...saved, thirtyDayGoal: thirty_day_goal || "", thirtyDayGoalSetAt: thirty_day_goal_set_at || "", muscles: f.muscles })); // keep muscles user chose
+      const { muscles, thirty_day_goal, thirty_day_goal_set_at, thirty_day_overview_cache, ...saved } = existingProfile;
+      setForm(f => ({ ...f, ...saved, thirtyDayGoal: thirty_day_goal || "", thirtyDayGoalSetAt: thirty_day_goal_set_at || "", thirtyDayOverviewCache: thirty_day_overview_cache || "", muscles: f.muscles })); // keep muscles user chose
       setProfileLoaded(true);
       setHasActiveSubscription(!!existingProfile.stripe_subscription_id);
     }
@@ -2518,6 +2520,37 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
     return daysSince >= 30;
   };
 
+  const handleViewThirtyDayOverview = async () => {
+    // If we have a valid cache (goal hasn't gone stale, and cache exists), show it immediately
+    if (form.thirtyDayOverviewCache && !isThirtyDayGoalStale(form.thirtyDayGoalSetAt)) {
+      setThirtyDayOverviewModal({ status: "ready", content: form.thirtyDayOverviewCache });
+      return;
+    }
+    // Otherwise generate fresh
+    setThirtyDayOverviewModal({ status: "loading", content: "" });
+    try {
+      const res = await fetch("/.netlify/functions/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "generateThirtyDayOverview",
+          email: lead?.email,
+          age: form.age, gender: form.gender, weight: form.weight, height: form.height,
+          level: form.level, thirtyDayGoal: form.thirtyDayGoal
+        })
+      });
+      const data = await res.json();
+      if (data.overview) {
+        setForm(f => ({ ...f, thirtyDayOverviewCache: data.overview }));
+        setThirtyDayOverviewModal({ status: "ready", content: data.overview });
+      } else {
+        setThirtyDayOverviewModal({ status: "error", content: "" });
+      }
+    } catch (err) {
+      setThirtyDayOverviewModal({ status: "error", content: "" });
+    }
+  };
+
   const getSuggestedMuscleGroups = (log) => {
     if (!log || log.length === 0) return null;
     const allMuscleGroups = ["Back", "Biceps", "Chest", "Core / Abs", "Legs / Glutes", "Shoulders", "Triceps"];
@@ -2893,10 +2926,13 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 <div className="field full">
                   <label>30-Day Goal</label>
                   {!isThirtyDayGoalStale(form.thirtyDayGoalSetAt) && form.thirtyDayGoal ? (
-                    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",fontSize:14,color:"#ccc"}}>
-                      <span>Current goal: <strong style={{color:"var(--acid)"}}>{form.thirtyDayGoal}</strong> ({Math.max(0, 30 - Math.floor((Date.now() - new Date(form.thirtyDayGoalSetAt).getTime())/(1000*60*60*24)))} days left)</span>
-                      <span onClick={()=>setForm(f=>({...f, thirtyDayGoalSetAt:""}))} style={{color:"#666",fontSize:12,cursor:"pointer",textDecoration:"underline",whiteSpace:"nowrap",marginLeft:12}}>Change</span>
-                    </div>
+                    <>
+                      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",fontSize:14,color:"#ccc"}}>
+                        <span>Current goal: <strong style={{color:"var(--acid)"}}>{form.thirtyDayGoal}</strong> ({Math.max(0, 30 - Math.floor((Date.now() - new Date(form.thirtyDayGoalSetAt).getTime())/(1000*60*60*24)))} days left)</span>
+                        <span onClick={()=>setForm(f=>({...f, thirtyDayGoalSetAt:""}))} style={{color:"#666",fontSize:12,cursor:"pointer",textDecoration:"underline",whiteSpace:"nowrap",marginLeft:12}}>Change</span>
+                      </div>
+                      <button onClick={handleViewThirtyDayOverview} style={{marginTop:10,background:"transparent",border:"1px solid #2a2a2a",color:"var(--acid)",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:1,textTransform:"uppercase",padding:"9px 16px",cursor:"pointer",borderRadius:500,transition:"all 0.2s"}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a"}}>📋 View Nutrition & Overview</button>
+                    </>
                   ) : (
                     <>
                       <div className="toggle-group">
@@ -3339,6 +3375,28 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 >
                   VIEW ON YOUTUBE
                 </a>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {thirtyDayOverviewModal && (
+          <div className="info-overlay" onClick={e => e.target===e.currentTarget && setThirtyDayOverviewModal(null)}>
+            <div className="info-modal" style={{maxWidth:520,maxHeight:"80vh",overflowY:"auto"}}>
+              <div className="info-modal-header">
+                <div className="info-modal-title">NUTRITION & OVERVIEW</div>
+                <button className="info-modal-close" onClick={() => setThirtyDayOverviewModal(null)}>✕</button>
+              </div>
+              <div style={{padding:"20px 22px"}}>
+                {thirtyDayOverviewModal.status === "loading" && (
+                  <div style={{textAlign:"center",padding:"30px 0",color:"#999",fontSize:14}}>Building your nutrition guidance...</div>
+                )}
+                {thirtyDayOverviewModal.status === "error" && (
+                  <div style={{textAlign:"center",padding:"30px 0",color:"#999",fontSize:14}}>Something went wrong. Please try again.</div>
+                )}
+                {thirtyDayOverviewModal.status === "ready" && (
+                  <div className="plan-content" dangerouslySetInnerHTML={{__html: parseMarkdown(thirtyDayOverviewModal.content)}} />
+                )}
               </div>
             </div>
           </div>
