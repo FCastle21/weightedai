@@ -783,7 +783,7 @@ const LEVELS    = ["Beginner", "Intermediate", "Advanced"];
 const DAYS      = ["3", "4", "5", "6"];
 const MUSCLES   = ["Full Body", "Back", "Biceps", "Chest", "Core / Abs", "Legs / Glutes", "Metcon", "Shoulders", "Triceps"];
 
-const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"", thirtyDayGoal:"", thirtyDayGoalSetAt:"", thirtyDayOverviewCache:"" };
+const BLANK_FORM = { age:"", gender:"", weight:"", height:"", goal:"", level:"", equipment:"", days:"4", muscles:[], injuries:"", notes:"", thirtyDayGoal:"", thirtyDayGoalSetAt:"", thirtyDayOverviewCache:"", subscriptionCancelAtPeriodEnd:false, subscriptionPeriodEnd:"" };
 
 
 // ── Supabase helpers via Netlify Function ──────────────────────────────────────
@@ -1649,7 +1649,9 @@ function WeightedAI() {
         notes: profile.notes || "",
         thirtyDayGoal: profile.thirty_day_goal || "",
         thirtyDayGoalSetAt: profile.thirty_day_goal_set_at || "",
-        thirtyDayOverviewCache: profile.thirty_day_overview_cache || ""
+        thirtyDayOverviewCache: profile.thirty_day_overview_cache || "",
+        subscriptionCancelAtPeriodEnd: profile.subscription_cancel_at_period_end || false,
+        subscriptionPeriodEnd: profile.subscription_period_end || ""
       };
       setForm(f => ({ ...f, ...mappedProfile, muscles: [] }));
       // Only update shareWorkout from profile if explicitly set in Supabase
@@ -1869,8 +1871,8 @@ function WeightedAI() {
 
     // PAID TIERS: if returning user with saved profile, auto-fill (muscles reset each session)
     if ((tier === "unlimited" || tier === "annual" || tier === "individual") && existingProfile && !editingProfile) {
-      const { muscles, thirty_day_goal, thirty_day_goal_set_at, thirty_day_overview_cache, ...saved } = existingProfile;
-      setForm(f => ({ ...f, ...saved, thirtyDayGoal: thirty_day_goal || "", thirtyDayGoalSetAt: thirty_day_goal_set_at || "", thirtyDayOverviewCache: thirty_day_overview_cache || "", muscles: f.muscles })); // keep muscles user chose
+      const { muscles, thirty_day_goal, thirty_day_goal_set_at, thirty_day_overview_cache, subscription_cancel_at_period_end, subscription_period_end, ...saved } = existingProfile;
+      setForm(f => ({ ...f, ...saved, thirtyDayGoal: thirty_day_goal || "", thirtyDayGoalSetAt: thirty_day_goal_set_at || "", thirtyDayOverviewCache: thirty_day_overview_cache || "", subscriptionCancelAtPeriodEnd: subscription_cancel_at_period_end || false, subscriptionPeriodEnd: subscription_period_end || "", muscles: f.muscles })); // keep muscles user chose
       setProfileLoaded(true);
       setHasActiveSubscription(!!existingProfile.stripe_subscription_id);
     }
@@ -2822,6 +2824,11 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                       </div>
                       <button onClick={handleEditProfile} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#666",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#666"}}>Edit Profile</button>
                       {(tier === "unlimited" || tier === "annual") && (
+                        form.subscriptionCancelAtPeriodEnd ? (
+                          <div style={{fontSize:11,letterSpacing:0.5,color:"#888",padding:"7px 12px",border:"1px solid #2a2a2a",borderRadius:500,whiteSpace:"nowrap"}}>
+                            Cancelled — access until {form.subscriptionPeriodEnd ? new Date(form.subscriptionPeriodEnd).toLocaleDateString() : "period end"}
+                          </div>
+                        ) : (
                         <button onClick={async () => {
                           if (!window.confirm("Cancel your subscription? You'll keep access until the end of your current billing period, then it won't renew.")) return;
                           try {
@@ -2829,13 +2836,16 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                             if (res.error) {
                               alert(res.error);
                             } else {
-                              const endDate = res.periodEnd ? new Date(res.periodEnd * 1000).toLocaleDateString() : "the end of your billing period";
+                              const endDateMs = res.periodEnd ? res.periodEnd * 1000 : null;
+                              const endDate = endDateMs ? new Date(endDateMs).toLocaleDateString() : "the end of your billing period";
+                              setForm(f => ({ ...f, subscriptionCancelAtPeriodEnd: true, subscriptionPeriodEnd: endDateMs ? new Date(endDateMs).toISOString() : "" }));
                               alert("Your subscription has been cancelled. You'll keep access until " + endDate + ".");
                             }
                           } catch(e) {
                             alert("Something went wrong. Please try again or contact support.");
                           }
                         }} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#999",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.color="var(--orange)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#999"}}>Cancel Subscription</button>
+                        )
                       )}
                       <button onClick={async () => {
                         if (!window.confirm("Delete your account? This will permanently remove your profile and all workout history. This cannot be undone.")) return;
