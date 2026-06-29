@@ -285,6 +285,102 @@ exports.handler = async function(event, context) {
       return { statusCode: 200, headers, body: JSON.stringify({ ok: true, status: res.status }) };
     }
 
+    if (action === "generateThirtyDayOverview") {
+      const { age, gender, weight, height, thirtyDayGoal, level } = parsed;
+      if (!thirtyDayGoal) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "thirtyDayGoal required" }) };
+      }
+
+      const overviewPrompt = `You are an elite fitness and nutrition coach. Create a standalone Overview and Nutrition Strategy for a user with these details:
+
+- Age: ${age || "Not specified"}
+- Gender: ${gender || "Not specified"}
+- Weight: ${weight || "Not specified"}
+- Height: ${height || "Not specified"}
+- Level: ${level || "Not specified"}
+- 30-Day Goal: ${thirtyDayGoal}
+
+NUTRITION GUIDELINES — APPLY BASED ON THE 30-DAY GOAL. Use weight (convert to kg if needed: lbs / 2.2 = kg) to calculate exact numbers, not vague ranges. Show your math briefly (e.g. "180 lb = ~82 kg").
+
+IF GOAL IS MUSCLE BUILDING:
+Building muscle increases resting metabolic rate, making it an effective long-term strategy for fat loss as well as strength and aesthetics. Offer two calorie approaches:
+- OPTION A (Lean Muscle Gain): small surplus, 5-15% above estimated maintenance.
+- OPTION B (Recomp / Fat Loss While Building): small deficit (0-10% below maintenance) or maintenance calories.
+- Protein: 1.6-2.4 g/kg bodyweight (0.8-1.1 g/lb).
+- Fat: 20-35% of total calories.
+- Carbs: fill remaining calories, typically 3-7 g/kg depending on training volume.
+
+IF GOAL IS FAT LOSS:
+- Calories: deficit of 10-25% below estimated maintenance. Target fat loss of 0.5-1% of bodyweight per week.
+- Protein: HIGHER than maintenance to preserve muscle — 1.8-2.7 g/kg (0.8-1.2 g/lb).
+- Fat: minimum 20% of calories.
+- Carbs: fill remaining calories — avoid going too low.
+
+IF GOAL IS STRENGTH GAINING:
+- Calories: at or near maintenance.
+- Protein: 1.4-2.0 g/kg (0.64-0.91 g/lb).
+- Fat: 20-35% of calories.
+- Carbs: moderate, 3-5 g/kg.
+
+IF GOAL IS GENERAL FITNESS:
+- Calories: at maintenance.
+- Protein: 1.2-1.6 g/kg (0.55-0.73 g/lb).
+- Fat: 25-35% of calories.
+- Carbs: fill remaining calories.
+
+PRIORITY ORDER: 1) Total calories 2) Protein intake 3) Training consistency 4) Sleep and recovery 5) Carbohydrate intake 6) Food timing 7) Supplements.
+
+DISCLAIMER — INCLUDE THIS VERBATIM AT THE END: "These nutrition recommendations are general guidelines based on widely accepted sports nutrition principles, not personalized medical or dietary prescriptions. Individual needs vary based on health history, medical conditions, and other factors. Please consult a registered dietitian or physician with any specific questions or concerns before making significant changes to your diet."
+
+FORMATTING RULE: Do NOT use markdown tables — no | pipe characters or |---|---| separator rows. Use bullet points or bold labels with colons instead.
+
+Output format:
+## Your 30-Day Overview
+A short paragraph (3-4 sentences) framing what this 30-day goal means in practice and what to expect.
+
+## Nutrition Strategy
+Apply the guidelines above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.
+
+## Recovery Protocol
+2-3 sentences on sleep, rest days, and recovery habits that support this specific goal.`;
+
+      const postData = JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 2000,
+        messages: [{ role: "user", content: overviewPrompt }]
+      });
+
+      const res = await httpsRequest({
+        hostname: "api.anthropic.com",
+        path: "/v1/messages",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": process.env.ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "Content-Length": Buffer.byteLength(postData)
+        }
+      }, postData);
+
+      const responseData = JSON.parse(res.body);
+      const overviewText = responseData.content?.find(b => b.type === "text")?.text || "";
+
+      // Cache this result to the user's profile so we don't regenerate every time
+      if (email && overviewText) {
+        try {
+          await supabase("POST", "profiles", {
+            email,
+            thirty_day_overview_cache: overviewText,
+            updated_at: new Date().toISOString()
+          });
+        } catch (cacheErr) {
+          console.error("Failed to cache overview:", cacheErr);
+        }
+      }
+
+      return { statusCode: 200, headers, body: JSON.stringify({ overview: overviewText }) };
+    }
+
     if (action === "generate" || prompt) {
       const postData = JSON.stringify({
         model: "claude-haiku-4-5-20251001",
