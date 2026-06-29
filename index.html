@@ -2632,6 +2632,8 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               }}>RESUME →</button>
             </div>
           )}
+          {!lead || !tier ? (
+          <>
           <p className="tier-label">Get Started</p>
           <div style={{maxWidth:420,margin:"0 auto"}}>
             <div className={`tier-card active`} onClick={() => handleTierSelect("free")} style={{cursor:"pointer"}}>
@@ -2694,6 +2696,17 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
             </div>
 
           </div>
+          )}
+
+          </>
+          ) : (
+            <div style={{maxWidth:420,margin:"0 auto",textAlign:"center"}}>
+              <p className="tier-label">Welcome Back</p>
+              <p style={{fontSize:15,color:"#999",lineHeight:1.6,marginBottom:20}}>You're all set on the <strong style={{color:"var(--acid)"}}>{tier==="annual"?"Unlimited Annual":tier==="unlimited"?"Unlimited":tier==="individual"?"Individual":"Free"}</strong> plan. Scroll down to build your next workout.</p>
+              <button onClick={() => { setStep("form"); setTimeout(()=>{ const el=document.getElementById('form-top'); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:'smooth'}); }}, 50); }} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Bebas Neue',sans-serif",fontSize:17,letterSpacing:3,padding:"16px",cursor:"pointer",borderRadius:500}}>
+                CONTINUE →
+              </button>
+            </div>
           )}
 
         </section>
