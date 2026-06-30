@@ -1288,77 +1288,6 @@ function fixApexAlternation(planText, level) {
   }
 }
 
-// Safety net: fixUnilateralExercises
-// Detects exercises generated with only one side specified — e.g.
-// "Archer Pushups (left side)" — and injects the missing mirror entry
-// immediately after, so both sides are always represented in the workout.
-function fixUnilateralExercises(planText) {
-  try {
-    const LEFT_PATTERN  = /\(\s*left(?:\s+side)?\s*\)/i;
-    const RIGHT_PATTERN = /\(\s*right(?:\s+side)?\s*\)/i;
-
-    const lines = planText.split("\n");
-    const result = [];
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const boldMatch = line.match(/\*\*([^*]+)\*\*/);
-
-      if (boldMatch) {
-        const exercisePart = boldMatch[1];
-        const isLeftOnly  = LEFT_PATTERN.test(exercisePart)  && !RIGHT_PATTERN.test(exercisePart);
-        const isRightOnly = RIGHT_PATTERN.test(exercisePart) && !LEFT_PATTERN.test(exercisePart);
-
-        if (isLeftOnly) {
-          // Keep the left line, then collect its descriptor lines, then inject the right mirror
-          result.push(line);
-          // Collect any non-bold lines that follow (the exercise description/sets lines)
-          const descriptorLines = [];
-          let j = i + 1;
-          while (j < lines.length && !lines[j].match(/\*\*([^*]+)\*\*/) && j < i + 5) {
-            descriptorLines.push(lines[j]);
-            j++;
-          }
-          descriptorLines.forEach(dl => result.push(dl));
-          // Inject matching right-side entry
-          const rightLine = line.replace(LEFT_PATTERN, "(right side)");
-          result.push(rightLine);
-          descriptorLines.forEach(dl => result.push(dl));
-          // Skip past the descriptor lines we already consumed
-          i = j - 1;
-          console.warn("[fixUnilateralExercises] Injected missing right-side pair for:", exercisePart);
-
-        } else if (isRightOnly) {
-          // Inject left-side entry first, then keep the right line
-          const leftLine = line.replace(RIGHT_PATTERN, "(left side)");
-          const descriptorLines = [];
-          let j = i + 1;
-          while (j < lines.length && !lines[j].match(/\*\*([^*]+)\*\*/) && j < i + 5) {
-            descriptorLines.push(lines[j]);
-            j++;
-          }
-          result.push(leftLine);
-          descriptorLines.forEach(dl => result.push(dl));
-          result.push(line);
-          descriptorLines.forEach(dl => result.push(dl));
-          i = j - 1;
-          console.warn("[fixUnilateralExercises] Injected missing left-side pair for:", exercisePart);
-
-        } else {
-          result.push(line);
-        }
-      } else {
-        result.push(line);
-      }
-    }
-
-    return result.join("\n");
-  } catch (e) {
-    console.error("fixUnilateralExercises error:", e);
-    return planText;
-  }
-}
-
 // Splits the full plan text into sections by ## headers. Returns an array of
 // { title, content, alwaysOpen } objects. The main workout section (and the
 // top-level # title) stays always visible; secondary sections (Overview,
@@ -1405,7 +1334,13 @@ function getWorkoutOnlyContent(text) {
     if (!s.title) return true; // untitled content (e.g. text before any header) - keep, usually part of the workout itself
     return !nutritionAndExtraTitles.test(s.title);
   });
-  return keptSections.map(s => s.title ? "## " + s.title + "\n" + s.contentText : s.contentText).join("\n");
+  let result = keptSections.map(s => s.title ? "## " + s.title + "\n" + s.contentText : s.contentText).join("\n");
+  // Safety net: strip any disclaimer text that leaked in regardless of section structure
+  // (e.g. if the AI placed it after Cool-Down with no clear header separating it)
+  result = result.replace(/\*{0,2}Disclaimer\*{0,2}:?\s*/gi, "");
+  result = result.replace(/These nutrition recommendations are general guidelines[\s\S]{0,400}?changes to your diet\.?/gi, "");
+  result = result.replace(/^\s*\*{1,2}\s*$/gm, ""); // clean up any stray leftover asterisks on their own line
+  return result.trim();
 }
 
 function parseMarkdown(text) {
@@ -2296,8 +2231,6 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
           cleanPlan = fixResult;
         }
       }
-      // Safety net: fix any exercises generated with only one side (e.g. "Archer Pushups (left side)")
-      cleanPlan = fixUnilateralExercises(cleanPlan);
       // Safety net: if Metcon was NOT selected AND this isn't Apex, but conditioning exercises leaked in anyway, strip them out entirely
       const metconNotSelected = (!currentForm.muscles || !currentForm.muscles.includes("Metcon")) && currentForm.goal !== "Apex" && currentForm.goal !== "HIIT";
       if (metconNotSelected) {
