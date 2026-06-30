@@ -2566,9 +2566,9 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
     return daysSince >= 30;
   };
 
-  const handleViewThirtyDayOverview = async () => {
+  const handleViewThirtyDayOverview = async (forceRefresh) => {
     // If we have a valid cache (goal hasn't gone stale, and cache exists), show it immediately
-    if (form.thirtyDayOverviewCache && !isThirtyDayGoalStale(form.thirtyDayGoalSetAt)) {
+    if (!forceRefresh && form.thirtyDayOverviewCache && !isThirtyDayGoalStale(form.thirtyDayGoalSetAt)) {
       setThirtyDayOverviewModal({ status: "ready", content: form.thirtyDayOverviewCache });
       return;
     }
@@ -2985,7 +2985,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                         <span>Current goal: <strong style={{color:"var(--acid)"}}>{form.thirtyDayGoal}</strong> ({Math.max(0, 30 - Math.floor((Date.now() - new Date(form.thirtyDayGoalSetAt).getTime())/(1000*60*60*24)))} days left)</span>
                         <span onClick={()=>setForm(f=>({...f, thirtyDayGoalSetAt:""}))} style={{color:"#666",fontSize:12,cursor:"pointer",textDecoration:"underline",whiteSpace:"nowrap",marginLeft:12}}>Change</span>
                       </div>
-                      <button onClick={handleViewThirtyDayOverview} style={{marginTop:10,background:"transparent",border:"1px solid #2a2a2a",color:"var(--acid)",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:1,textTransform:"uppercase",padding:"9px 16px",cursor:"pointer",borderRadius:500,transition:"all 0.2s"}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a"}}>📋 View Nutrition & Overview</button>
+                      <button onClick={() => handleViewThirtyDayOverview(false)} style={{marginTop:10,background:"transparent",border:"1px solid #2a2a2a",color:"var(--acid)",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:1,textTransform:"uppercase",padding:"9px 16px",cursor:"pointer",borderRadius:500,transition:"all 0.2s"}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a"}}>📋 View Nutrition & Overview</button>
                     </>
                   ) : (
                     <>
@@ -3427,6 +3427,11 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 <div className="info-modal-title">NUTRITION & OVERVIEW</div>
                 <button className="info-modal-close" onClick={() => setThirtyDayOverviewModal(null)}>✕</button>
               </div>
+              {thirtyDayOverviewModal.status === "ready" && (
+                <div style={{padding:"0 22px",marginTop:-8,marginBottom:8}}>
+                  <span onClick={() => handleViewThirtyDayOverview(true)} style={{color:"#666",fontSize:11,cursor:"pointer",textDecoration:"underline"}}>↻ Regenerate with latest guidelines</span>
+                </div>
+              )}
               <div style={{padding:"20px 22px"}}>
                 {thirtyDayOverviewModal.status === "loading" && (
                   <div style={{textAlign:"center",padding:"30px 0",color:"#999",fontSize:14}}>Building your nutrition guidance...</div>
