@@ -958,6 +958,49 @@ function removeEquipmentMetconForBodyweight(planText) {
   }
 }
 
+// Safety net: strip exercises whose NAME implies external equipment (goblet squat, dumbbell press,
+// barbell row, etc.) for Bodyweight Only workouts - catches strength exercise mislabeling that
+// removeEquipmentMetconForBodyweight doesn't cover since that only targets the metcon pool.
+function removeEquipmentStrengthForBodyweight(planText) {
+  try {
+    const equipmentNameKeywords = ["goblet", "dumbbell", "barbell", "kettlebell", "ez bar", "ez-bar", "cable", "machine", "smith machine", "leg press", "lat pulldown", "trap bar", "landmine", "medicine ball", "weighted", "plate", "band", "resistance band", "bench press", "preacher", "hack squat", "leg extension", "leg curl machine"];
+    const lines = planText.split("\n");
+    const exerciseLineIndices = [];
+    const isViolation = [];
+
+    lines.forEach((line, idx) => {
+      const boldMatch = line.match(/\*\*([^*]+)\*\*/);
+      if (boldMatch) {
+        const exName = boldMatch[1].split("—")[0].split("–")[0].trim().toLowerCase();
+        exerciseLineIndices.push(idx);
+        isViolation.push(equipmentNameKeywords.some(kw => exName.includes(kw)));
+      }
+    });
+
+    if (!isViolation.some(v => v)) return planText; // nothing to remove
+
+    const blocks = [];
+    for (let i = 0; i < exerciseLineIndices.length; i++) {
+      const startIdx = exerciseLineIndices[i];
+      const endIdx = i + 1 < exerciseLineIndices.length ? exerciseLineIndices[i + 1] : lines.length;
+      blocks.push({ lines: lines.slice(startIdx, endIdx), violation: isViolation[i] });
+    }
+
+    const keptBlocks = blocks.filter(b => !b.violation);
+    if (keptBlocks.length === 0) return planText; // would wipe out all exercises - bail out instead
+
+    const firstBlockStart = exerciseLineIndices[0];
+    const lastBlockEnd = exerciseLineIndices[exerciseLineIndices.length - 1] + blocks[blocks.length - 1].lines.length;
+    const before = lines.slice(0, firstBlockStart);
+    const after = lines.slice(lastBlockEnd);
+    const keptLines = keptBlocks.flatMap(b => b.lines);
+
+    return [...before, ...keptLines, ...after].join("\n");
+  } catch (e) {
+    return planText;
+  }
+}
+
 // Safety net: ensure HIIT workouts have a proper Warm-Up section without timed/metcon exercises bleeding in
 function ensureHiitWarmup(planText) {
   try {
@@ -1938,7 +1981,7 @@ BODYWEIGHT-ONLY METCON (use these if equipment is "Bodyweight Only" — NO equip
 
 EQUIPMENT-BASED METCON (use ONLY if the user's equipment selection includes the required equipment — NEVER use these for Bodyweight Only): battle ropes (alternating waves, slams) [requires ropes], kettlebell swings [requires kettlebell], sled push, sled pull/drag [requires sled], rowing machine sprints [requires rower], assault bike sprints [requires bike], ski erg sprints [requires ski erg], farmer's carry, suitcase carry [requires dumbbells/kettlebells], devil press, thrusters, wall balls [requires dumbbells/medicine ball], medicine ball slams [requires medicine ball], tire flips [requires tire].
 
-CRITICAL EQUIPMENT RULE: If equipment is "Bodyweight Only", you may ONLY select from the Bodyweight-Only Metcon list above. Using any Equipment-Based Metcon exercise (rowing machine, assault bike, battle ropes, kettlebells, sleds, etc.) in a Bodyweight Only workout is a hard violation with zero exceptions.
+CRITICAL EQUIPMENT RULE: If equipment is "Bodyweight Only", you may ONLY select from the Bodyweight-Only Metcon list above for conditioning exercises, AND every strength/resistance exercise must use bodyweight alone — no equipment of any kind. NEVER use exercise names that inherently imply equipment, such as "goblet squat" (implies holding a dumbbell/kettlebell), "dumbbell press," "barbell row," "cable pulldown," "weighted lunge," "band-resisted X," or any name containing equipment terminology — even if you intend the exercise to be done without the equipment, the NAME itself is wrong and confusing. Use genuinely bodyweight-only names instead (e.g. "Bodyweight Squat" not "Goblet Squat," "Pike Push-Up" not "Dumbbell Shoulder Press"). Using any Equipment-Based exercise (rowing machine, assault bike, battle ropes, kettlebells, sleds, goblet squats, etc.) in a Bodyweight Only workout is a hard violation with zero exceptions.
 
 VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
@@ -2031,7 +2074,7 @@ BODYWEIGHT-ONLY METCON (use these if equipment is "Bodyweight Only" — NO equip
 
 EQUIPMENT-BASED METCON (use ONLY if the user's equipment selection includes the required equipment — NEVER use these for Bodyweight Only): battle ropes (alternating waves, slams) [requires ropes], kettlebell swings [requires kettlebell], sled push, sled pull/drag [requires sled], rowing machine sprints [requires rower], assault bike sprints [requires bike], ski erg sprints [requires ski erg], farmer's carry, suitcase carry [requires dumbbells/kettlebells], devil press, thrusters, wall balls [requires dumbbells/medicine ball], medicine ball slams [requires medicine ball], tire flips [requires tire].
 
-CRITICAL EQUIPMENT RULE: If equipment is "Bodyweight Only", you may ONLY select from the Bodyweight-Only Metcon list above. Using any Equipment-Based Metcon exercise (rowing machine, assault bike, battle ropes, kettlebells, sleds, etc.) in a Bodyweight Only workout is a hard violation with zero exceptions.
+CRITICAL EQUIPMENT RULE: If equipment is "Bodyweight Only", you may ONLY select from the Bodyweight-Only Metcon list above for conditioning exercises, AND every strength/resistance exercise must use bodyweight alone — no equipment of any kind. NEVER use exercise names that inherently imply equipment, such as "goblet squat" (implies holding a dumbbell/kettlebell), "dumbbell press," "barbell row," "cable pulldown," "weighted lunge," "band-resisted X," or any name containing equipment terminology — even if you intend the exercise to be done without the equipment, the NAME itself is wrong and confusing. Use genuinely bodyweight-only names instead (e.g. "Bodyweight Squat" not "Goblet Squat," "Pike Push-Up" not "Dumbbell Shoulder Press"). Using any Equipment-Based exercise (rowing machine, assault bike, battle ropes, kettlebells, sleds, goblet squats, etc.) in a Bodyweight Only workout is a hard violation with zero exceptions.
 
 VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
@@ -2146,7 +2189,7 @@ BODYWEIGHT-ONLY METCON (use these if equipment is "Bodyweight Only" — NO equip
 
 EQUIPMENT-BASED METCON (use ONLY if the user's equipment selection includes the required equipment — NEVER use these for Bodyweight Only): battle ropes (alternating waves, slams) [requires ropes], kettlebell swings [requires kettlebell], sled push, sled pull/drag [requires sled], rowing machine sprints [requires rower], assault bike sprints [requires bike], ski erg sprints [requires ski erg], farmer's carry, suitcase carry [requires dumbbells/kettlebells], devil press, thrusters, wall balls [requires dumbbells/medicine ball], medicine ball slams [requires medicine ball], tire flips [requires tire].
 
-CRITICAL EQUIPMENT RULE: If equipment is "Bodyweight Only", you may ONLY select from the Bodyweight-Only Metcon list above. Using any Equipment-Based Metcon exercise (rowing machine, assault bike, battle ropes, kettlebells, sleds, etc.) in a Bodyweight Only workout is a hard violation with zero exceptions.
+CRITICAL EQUIPMENT RULE: If equipment is "Bodyweight Only", you may ONLY select from the Bodyweight-Only Metcon list above for conditioning exercises, AND every strength/resistance exercise must use bodyweight alone — no equipment of any kind. NEVER use exercise names that inherently imply equipment, such as "goblet squat" (implies holding a dumbbell/kettlebell), "dumbbell press," "barbell row," "cable pulldown," "weighted lunge," "band-resisted X," or any name containing equipment terminology — even if you intend the exercise to be done without the equipment, the NAME itself is wrong and confusing. Use genuinely bodyweight-only names instead (e.g. "Bodyweight Squat" not "Goblet Squat," "Pike Push-Up" not "Dumbbell Shoulder Press"). Using any Equipment-Based exercise (rowing machine, assault bike, battle ropes, kettlebells, sleds, goblet squats, etc.) in a Bodyweight Only workout is a hard violation with zero exceptions.
 
 VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
@@ -2248,6 +2291,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       // Safety net: if equipment is Bodyweight Only, strip any equipment-requiring metcon exercises (rowing machine, assault bike, battle ropes, kettlebells, sleds, etc.)
       if (currentForm.equipment === "Bodyweight Only") {
         cleanPlan = removeEquipmentMetconForBodyweight(cleanPlan);
+        cleanPlan = removeEquipmentStrengthForBodyweight(cleanPlan);
       }
       setIsStreaming(false);
       setPlan(cleanPlan);
