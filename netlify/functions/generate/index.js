@@ -310,25 +310,25 @@ IF GOAL IS MUSCLE BUILDING:
 Building muscle increases resting metabolic rate, making it an effective long-term strategy for fat loss as well as strength and aesthetics. Offer two calorie approaches:
 - OPTION A (Lean Muscle Gain): small surplus, 5-15% above estimated maintenance.
 - OPTION B (Recomp / Fat Loss While Building): small deficit (0-10% below maintenance) or maintenance calories.
-- Protein: 1.6-2.4 g/kg bodyweight (0.8-1.1 g/lb).
+- Protein: 0.8 g/lb bodyweight (1.76 g/kg).
 - Fat: 20-35% of total calories.
 - Carbs: fill remaining calories, typically 3-7 g/kg depending on training volume.
 
 IF GOAL IS FAT LOSS:
 - Calories: deficit of 10-25% below estimated maintenance. Target fat loss of 0.5-1% of bodyweight per week.
-- Protein: HIGHER than maintenance to preserve muscle — 1.8-2.7 g/kg (0.8-1.2 g/lb).
+- Protein: 0.8 g/lb bodyweight (1.76 g/kg) to preserve muscle during the deficit.
 - Fat: minimum 20% of calories.
 - Carbs: fill remaining calories — avoid going too low.
 
 IF GOAL IS STRENGTH GAINING:
 - Calories: at or near maintenance.
-- Protein: 1.4-2.0 g/kg (0.64-0.91 g/lb).
+- Protein: 0.8 g/lb bodyweight (1.76 g/kg).
 - Fat: 20-35% of calories.
 - Carbs: moderate, 3-5 g/kg.
 
 IF GOAL IS GENERAL FITNESS:
 - Calories: at maintenance.
-- Protein: 1.2-1.6 g/kg (0.55-0.73 g/lb).
+- Protein: 0.8 g/lb bodyweight (1.76 g/kg).
 - Fat: 25-35% of calories.
 - Carbs: fill remaining calories.
 
