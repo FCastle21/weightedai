@@ -235,7 +235,7 @@
 
   <!-- NAV -->
   <nav>
-    <a href="#" class="nav-logo"><span class="logo-line">WEIGHT</span><span class="logo-line">ED<span class="logo-badge" style="margin-left:4px;">[AI]</span></span></a>
+    <a href="#" class="nav-logo">Weighted<span class="logo-badge">[AI]</span></a>
     <button onclick="document.getElementById('signin-overlay').style.display='flex'" id="signin-nav-btn" style="background:#5d8a7a;border:none;color:#0a0a0a;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 20px;cursor:pointer;border-radius:500px;font-weight:500;">Sign In</button>
   </nav>
 
@@ -289,7 +289,7 @@
         <div class="step-num">02</div>
         <div class="step-icon">⚡</div>
         <h3>AI Builds Your Plan</h3>
-        <p>Our AI engine analyzes your profile and generates a fully personalized workout and nutrition program in seconds.</p>
+        <p>Our AI engine analyzes your profile and builds a fully personalized workout and nutrition program in seconds.</p>
       </div>
       <div class="step">
         <div class="step-num">03</div>
@@ -361,7 +361,7 @@
 
   <!-- FOOTER -->
   <footer>
-    <div class="footer-logo">WEIGHTED<span>AI</span></div>
+    <div class="footer-logo">WEIGHTED<span>[AI]</span></div>
     <div class="footer-copy">© 2026 WeightedAI. All rights reserved.</div>
     <div class="footer-links">
       <a href="/privacy.html">Privacy</a>
@@ -2430,7 +2430,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
 
   const handleRegenerate = async () => {
     if (tier === "individual" && regenCount >= 1) {
-      alert("Single workouts include one free regeneration. Upgrade to Unlimited for unlimited regenerations on every workout.");
+      alert("Single workouts include one free rebuild. Upgrade to Unlimited for unlimited rebuilds on every workout.");
       return;
     }
     setRegenCount(c => c + 1);
@@ -2699,14 +2699,14 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       <div className="app">
 
         <header className="header">
-          <div className="logo"><span className="logo-line">WEIGHT</span><span className="logo-line">ED<span className="logo-badge" style={{marginLeft:3}}>[AI]</span></span></div>
+          <div className="logo">Weighted<span className="logo-badge">[AI]</span></div>
           <div className="badge">Beta</div>
         </header>
 
         <section className="app-hero">
           <p className="app-hero-label">AI-Powered Fitness Intelligence</p>
           <h1 className="app-hero-h1">YOUR PLAN.<br />BUILT IN<br />SECONDS.</h1>
-          <p className="app-hero-p">Choose your plan below. Our AI engine generates a personalized workout instantly — for free, on-demand, or unlimited.</p>
+          <p className="app-hero-p">Choose your plan below. Our AI engine builds a personalized workout instantly — for free, on-demand, or unlimited.</p>
         </section>
 
         {/* TIER SELECTOR */}
@@ -3073,7 +3073,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               <div className="email-confirmed" style={{justifyContent:"space-between"}}>
                 <div style={{display:"flex",alignItems:"center",gap:12}}>
                   <span>✓</span>
-                  <span>Generated for <strong>{lead.name}</strong> · {lead.email}</span>
+                  <span>Built for <strong>{lead.name}</strong> · {lead.email}</span>
                 </div>
                 {(tier === "unlimited" || tier === "annual") && (
                   <span onClick={() => { setStep("form"); setTimeout(()=>{ const el=document.getElementById('form-top'); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:'smooth'}); }}, 50); }} style={{color:"var(--acid)",fontSize:12,letterSpacing:1,cursor:"pointer",textDecoration:"underline",whiteSpace:"nowrap"}}>Manage Account</span>
@@ -3132,12 +3132,12 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     {!isStreaming && (tier !== "individual" || regenCount < 1) && (
                       <div className="regen-row">
                         <input className="regen-input" placeholder='Adjust: "make it harder", "no deadlifts", "shorter rest"...' value={regenNote} onChange={e=>setRegenNote(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleRegenerate()} />
-                        <button className="regen-submit" onClick={handleRegenerate}>REGENERATE →</button>
+                        <button className="regen-submit" onClick={handleRegenerate}>REBUILD →</button>
                       </div>
                     )}
                     {!isStreaming && tier === "individual" && regenCount >= 1 && (
                       <div style={{background:"#0f0f0f",border:"1px solid #1e1e1e",borderLeft:"3px solid var(--acid)",padding:"14px 20px",marginBottom:24,fontSize:13,color:"#888"}}>
-                        You've used your free regeneration for this workout. <a href="#" onClick={(e)=>{e.preventDefault(); setTier("unlimited"); setStep("form"); setUnlocked(false); setPlan(null); setTimeout(()=>{ const el=document.getElementById("form-top"); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:"smooth"}); }}, 50);}} style={{color:"var(--acid)",textDecoration:"underline"}}>Upgrade to Unlimited</a> for unlimited regenerations.
+                        You've used your free rebuild for this workout. <a href="#" onClick={(e)=>{e.preventDefault(); setTier("unlimited"); setStep("form"); setUnlocked(false); setPlan(null); setTimeout(()=>{ const el=document.getElementById("form-top"); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:"smooth"}); }}, 50);}} style={{color:"var(--acid)",textDecoration:"underline"}}>Upgrade to Unlimited</a> for unlimited rebuilds.
                       </div>
                     )}
 
@@ -3338,7 +3338,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
         {workoutMode && plan && (
           <div className="workout-mode">
             <div className="workout-mode-header">
-              <div className="workout-mode-logo">WEIGHTED<span>AI</span></div>
+              <div className="workout-mode-logo">WEIGHTED<span>[AI]</span></div>
               <button className="workout-mode-close" onClick={() => {
                 setWorkoutMode(false);
                 setSavedWorkout(null);
@@ -3451,7 +3451,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               </div>
               {thirtyDayOverviewModal.status === "ready" && (
                 <div style={{padding:"0 22px",marginTop:-8,marginBottom:8}}>
-                  <span onClick={() => handleViewThirtyDayOverview(true)} style={{color:"#666",fontSize:11,cursor:"pointer",textDecoration:"underline"}}>↻ Regenerate with latest guidelines</span>
+                  <span onClick={() => handleViewThirtyDayOverview(true)} style={{color:"#666",fontSize:11,cursor:"pointer",textDecoration:"underline"}}>↻ Rebuild with latest guidelines</span>
                 </div>
               )}
               <div style={{padding:"20px 22px"}}>
