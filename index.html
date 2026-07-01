@@ -3505,7 +3505,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 <button className="info-modal-close" onClick={() => setThirtyDayOverviewModal(null)}>✕</button>
               </div>
               {thirtyDayOverviewModal.status === "ready" && (
-                <div style={{padding:"0 22px",marginTop:-8,marginBottom:8}}>
+                <div style={{padding:"14px 22px 0"}}>
                   <span onClick={() => handleViewThirtyDayOverview(true)} style={{color:"#666",fontSize:11,cursor:"pointer",textDecoration:"underline"}}>↻ Rebuild with latest guidelines</span>
                 </div>
               )}
