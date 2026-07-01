@@ -148,6 +148,7 @@ exports.handler = async function(event, context) {
             email: customerEmail,
             stripe_subscription_id: sessionData.subscription,
             stripe_customer_id: sessionData.customer,
+            subscription_status: "active",
             updated_at: new Date().toISOString()
           });
         } catch (saveErr) {
