@@ -116,7 +116,7 @@
       font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 3px;
       color: var(--mint); margin-bottom: 10px;
     }
-    .step-icon { font-size: 22px; margin-bottom: 10px; }
+    .step-icon { font-size: 16px; color: var(--mint); margin-bottom: 10px; }
     .step h3 { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; margin-bottom: 6px; color: var(--white); }
     .step p { font-size: 12px; color: var(--muted); line-height: 1.6; }
 
@@ -280,19 +280,19 @@
     <div class="steps">
       <div class="step">
         <div class="step-num">01</div>
-        <div class="step-icon">📋</div>
+        <div class="step-icon">◆</div>
         <h3>Tell Us About You</h3>
         <p>Share your goals, experience level, available equipment, and any limitations. Takes about 45 seconds.</p>
       </div>
       <div class="step">
         <div class="step-num">02</div>
-        <div class="step-icon">⚡</div>
+        <div class="step-icon">◆</div>
         <h3>AI Builds Your Plan</h3>
         <p>Our AI engine analyzes your profile and builds a fully personalized workout and nutrition program in seconds.</p>
       </div>
       <div class="step">
         <div class="step-num">03</div>
-        <div class="step-icon">📈</div>
+        <div class="step-icon">◆</div>
         <h3>Progress With Precision</h3>
         <p>Rate each session and the AI analyzes your history — automatically adjusting volume, intensity, and exercise selection for consistent, measurable progress.</p>
       </div>
@@ -733,7 +733,6 @@ const styles = `
     .cta-strip { flex-direction: column; padding: 16px 20px; text-align: center; gap: 12px; }
     footer { flex-direction: column; gap: 12px; padding: 16px 20px; text-align: center; }
     .footer-links { justify-content: center; }
-    .tier-grid { grid-template-columns: 1fr 1fr; }
     .form-grid { grid-template-columns: 1fr; }
     .field.full { grid-column: 1; }
     .gate, .modal { padding: 28px 20px; }
@@ -758,6 +757,27 @@ const styles = `
     .plan-content { font-size: 15px !important; }
     .workout-mode-content { font-size: 16px !important; }
   }
+
+  /* TOASTS */
+  .toast-wrap { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; width: calc(100% - 32px); max-width: 420px; pointer-events: none; }
+  .toast { background: #141414; border: 1px solid #2a2a2a; border-left: 3px solid var(--acid); border-radius: 12px; padding: 14px 16px; font-size: 13px; color: var(--white); line-height: 1.5; box-shadow: 0 8px 24px rgba(0,0,0,0.4); animation: fadeUp 0.25s ease; pointer-events: auto; display: flex; align-items: flex-start; gap: 10px; }
+  .toast.error { border-left-color: var(--orange); }
+  .toast.success { border-left-color: var(--acid); }
+  .toast-close { background: transparent; border: none; color: #666; cursor: pointer; font-size: 13px; flex-shrink: 0; padding: 0; margin-left: auto; }
+  .toast-close:hover { color: var(--white); }
+
+  /* CONFIRM MODAL */
+  .confirm-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 9998; padding: 20px; animation: fadeIn 0.2s ease; }
+  .confirm-box { background: #0f0f0f; border: 1px solid #2a2a2a; border-top: 3px solid var(--acid); border-radius: 16px; padding: 28px 24px; max-width: 400px; width: 100%; animation: slideUp 0.25s ease; }
+  .confirm-box.danger { border-top-color: var(--orange); }
+  .confirm-text { font-size: 14px; color: #ddd; line-height: 1.6; margin-bottom: 22px; }
+  .confirm-actions { display: flex; gap: 10px; }
+  .confirm-btn { flex: 1; border: 1px solid #2a2a2a; background: transparent; color: #999; font-family: 'DM Sans', sans-serif; font-size: 13px; letter-spacing: 0.5px; padding: 12px; border-radius: 500px; cursor: pointer; transition: all 0.2s; }
+  .confirm-btn:hover { border-color: #444; color: var(--white); }
+  .confirm-btn.primary { background: var(--acid); border-color: var(--acid); color: var(--black); font-weight: 500; }
+  .confirm-btn.primary:hover { background: #4a6f61; }
+  .confirm-btn.primary.danger { background: var(--orange); border-color: var(--orange); color: var(--white); }
+  .confirm-btn.primary.danger:hover { background: #cc4a00; }
 
 
 `;
@@ -1581,10 +1601,10 @@ async function startStripeCheckout(tier, email, planContent, formData) {
     if (data.url) {
       window.location.href = data.url;
     } else {
-      alert("Payment setup failed: " + (data.error || "Unknown error"));
+      (window.__showToast || alert)("Payment setup failed: " + (data.error || "Unknown error"), "error");
     }
   } catch(e) {
-    alert("Something went wrong starting checkout. Please try again.");
+    (window.__showToast || alert)("Something went wrong starting checkout. Please try again.", "error");
   }
 }
 
@@ -1595,6 +1615,8 @@ function WeightedAI() {
   const [form, setForm]         = useState(BLANK_FORM);
   const [step, setStep]         = useState("home");
   const [lead, setLead]         = useState(null);
+  const [toasts, setToasts]     = useState([]);
+  const [confirmModal, setConfirmModal] = useState(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
@@ -1623,6 +1645,23 @@ function WeightedAI() {
   const [showWorkoutHistory, setShowWorkoutHistory] = useState(false);
   const [thirtyDayOverviewModal, setThirtyDayOverviewModal] = useState(null); // { status: "loading"|"ready"|"error", content: "" }
   const [shareWorkout, setShareWorkout] = useState(() => { try { const v = localStorage.getItem("weightedai_share_workout"); return v === null ? true : v === "true"; } catch { return true; } });
+
+  // Toast + confirm modal helpers (replace native alert()/confirm() for a consistent, on-brand UI)
+  const dismissToast = (id) => setToasts(ts => ts.filter(t => t.id !== id));
+  const showToast = (message, tone = "info") => {
+    const id = Date.now() + Math.random();
+    setToasts(ts => [...ts, { id, message, tone }]);
+    setTimeout(() => dismissToast(id), 5000);
+  };
+  const showConfirm = (message, onConfirm, opts = {}) => {
+    setConfirmModal({ message, onConfirm, danger: !!opts.danger, confirmLabel: opts.confirmLabel });
+  };
+  useEffect(() => {
+    // Bridge so standalone functions and plain <script> handlers (sign-in modal, Stripe checkout)
+    // outside the React tree can trigger the same toast UI instead of native alert()
+    window.__showToast = showToast;
+    return () => { window.__showToast = null; };
+  }, []);
 
   useEffect(() => {
     // Screen wake lock in workout mode
@@ -1804,7 +1843,7 @@ function WeightedAI() {
               await saveProfile(currentEmail, { tier: _paidTier || "unlimited" });
             }
           } else {
-            alert("Payment could not be verified. Please contact support if you were charged.");
+            showToast("Payment could not be verified. Please contact support if you were charged.", "error");
           }
         } catch(e) { console.error("Payment verification error:", e); }
       })();
@@ -2426,7 +2465,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
 
   const handleRegenerate = async () => {
     if (tier === "individual" && regenCount >= 1) {
-      alert("Single workouts include one free rebuild. Upgrade to Unlimited for unlimited rebuilds on every workout.");
+      showToast("Single workouts include one free rebuild. Upgrade to Unlimited for unlimited rebuilds on every workout.", "info");
       return;
     }
     setRegenCount(c => c + 1);
@@ -2689,6 +2728,59 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
     setProfileLoaded(false);
   };
 
+  const handleCancelSubscription = () => {
+    showConfirm(
+      "Cancel your subscription? You'll keep access until the end of your current billing period, then it won't renew.",
+      async () => {
+        try {
+          const res = await dbRequest("cancelSubscription", { email: lead.email });
+          if (res.error) {
+            showToast(res.error, "error");
+          } else {
+            const endDateMs = res.periodEnd ? res.periodEnd * 1000 : null;
+            const endDate = endDateMs ? new Date(endDateMs).toLocaleDateString() : "the end of your billing period";
+            setForm(f => ({ ...f, subscriptionCancelAtPeriodEnd: true, subscriptionPeriodEnd: endDateMs ? new Date(endDateMs).toISOString() : "" }));
+            showToast("Your subscription has been cancelled. You'll keep access until " + endDate + ".", "success");
+          }
+        } catch(e) {
+          showToast("Something went wrong. Please try again or contact support.", "error");
+        }
+      },
+      { danger: true, confirmLabel: "Cancel Subscription" }
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    showConfirm(
+      "Delete your account? This will permanently remove your profile and all workout history. This cannot be undone.",
+      async () => {
+        try {
+          await dbRequest("deleteAccount", { email: lead.email });
+          localStorage.removeItem("weightedai_email");
+          localStorage.removeItem("weightedai_active_workout");
+          localStorage.removeItem("weightedai_share_workout");
+          showToast("Your account has been deleted.", "success");
+          setTimeout(() => window.location.reload(), 1200);
+        } catch(e) {
+          showToast("Something went wrong. Please try again.", "error");
+        }
+      },
+      { danger: true, confirmLabel: "Delete Account" }
+    );
+  };
+
+  const handleSignOut = () => {
+    showConfirm(
+      "Sign out of WeightedAI?",
+      () => {
+        localStorage.removeItem('weightedai_email');
+        localStorage.removeItem('weightedai_active_workout');
+        window.location.reload();
+      },
+      { confirmLabel: "Sign Out" }
+    );
+  };
+
   return (
     <>
       <style>{styles}</style>
@@ -2895,44 +2987,11 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                             {form.subscriptionPeriodEnd ? `Cancelled — access until ${new Date(form.subscriptionPeriodEnd).toLocaleDateString()}` : "Cancelled — access continues through current billing period"}
                           </div>
                         ) : (
-                        <button onClick={async () => {
-                          if (!window.confirm("Cancel your subscription? You'll keep access until the end of your current billing period, then it won't renew.")) return;
-                          try {
-                            const res = await dbRequest("cancelSubscription", { email: lead.email });
-                            if (res.error) {
-                              alert(res.error);
-                            } else {
-                              const endDateMs = res.periodEnd ? res.periodEnd * 1000 : null;
-                              const endDate = endDateMs ? new Date(endDateMs).toLocaleDateString() : "the end of your billing period";
-                              setForm(f => ({ ...f, subscriptionCancelAtPeriodEnd: true, subscriptionPeriodEnd: endDateMs ? new Date(endDateMs).toISOString() : "" }));
-                              alert("Your subscription has been cancelled. You'll keep access until " + endDate + ".");
-                            }
-                          } catch(e) {
-                            alert("Something went wrong. Please try again or contact support.");
-                          }
-                        }} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#999",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.color="var(--orange)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#999"}}>Cancel Subscription</button>
+                        <button onClick={handleCancelSubscription} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#999",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.color="var(--orange)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#999"}}>Cancel Subscription</button>
                         )
                       )}
-                      <button onClick={async () => {
-                        if (!window.confirm("Delete your account? This will permanently remove your profile and all workout history. This cannot be undone.")) return;
-                        if (!window.confirm("Are you sure? All your data will be deleted permanently.")) return;
-                        try {
-                          await dbRequest("deleteAccount", { email: lead.email });
-                          localStorage.removeItem("weightedai_email");
-                          localStorage.removeItem("weightedai_active_workout");
-                          localStorage.removeItem("weightedai_share_workout");
-                          alert("Your account has been deleted.");
-                          window.location.reload();
-                        } catch(e) {
-                          alert("Something went wrong. Please try again.");
-                        }
-                      }} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#555",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="#ff4444";e.currentTarget.style.color="#ff4444"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#555"}}>Delete Account</button>
-                      <button onClick={() => {
-                        if (!window.confirm("Sign out of WeightedAI?")) return;
-                        localStorage.removeItem('weightedai_email');
-                        localStorage.removeItem('weightedai_active_workout');
-                        window.location.reload();
-                      }} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#666",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#666"}}>Sign Out</button>
+                      <button onClick={handleDeleteAccount} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#555",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="#ff4444";e.currentTarget.style.color="#ff4444"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#555"}}>Delete Account</button>
+                      <button onClick={handleSignOut} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#666",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#666"}}>Sign Out</button>
                     </div>
                   </div>
                 </div>
@@ -3522,6 +3581,36 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
           </div>
         )}
       </div>
+
+      {/* TOASTS */}
+      {toasts.length > 0 && (
+        <div className="toast-wrap">
+          {toasts.map(t => (
+            <div key={t.id} className={`toast ${t.tone}`}>
+              <span>{t.message}</span>
+              <button className="toast-close" onClick={() => dismissToast(t.id)} aria-label="Dismiss">✕</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* CONFIRM MODAL */}
+      {confirmModal && (
+        <div className="confirm-overlay" onClick={() => setConfirmModal(null)}>
+          <div className={`confirm-box ${confirmModal.danger ? "danger" : ""}`} onClick={e => e.stopPropagation()}>
+            <div className="confirm-text">{confirmModal.message}</div>
+            <div className="confirm-actions">
+              <button className="confirm-btn" onClick={() => setConfirmModal(null)}>Cancel</button>
+              <button
+                className={`confirm-btn primary ${confirmModal.danger ? "danger" : ""}`}
+                onClick={() => { const fn = confirmModal.onConfirm; setConfirmModal(null); fn && fn(); }}
+              >
+                {confirmModal.confirmLabel || "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -3591,7 +3680,7 @@ root.render(<AppErrorBoundary><WeightedAI /></AppErrorBoundary>);
   <script>
     async function handleSignIn() {
       const email = document.getElementById('signin-email')?.value?.trim();
-      if (!email || !email.includes('@')) { alert('Please enter a valid email.'); return; }
+      if (!email || !email.includes('@')) { (window.__showToast || alert)('Please enter a valid email.', 'error'); return; }
       
       const btn = document.querySelector('#signin-overlay button:last-child');
       if (btn) { btn.textContent = 'LOADING...'; btn.disabled = true; }
@@ -3609,7 +3698,7 @@ root.render(<AppErrorBoundary><WeightedAI /></AppErrorBoundary>);
         // Handle both direct object and wrapped responses
         const profileData = profile && profile.email ? profile : (profile && profile[0] ? profile[0] : null);
         if (!profileData || !profileData.email) { 
-          alert('No profile found for that email. Please choose a plan below.');
+          (window.__showToast || alert)('No profile found for that email. Please choose a plan below.', 'error');
           document.getElementById('signin-overlay').style.display = 'none';
           document.getElementById('app').scrollIntoView({behavior:'smooth'});
           return; 
@@ -3622,7 +3711,7 @@ root.render(<AppErrorBoundary><WeightedAI /></AppErrorBoundary>);
         document.getElementById('app').scrollIntoView({behavior:'smooth'});
       } catch(e) {
         if (btn) { btn.textContent = 'SIGN IN →'; btn.disabled = false; }
-        alert('Something went wrong. Please try again.');
+        (window.__showToast || alert)('Something went wrong. Please try again.', 'error');
       }
     }
 
