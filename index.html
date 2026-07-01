@@ -1754,7 +1754,7 @@ function WeightedAI() {
         try { localStorage.setItem("weightedai_share_workout", String(shareVal)); } catch {}
       }
       setProfileLoaded(true);
-      setHasActiveSubscription(!!profile.stripe_subscription_id);
+      setHasActiveSubscription(!!profile.stripe_subscription_id && (!profile.subscription_status || profile.subscription_status === "active" || profile.subscription_status === "trialing"));
       setStep("form");
       // Load workout log and history from Supabase
       try {
@@ -1967,7 +1967,7 @@ function WeightedAI() {
       const { muscles, thirty_day_goal, thirty_day_goal_set_at, thirty_day_overview_cache, subscription_cancel_at_period_end, subscription_period_end, ...saved } = existingProfile;
       setForm(f => ({ ...f, ...saved, thirtyDayGoal: thirty_day_goal || "", thirtyDayGoalSetAt: thirty_day_goal_set_at || "", thirtyDayOverviewCache: thirty_day_overview_cache || "", subscriptionCancelAtPeriodEnd: subscription_cancel_at_period_end || false, subscriptionPeriodEnd: subscription_period_end || "", muscles: f.muscles })); // keep muscles user chose
       setProfileLoaded(true);
-      setHasActiveSubscription(!!existingProfile.stripe_subscription_id);
+      setHasActiveSubscription(!!existingProfile.stripe_subscription_id && (!existingProfile.subscription_status || existingProfile.subscription_status === "active" || existingProfile.subscription_status === "trialing"));
     }
 
     setStep("loading");
