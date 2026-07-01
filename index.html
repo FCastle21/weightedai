@@ -1331,6 +1331,28 @@ function fixApexAlternation(planText, level) {
   }
 }
 
+// Safety net: each goal type requires ONE consistent rep range on every exercise (Muscle Building/Apex/
+// The Marla = "8-12 reps", Strength Gaining = "3-5 reps"), but the AI sometimes writes a specific single
+// number (e.g. "10 reps" or "4 reps") instead of the range despite explicit prompt instructions. This
+// normalizes any single-number rep count to the correct range for the given goal, while leaving
+// already-correct ranges untouched. Scoped to bolded "N sets x M reps" main-exercise lines only, so
+// warm-up/cool-down lines like "10 reps each leg" (plain text, no "sets x") are untouched.
+function fixMuscleBuildingRepRange(planText, targetRange) {
+  try {
+    const lines = planText.split("\n");
+    const fixedLines = lines.map(line => {
+      if (!/\*\*[^*]+\*\*/.test(line) || !/sets?\s*x\s*\d+(-\d+)?\s*reps/i.test(line)) return line;
+      return line.replace(/\b(\d+)(-\d+)?(\s*reps)/gi, (match, num, rangeEnd, repsWord) => {
+        if (rangeEnd) return match; // already a range (e.g. "8-12 reps" or "3-5 reps") - leave it alone
+        return `${targetRange}${repsWord}`;
+      });
+    });
+    return fixedLines.join("\n");
+  } catch (e) {
+    return planText;
+  }
+}
+
 // Splits the full plan text into sections by ## headers. Returns an array of
 // { title, content, alwaysOpen } objects. The main workout section (and the
 // top-level # title) stays always visible; secondary sections (Overview,
@@ -2292,6 +2314,13 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       if (currentForm.equipment === "Bodyweight Only") {
         cleanPlan = removeEquipmentMetconForBodyweight(cleanPlan);
         cleanPlan = removeEquipmentStrengthForBodyweight(cleanPlan);
+      }
+      // Safety net: each goal type needs ONE consistent rep range on every exercise - normalize any
+      // single-number rep count (e.g. "10 reps" or "4 reps") the AI wrote instead of the required range
+      if (["Muscle Building", "Apex", "The Marla"].includes(currentForm.goal)) {
+        cleanPlan = fixMuscleBuildingRepRange(cleanPlan, "8-12");
+      } else if (currentForm.goal === "Strength Gaining") {
+        cleanPlan = fixMuscleBuildingRepRange(cleanPlan, "3-5");
       }
       setIsStreaming(false);
       setPlan(cleanPlan);
