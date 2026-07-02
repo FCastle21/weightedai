@@ -801,7 +801,7 @@ async function dbRequest(action, payload) {
       body: JSON.stringify({ action, ...payload })
     });
     return await res.json();
-  } catch(e) { return null; }
+  } catch(e) { console.error(`dbRequest(${action}) failed:`, e); return null; }
 }
 
 async function loadProfile(email) {
@@ -2293,11 +2293,43 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
 
     setIsStreaming(true);
     try {
+      // Netlify's synchronous function limit is 60s - abort just under that so the user gets a
+      // clear, friendly timeout message instead of the connection hanging until Netlify itself
+      // kills it with a raw 502/504 (which showed up to users as an opaque "API error" before,
+      // since the old code created this AbortController but never actually attached it to the
+      // fetch call - the 60s abort never did anything).
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 60000);
-      const data = await dbRequest("generate", { prompt });
+      const timeout = setTimeout(() => controller.abort(), 55000);
+      let res;
+      try {
+        res = await fetch("/.netlify/functions/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "generate", prompt }),
+          signal: controller.signal
+        });
+      } catch (fetchErr) {
+        clearTimeout(timeout);
+        if (fetchErr.name === "AbortError") {
+          throw new Error("This is taking longer than expected. Please check your connection and try again.");
+        }
+        // Covers dropped/lost connections - common on mobile when switching between WiFi and
+        // cellular, losing signal, or the browser tab getting backgrounded mid-request.
+        throw new Error("Network error - please check your connection and try again.");
+      }
       clearTimeout(timeout);
-      if (!data || data.error) throw new Error(data?.error || "API error");
+
+      if (!res.ok) {
+        throw new Error(`Server error (${res.status}). Please try again in a moment.`);
+      }
+
+      let data;
+      try {
+        data = await res.json();
+      } catch (parseErr) {
+        throw new Error("Received an unexpected response. Please try again.");
+      }
+      if (!data || data.error) throw new Error(data?.error || "Something went wrong generating your workout. Please try again.");
 
       const raw = data.content?.find(b => b.type === "text")?.text || "";
       let cleanPlan = raw.trim();
@@ -2411,7 +2443,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
     } catch(err) {
       console.error("Generation error:", err);
       setIsStreaming(false);
-      setError("Something went wrong: " + (err.message || "Please try again."));
+      setError(err.message || "Something went wrong. Please try again.");
       // Guard against a race condition: if the user already navigated away (e.g. hit "Start
       // Over") before this error fired, tier may now be null. Forcing step to "form" with no
       // tier set would render nothing. Only force back to the form if we still have a tier.
