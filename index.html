@@ -2,8 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>WeightedAI — Your AI Fitness Trainer</title>
+  <meta name="description" content="Human performance. AI precision. WeightedAI builds a fully personalized workout and nutrition plan in seconds, backed by 15+ years of real coaching experience." />
+  <meta property="og:title" content="WeightedAI — Your AI Fitness Trainer" />
+  <meta property="og:description" content="Human performance. AI precision. WeightedAI builds a fully personalized workout and nutrition plan in seconds, backed by 15+ years of real coaching experience." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://weightedai.net" />
+  <meta property="og:image" content="https://weightedai.net/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="WeightedAI — Your AI Fitness Trainer" />
+  <meta name="twitter:description" content="Human performance. AI precision. WeightedAI builds a fully personalized workout and nutrition plan in seconds, backed by 15+ years of real coaching experience." />
+  <meta name="twitter:image" content="https://weightedai.net/og-image.png" />
   <meta name="application-name" content="WeightedAI" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -1348,6 +1358,36 @@ function fixApexAlternation(planText, level) {
   }
 }
 
+// Safety net: isometric holds (Plank, Wall Sit, Hollow Hold, Dead Hang, etc.) must be prescribed
+// for TIME, not reps, but the AI occasionally writes "3 sets x 12 reps" for these anyway despite
+// explicit prompt instructions. Converts any such line to "40 seconds" instead. Matched by precise
+// exercise name (exact match, or name ending in the word "hold") rather than a loose substring, so
+// dynamic movements that happen to contain "plank" - like "Plank Row" or "Plank Jack" (a real
+// metcon exercise) - are correctly left as rep-based and NOT mistakenly converted to a hold.
+// Must run BEFORE fixMuscleBuildingRepRange, so hold exercises are already in "seconds" format by
+// the time that function scans for "reps" patterns and no longer match it.
+function fixHoldExerciseTiming(planText) {
+  try {
+    const holdNames = [
+      "plank", "side plank", "forearm plank", "high plank", "low plank", "plank hold", "side plank hold",
+      "hollow hold", "hollow body hold", "wall sit", "dead hang", "active hang",
+      "glute bridge hold", "superman hold", "l-sit", "flag hold", "isometric hold", "chair hold"
+    ];
+    const lines = planText.split("\n");
+    const fixedLines = lines.map(line => {
+      if (!/\*\*[^*]+\*\*/.test(line) || !/sets?\s*x\s*\d+(-\d+)?\s*reps/i.test(line)) return line;
+      const nameMatch = line.match(/\*\*([^*]+)\*\*/);
+      const exerciseName = nameMatch ? nameMatch[1].trim().toLowerCase() : "";
+      const isHold = holdNames.includes(exerciseName) || /\bhold$/.test(exerciseName);
+      if (!isHold) return line;
+      return line.replace(/\b\d+(-\d+)?\s*reps\b/i, "40 seconds");
+    });
+    return fixedLines.join("\n");
+  } catch (e) {
+    return planText;
+  }
+}
+
 // Safety net: each goal type requires ONE consistent rep range on every exercise (Muscle Building/Apex/
 // The Marla = "8-12 reps", Strength Gaining = "3-5 reps"), but the AI sometimes writes a specific single
 // number (e.g. "10 reps" or "4 reps") instead of the range despite explicit prompt instructions. This
@@ -2055,7 +2095,7 @@ Then provide:
 ### Warm-Up (5 min)
 Exactly 3 warm-up moves — simple mobility/activation movements (arm circles, leg swings, inchworms, etc.), formatted as **Move Name** — duration or reps only (e.g. "30 seconds" or "10 reps"), NO sets, NO "work/rest" interval format. Warm-up moves must be DIFFERENT from anything appearing in the Main Workout below — never repeat the same exercise name in both sections.
 ### Main Workout
-MANDATORY: You MUST write the literal heading "### Main Workout" here, exactly as shown, before listing any main exercises — even if every exercise (including HIIT/metcon ones) uses a timed work/rest format. Do not skip this heading or merge it with the Warm-Up section. Exercise count and sets per the Exercise Count By Level and Sets By Level rules above. For each: **Exercise Name** — sets x reps, rest (use actual numbers, e.g. "3 sets x 10 reps"). Then one short sentence describing what it works and why it's in this workout.
+MANDATORY: You MUST write the literal heading "### Main Workout" here, exactly as shown, before listing any main exercises — even if every exercise (including HIIT/metcon ones) uses a timed work/rest format. Do not skip this heading or merge it with the Warm-Up section. Exercise count and sets per the Exercise Count By Level and Sets By Level rules above. For each: **Exercise Name** — sets x reps, rest (use actual numbers, e.g. "3 sets x 10 reps"). EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps — write "3 sets x 40 seconds", not "3 sets x 12 reps". Then one short sentence describing what it works and why it's in this workout.
 ### Cool-Down (5 min)
 Exactly 3 stretches.
 
@@ -2172,7 +2212,7 @@ Then create a complete 30-DAY plan:
 ## Overview & Goals
 ## How To Use This Plan
 ## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
-## The 30-Day Schedule (4 weeks, every training day MUST start with a "### Day N" header, e.g. "### Day 1" — this exact format is required. Within each day: focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), one short sentence on what it works, one coaching note per day, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh at the beginning of EACH day — every single day's exercises must alternate independently.)
+## The 30-Day Schedule (4 weeks, every training day MUST start with a "### Day N" header, e.g. "### Day 1" — this exact format is required. Within each day: focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps") — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — one short sentence on what it works, one coaching note per day, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh at the beginning of EACH day — every single day's exercises must alternate independently.)
 ## Recovery Protocol
 ## End of 30 Days
 
@@ -2283,7 +2323,7 @@ At the end of the Nutrition Strategy section, add a heading "**Disclaimer**" fol
 
 # ${leadData.name}'s Personalized Plan
 ## Overview
-## Workout Plan (this is a SINGLE workout for ONE training session — do NOT generate multiple days, do NOT use "### Day N" headers, do NOT repeat this structure for a week. Just one workout: name, muscle focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period, then one short sentence describing what it works, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown — warm-up and cool-down move names must be plain text. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh — every exercise must alternate properly.)
+## Workout Plan (this is a SINGLE workout for ONE training session — do NOT generate multiple days, do NOT use "### Day N" headers, do NOT repeat this structure for a week. Just one workout: name, muscle focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — then one short sentence describing what it works, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown — warm-up and cool-down move names must be plain text. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh — every exercise must alternate properly.)
 ## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
 ## Recovery Protocol
 ## 4-Week Progression
@@ -2379,6 +2419,10 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
         cleanPlan = removeEquipmentMetconForBodyweight(cleanPlan);
         cleanPlan = removeEquipmentStrengthForBodyweight(cleanPlan);
       }
+      // Safety net: isometric holds (Plank, Wall Sit, Hollow Hold, etc.) must be timed, not reps -
+      // run before the rep-range fixer below so holds are already in "seconds" format and don't
+      // get incorrectly normalized to a rep range instead.
+      cleanPlan = fixHoldExerciseTiming(cleanPlan);
       // Safety net: each goal type needs ONE consistent rep range on every exercise - normalize any
       // single-number rep count (e.g. "10 reps" or "4 reps") the AI wrote instead of the required range
       if (["Muscle Building", "Apex", "The Marla"].includes(currentForm.goal)) {
@@ -3326,6 +3370,10 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                               const shareText = `${name} shared a WeightedAI ${muscles} workout:\n\n${exercises}\n\nTry it free → weightedai.net`;
                               if (navigator.share) {
                                 navigator.share({ title: "WeightedAI Workout", text: shareText, url: "https://weightedai.net" });
+                              } else if (navigator.clipboard && navigator.clipboard.writeText) {
+                                navigator.clipboard.writeText(shareText)
+                                  .then(() => showToast("Workout copied to clipboard!", "success"))
+                                  .catch(() => window.open("sms:?body=" + encodeURIComponent(shareText)));
                               } else {
                                 window.open("sms:?body=" + encodeURIComponent(shareText));
                               }
@@ -3493,6 +3541,10 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                       const shareText = `${name} shared a WeightedAI ${muscles} workout:\n\n${exercises}\n\nTry it free → weightedai.net`;
                       if (navigator.share) {
                         navigator.share({ title: "WeightedAI Workout", text: shareText, url: "https://weightedai.net" });
+                      } else if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(shareText)
+                          .then(() => showToast("Workout copied to clipboard!", "success"))
+                          .catch(() => window.open("sms:?body=" + encodeURIComponent(shareText)));
                       } else {
                         window.open("sms:?body=" + encodeURIComponent(shareText));
                       }
