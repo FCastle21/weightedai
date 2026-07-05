@@ -32,11 +32,13 @@
   <p class="updated">Last updated: [INSERT DATE]</p>
 
   <div class="note">
-    <strong>Note to Adam:</strong> this is a starting draft covering the features currently in the
-    app (subscription tiers, Stripe billing, cancellation, AI-generated content, no-medical-advice
-    disclaimer). It is not a substitute for review by an actual lawyer, especially given real money
-    and recurring billing are involved. At minimum, have someone confirm the refund policy and
-    governing-law sections before relying on this — both are placeholders below.
+    <strong>Note to Adam:</strong> this draft covers the features currently in the app (subscription
+    tiers, Stripe billing, cancellation, AI-generated content, no-medical-advice disclaimer), plus the
+    refund policy and California governing law we settled on. It is still not a substitute for review
+    by an actual lawyer, especially given California's Automatic Renewal Law has real enforcement
+    teeth and active private litigation in this exact space — worth having someone confirm the
+    reminder-email language in Section 4 is worded the way your actual implementation works once
+    that's built.
   </div>
 
   <p>These Terms of Service ("Terms") govern your access to and use of WeightedAI (the "Service"),
@@ -67,19 +69,31 @@
   <ul>
     <li><strong>Free</strong> — limited weekly access, no payment required.</li>
     <li><strong>Individual</strong> — a one-time payment per workout, no recurring subscription.</li>
-    <li><strong>Unlimited</strong> — a recurring monthly subscription billed automatically until cancelled.</li>
-    <li><strong>Unlimited Annual</strong> — a recurring annual subscription billed automatically until cancelled.</li>
+    <li><strong>Unlimited</strong> — a recurring monthly subscription that <strong>automatically renews</strong> each month until cancelled.</li>
+    <li><strong>Unlimited Annual</strong> — a recurring annual subscription that <strong>automatically renews</strong> each year until cancelled.</li>
   </ul>
-  <p>Subscriptions are billed in advance through Stripe, our third-party payment processor. By
-  subscribing, you authorize recurring charges to your payment method until you cancel. You can
-  cancel an active subscription at any time from your account settings; you will retain access
-  through the end of your current billing period, and your subscription will not renew after that.</p>
+  <p>Subscriptions are billed in advance through Stripe, our third-party payment processor, at the
+  price and frequency shown at the time you subscribe. By subscribing, you give express affirmative
+  consent to be charged on a recurring basis until you cancel. <strong>You can cancel an active
+  subscription at any time, immediately and online, from your account settings</strong> — no phone
+  call or additional steps required. Cancelling stops future renewal; you keep access through the end
+  of the billing period you've already paid for.</p>
+  <p>If you have an active subscription, we will send you a reminder at least once a year identifying
+  the plan, the amount and frequency of charges, and how to cancel. For the Annual plan specifically,
+  we will also send notice 15-45 days before each annual renewal with the same information. These
+  reminders are sent to the email address on your account.</p>
 
   <h2>5. Refunds</h2>
-  <p><em>[PLACEHOLDER — decide and confirm your actual policy before publishing.]</em> Example
-  starting point: payments are generally non-refundable, including for partial subscription periods
-  or unused Individual workout purchases, except where required by applicable law. Contact us if you
-  believe you were charged in error.</p>
+  <p><strong>Unlimited (monthly):</strong> Payments are non-refundable, including for partial billing
+  periods. You may cancel at any time; you will retain access through the end of the period you've
+  already paid for, and the subscription will not renew after that.</p>
+  <p><strong>Unlimited Annual:</strong> If you request a refund within 14 days of your annual charge,
+  we will issue a full refund. After 14 days, annual payments are non-refundable, but you may still
+  cancel at any time to prevent renewal — you will retain access through the end of your current
+  annual term.</p>
+  <p><strong>Individual (single workout):</strong> Payments are non-refundable once a workout has been
+  generated, as this is a completed digital deliverable. If a technical error on our end prevents a
+  workout from generating successfully, contact us for a refund.</p>
 
   <h2>6. Acceptable Use</h2>
   <p>You agree not to misuse the Service, including by attempting to circumvent usage limits, access
@@ -104,7 +118,8 @@
   effect constitutes acceptance of the revised Terms.</p>
 
   <h2>11. Governing Law</h2>
-  <p><em>[PLACEHOLDER — insert your actual state/country of jurisdiction.]</em></p>
+  <p>These Terms are governed by the laws of the State of California, without regard to its conflict
+  of law principles.</p>
 
   <h2>12. Contact</h2>
   <p>Questions about these Terms? Contact us at
