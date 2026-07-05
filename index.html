@@ -2159,6 +2159,19 @@ function WeightedAI() {
     setLead(leadData);
     checkAdmin(leadData.email);
 
+    // Load workout history so the exercise-rotation logic in the prompt has data to work with -
+    // this was previously only loaded via the separate "Sign In" nav flow (handleNavSignIn), so
+    // anyone going through the normal email-gate-then-generate flow never got rotation data at all,
+    // meaning the AI had no record of past exercises to avoid repeating.
+    let freshHistory = workoutHistory;
+    try {
+      const histData = await dbRequest("loadHistory", { email: leadData.email });
+      if (Array.isArray(histData)) {
+        freshHistory = histData;
+        setWorkoutHistory(histData);
+      }
+    } catch (e) {}
+
     // FREE TIER: weekly limit disabled for testing
     // if (tier === "free") {
     //   const profile = existingProfile || {};
@@ -2183,11 +2196,12 @@ function WeightedAI() {
     }
 
     setStep("loading");
-    await generatePlan(leadData, existingProfile);
+    await generatePlan(leadData, existingProfile, undefined, freshHistory);
   };
 
-  const generatePlan = async (leadData, existingProfile, formOverride) => {
+  const generatePlan = async (leadData, existingProfile, formOverride, historyOverride) => {
     const currentForm = formOverride || form;
+    const currentHistory = historyOverride || workoutHistory;
     const isFree = tier === "free";
     const isPaid = tier === "individual" || tier === "unlimited" || tier === "annual";
 
@@ -2209,7 +2223,7 @@ PROFILE:
 - Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}${currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
 - Goal: ${currentForm.goal}
 - Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
-${workoutHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(workoutHistory.length, 3) + " sessions):\n" + workoutHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
+${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
 
 CORE TRAINING RULES — APPLY TO EVERY WORKOUT REGARDLESS OF TYPE:
 
@@ -2296,7 +2310,7 @@ PROFILE:
 - Days/week: ${currentForm.days}
 - IMPORTANT: Each of the ${currentForm.days} training days this week must have a CLEARLY DIFFERENT muscle group focus than the other days (unless Full Body is selected for every day, or the Workout Type itself dictates otherwise, e.g. Apex/HIIT). Never repeat the exact same muscle group combination on more than 2 days in a single week.
 - Injuries, Limitations & Special Instructions: ${currentForm.notes||"None"}${currentForm.notes && currentForm.notes.includes("HARD CONSTRAINT") ? " ← THESE ARE MANDATORY REQUIREMENTS. READ THEM CAREFULLY AND FOLLOW THEM EXACTLY. DO NOT GENERATE EXERCISES THAT VIOLATE ANY CONSTRAINT LISTED HERE." : ""}
-${workoutHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(workoutHistory.length, 3) + " sessions):\n" + workoutHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
+${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
 
 PROGRESSIVE OVERLOAD:
 - Difficulty 4-5 last session: maintain volume, focus on form
@@ -2410,7 +2424,7 @@ PROFILE:
 - Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
 - Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
 - Injuries, Limitations & Special Instructions: ${currentForm.notes||"None"}${currentForm.notes && currentForm.notes.includes("HARD CONSTRAINT") ? " ← THESE ARE MANDATORY REQUIREMENTS. READ THEM CAREFULLY AND FOLLOW THEM EXACTLY. DO NOT GENERATE EXERCISES THAT VIOLATE ANY CONSTRAINT LISTED HERE." : ""}
-${workoutHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(workoutHistory.length, 3) + " sessions):\n" + workoutHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
+${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
 
 PROGRESSIVE OVERLOAD:
 - Difficulty 4-5 last session: maintain volume, focus on form
@@ -2561,7 +2575,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               __apexRetry: true,
               notes: (currentForm.notes ? currentForm.notes + ". " : "") + "CRITICAL CORRECTION REQUIRED: " + reasonText
             };
-            await generatePlan(leadData, existingProfile, retryForm);
+            await generatePlan(leadData, existingProfile, retryForm, currentHistory);
             return;
           } else {
             // Retry already happened and STILL failed - guarantee correctness via direct injection
