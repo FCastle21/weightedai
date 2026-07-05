@@ -50,7 +50,7 @@ exports.handler = async function(event, context) {
 
   try {
     const parsed = JSON.parse(event.body);
-    const { action, prompt, email, profileData, logEntry, historyEntry, accessToken } = parsed;
+    const { action, prompt, email, profileData, logEntry, historyEntry, accessToken, sender, message, adminEmail, targetEmail, reader } = parsed;
     
     console.log("Action:", action, "Email:", email || "(none)");
     console.log("SUPABASE_URL:", process.env.SUPABASE_URL ? "SET" : "MISSING");
@@ -288,6 +288,87 @@ exports.handler = async function(event, context) {
     if (action === "saveHistory") {
       const res = await supabase("POST", "workout_history", { ...historyEntry, email });
       return { statusCode: 200, headers, body: JSON.stringify({ ok: true, status: res.status }) };
+    }
+
+    // ── COACH CHAT ──────────────────────────────────────────────────────────
+    // ADMIN_EMAILS is a comma-separated Netlify env var (e.g. "adam@weightedai.net,partner@weightedai.net").
+    // Kept server-side only so the client never learns who the admins are - it just asks
+    // checkAdminStatus and gets back a yes/no.
+    function isAdminEmail(candidateEmail) {
+      const adminList = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+      return !!candidateEmail && adminList.includes(candidateEmail.toLowerCase());
+    }
+
+    if (action === "checkAdminStatus") {
+      return { statusCode: 200, headers, body: JSON.stringify({ isAdmin: isAdminEmail(email) }) };
+    }
+
+    if (action === "sendCoachMessage") {
+      if (!message) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing message" }) };
+      }
+      if (sender === "coach") {
+        if (!isAdminEmail(adminEmail)) {
+          return { statusCode: 403, headers, body: JSON.stringify({ error: "Not authorized" }) };
+        }
+        if (!targetEmail) {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing targetEmail" }) };
+        }
+        await supabase("POST", "coach_messages", { email: targetEmail, sender: "coach", message });
+        return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
+      } else {
+        if (!email) {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing email" }) };
+        }
+        // Coach chat is a paid-tier perk - verify before allowing the message through
+        const profileRes = await supabase("GET", `profiles?email=eq.${encodeURIComponent(email)}&select=tier`);
+        const profileRows = JSON.parse(profileRes.body);
+        const userTier = profileRows?.[0]?.tier;
+        if (userTier !== "unlimited" && userTier !== "annual") {
+          return { statusCode: 403, headers, body: JSON.stringify({ error: "Coach chat is available on the Unlimited plan only" }) };
+        }
+        await supabase("POST", "coach_messages", { email, sender: "user", message });
+        return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
+      }
+    }
+
+    if (action === "getCoachMessages") {
+      const res = await supabase("GET", `coach_messages?email=eq.${encodeURIComponent(email)}&order=created_at.asc`);
+      return { statusCode: 200, headers, body: res.body };
+    }
+
+    if (action === "getAllCoachThreads") {
+      if (!isAdminEmail(adminEmail)) {
+        return { statusCode: 403, headers, body: JSON.stringify({ error: "Not authorized" }) };
+      }
+      const res = await supabase("GET", `coach_messages?select=*&order=created_at.desc`);
+      const allMessages = JSON.parse(res.body);
+      const threadsByEmail = {};
+      for (const msg of allMessages) {
+        if (!threadsByEmail[msg.email]) {
+          threadsByEmail[msg.email] = { email: msg.email, lastMessage: msg.message, lastSender: msg.sender, lastAt: msg.created_at, unreadCount: 0 };
+        }
+        if (msg.sender === "user" && !msg.read_by_coach) {
+          threadsByEmail[msg.email].unreadCount++;
+        }
+      }
+      const threads = Object.values(threadsByEmail).sort((a, b) => new Date(b.lastAt) - new Date(a.lastAt));
+      return { statusCode: 200, headers, body: JSON.stringify(threads) };
+    }
+
+    if (action === "markMessagesRead") {
+      if (reader === "coach") {
+        if (!isAdminEmail(adminEmail)) {
+          return { statusCode: 403, headers, body: JSON.stringify({ error: "Not authorized" }) };
+        }
+        await supabase("PATCH", `coach_messages?email=eq.${encodeURIComponent(targetEmail || email)}&sender=eq.user&read_by_coach=eq.false`, { read_by_coach: true });
+      } else {
+        if (!email) {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing email" }) };
+        }
+        await supabase("PATCH", `coach_messages?email=eq.${encodeURIComponent(email)}&sender=eq.coach&read_by_user=eq.false`, { read_by_user: true });
+      }
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
     }
 
     if (action === "generateThirtyDayOverview") {
