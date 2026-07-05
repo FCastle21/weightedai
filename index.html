@@ -1654,18 +1654,17 @@ function EmailGate({ tier, onSubmit, onClose, waiverAccepted, setWaiverAccepted,
 }
 
 // ── PAYMENT MODAL ─────────────────────────────────────────────────────────────
-// ⚠️ ACTION REQUIRED BEFORE DEPLOY: these Price IDs currently point to the OLD amounts
-// (Individual $4.99, Unlimited $24.99, Annual $249.99). The displayed prices elsewhere in this
-// file have been updated to the new pricing (Individual $3.99, Unlimited $14.99, Annual $149.99),
-// but Stripe Price objects are immutable - you cannot edit an existing Price's amount. You must
-// create three NEW Price objects in the Stripe Dashboard at the new amounts, then replace the IDs
-// below with the new ones. Do this in BOTH Stripe test mode and live mode (separate Price IDs for
-// each). Until this is done, checkout will silently charge the OLD amounts despite the page
-// showing the new ones - do not deploy this file without fixing this first.
+// Price IDs below reflect the current pricing (Individual $3.99, Unlimited $14.99,
+// Annual $149.99). Annual kept its original Price ID since it was edited in place before
+// ever being used; Individual and Unlimited got new Price IDs since Stripe Price amounts
+// are immutable once a Price has been used.
+// Reminder: confirm these IDs (and the annual edit) are in place in BOTH Stripe test mode
+// and live mode before relying on this in production - they're separate environments with
+// separate Price objects.
 const STRIPE_PRICE_IDS = {
-  individual: "price_1Tk4qAHDBboegbiBBTQ54x14", // TODO: replace with new $3.99 Price ID
-  unlimited: "price_1Tk4rAHDBboegbiBScT68W1O",   // TODO: replace with new $14.99 Price ID
-  annual: "price_1Tk4rrHDBboegbiBgUvEcPxS"       // TODO: replace with new $149.99 Price ID
+  individual: "price_1TptvwHDBboegbiBg4NDpVpr",
+  unlimited: "price_1TptuPHDBboegbiBxpqlBski",
+  annual: "price_1Tk4rrHDBboegbiBgUvEcPxS"
 };
 
 async function startStripeCheckout(tier, email, planContent, formData) {
