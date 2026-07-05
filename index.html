@@ -2156,6 +2156,7 @@ function WeightedAI() {
       return;
     }
     setLead(leadData);
+    checkAdmin(leadData.email);
 
     // FREE TIER: weekly limit disabled for testing
     // if (tier === "free") {
@@ -2178,7 +2179,6 @@ function WeightedAI() {
       setForm(f => ({ ...f, ...saved, thirtyDayGoal: thirty_day_goal || "", thirtyDayGoalSetAt: thirty_day_goal_set_at || "", thirtyDayOverviewCache: thirty_day_overview_cache || "", subscriptionCancelAtPeriodEnd: subscription_cancel_at_period_end || false, subscriptionPeriodEnd: subscription_period_end || "", muscles: f.muscles })); // keep muscles user chose
       setProfileLoaded(true);
       setHasActiveSubscription(!!existingProfile.stripe_subscription_id && (!existingProfile.subscription_status || existingProfile.subscription_status === "active" || existingProfile.subscription_status === "trialing"));
-      checkAdmin(leadData.email);
     }
 
     setStep("loading");
