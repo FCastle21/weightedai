@@ -409,7 +409,7 @@
   </script>
 
   <script type="text/babel">
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useRef } = React;
 
 
 const styles = `
@@ -788,6 +788,38 @@ const styles = `
   .confirm-btn.primary:hover { background: #4a6f61; }
   .confirm-btn.primary.danger { background: var(--orange); border-color: var(--orange); color: var(--white); }
   .confirm-btn.primary.danger:hover { background: #cc4a00; }
+
+  /* COACH CHAT */
+  .coach-chat-btn { position: fixed; bottom: 24px; right: 20px; z-index: 500; background: var(--acid); color: var(--black); border: none; border-radius: 50%; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.4); font-size: 22px; }
+  .coach-chat-badge { position: absolute; top: -4px; right: -4px; background: var(--orange); color: var(--white); font-size: 11px; font-weight: 600; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .coach-chat-panel { position: fixed; bottom: 0; right: 0; left: 0; margin: 0 auto; background: #0f0f0f; border: 1px solid #2a2a2a; border-top: 3px solid var(--acid); border-radius: 16px 16px 0 0; z-index: 600; display: flex; flex-direction: column; height: min(70vh, 560px); animation: slideUp 0.25s ease; }
+  @media (min-width: 480px) {
+    .coach-chat-panel { left: auto; right: 20px; bottom: 90px; width: 360px; border-radius: 16px; }
+  }
+  .coach-chat-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid #1e1e1e; }
+  .coach-chat-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; color: var(--acid); }
+  .coach-chat-close { background: transparent; border: 1px solid #2a2a2a; color: #666; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .coach-chat-messages { flex: 1; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .coach-msg { max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.5; word-wrap: break-word; }
+  .coach-msg.user { align-self: flex-end; background: var(--acid); color: var(--black); border-bottom-right-radius: 4px; }
+  .coach-msg.coach { align-self: flex-start; background: #1c1c1c; color: var(--white); border: 1px solid #2a2a2a; border-bottom-left-radius: 4px; }
+  .coach-chat-empty { color: #666; font-size: 13px; text-align: center; margin-top: 40px; padding: 0 20px; }
+  .coach-chat-input-row { display: flex; gap: 8px; padding: 14px 16px; border-top: 1px solid #1e1e1e; }
+  .coach-chat-input-row input { flex: 1; background: #0a0a0a; border: 1px solid #2a2a2a; border-radius: 500px; padding: 10px 16px; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 13.5px; outline: none; }
+  .coach-chat-send { background: var(--acid); border: none; color: var(--black); width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .coach-chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ADMIN INBOX */
+  .admin-inbox-btn { position: fixed; bottom: 24px; left: 20px; z-index: 500; background: var(--orange); color: var(--white); border: none; border-radius: 500px; padding: 12px 18px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 0.5px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 8px; }
+  .admin-inbox-badge { background: rgba(255,255,255,0.25); font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 500px; }
+  .admin-thread-list { padding: 8px 0; overflow-y: auto; flex: 1; }
+  .admin-thread-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-bottom: 1px solid #1a1a1a; cursor: pointer; }
+  .admin-thread-item:hover { background: #161616; }
+  .admin-thread-email { font-size: 13px; color: var(--white); }
+  .admin-thread-preview { font-size: 11px; color: #666; margin-top: 2px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .admin-thread-unread { background: var(--orange); color: var(--white); font-size: 10px; font-weight: 600; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .admin-back-btn { background: transparent; border: none; color: #666; font-size: 12px; cursor: pointer; padding: 12px 18px; text-align: left; }
+  .admin-empty { color: #666; font-size: 13px; text-align: center; margin-top: 40px; padding: 0 20px; }
 
 
 `;
@@ -1604,10 +1636,18 @@ function EmailGate({ tier, onSubmit, onClose, waiverAccepted, setWaiverAccepted,
 }
 
 // ── PAYMENT MODAL ─────────────────────────────────────────────────────────────
+// ⚠️ ACTION REQUIRED BEFORE DEPLOY: these Price IDs currently point to the OLD amounts
+// (Individual $4.99, Unlimited $24.99, Annual $249.99). The displayed prices elsewhere in this
+// file have been updated to the new pricing (Individual $3.99, Unlimited $14.99, Annual $149.99),
+// but Stripe Price objects are immutable - you cannot edit an existing Price's amount. You must
+// create three NEW Price objects in the Stripe Dashboard at the new amounts, then replace the IDs
+// below with the new ones. Do this in BOTH Stripe test mode and live mode (separate Price IDs for
+// each). Until this is done, checkout will silently charge the OLD amounts despite the page
+// showing the new ones - do not deploy this file without fixing this first.
 const STRIPE_PRICE_IDS = {
-  individual: "price_1Tk4qAHDBboegbiBBTQ54x14",
-  unlimited: "price_1Tk4rAHDBboegbiBScT68W1O",
-  annual: "price_1Tk4rrHDBboegbiBgUvEcPxS"
+  individual: "price_1Tk4qAHDBboegbiBBTQ54x14", // TODO: replace with new $3.99 Price ID
+  unlimited: "price_1Tk4rAHDBboegbiBScT68W1O",   // TODO: replace with new $14.99 Price ID
+  annual: "price_1Tk4rrHDBboegbiBgUvEcPxS"       // TODO: replace with new $149.99 Price ID
 };
 
 async function startStripeCheckout(tier, email, planContent, formData) {
@@ -1659,6 +1699,17 @@ function WeightedAI() {
   const [confirmModal, setConfirmModal] = useState(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [hasActiveSubscription, setHasActiveSubscription] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showCoachChat, setShowCoachChat] = useState(false);
+  const [coachMessages, setCoachMessages] = useState([]);
+  const [coachChatInput, setCoachChatInput] = useState("");
+  const [coachUnread, setCoachUnread] = useState(0);
+  const [showAdminInbox, setShowAdminInbox] = useState(false);
+  const [adminThreads, setAdminThreads] = useState([]);
+  const [activeAdminThread, setActiveAdminThread] = useState(null);
+  const [adminChatInput, setAdminChatInput] = useState("");
+  const [adminUnreadTotal, setAdminUnreadTotal] = useState(0);
+  const coachMessagesEndRef = useRef(null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [blocked, setBlocked]   = useState(false); // free tier weekly limit hit
   const [plan, setPlan]         = useState(null);
@@ -1702,6 +1753,107 @@ function WeightedAI() {
     window.__showToast = showToast;
     return () => { window.__showToast = null; };
   }, []);
+
+  // ── COACH CHAT ──────────────────────────────────────────────────────────
+  const checkAdmin = async (userEmail) => {
+    try {
+      const res = await dbRequest("checkAdminStatus", { email: userEmail });
+      setIsAdmin(!!res?.isAdmin);
+    } catch { setIsAdmin(false); }
+  };
+
+  const loadCoachMessages = async (userEmail) => {
+    try {
+      const res = await dbRequest("getCoachMessages", { email: userEmail });
+      if (Array.isArray(res)) {
+        setCoachMessages(res);
+        setCoachUnread(res.filter(m => m.sender === "coach" && !m.read_by_user).length);
+      }
+    } catch (e) { console.error("loadCoachMessages failed:", e); }
+  };
+
+  const sendCoachMessage = async () => {
+    const text = coachChatInput.trim();
+    if (!text || !lead?.email) return;
+    setCoachChatInput("");
+    try {
+      const res = await dbRequest("sendCoachMessage", { email: lead.email, sender: "user", message: text });
+      if (res?.error) { showToast(res.error, "error"); return; }
+      loadCoachMessages(lead.email);
+    } catch (e) {
+      showToast("Couldn't send message. Please try again.", "error");
+    }
+  };
+
+  // Regular user's chat panel: poll while open, mark the coach's messages read once on open
+  useEffect(() => {
+    if (!showCoachChat || !lead?.email) return;
+    loadCoachMessages(lead.email);
+    dbRequest("markMessagesRead", { email: lead.email, reader: "user" }).catch(() => {});
+    const interval = setInterval(() => loadCoachMessages(lead.email), 4000);
+    return () => clearInterval(interval);
+  }, [showCoachChat, lead?.email]);
+
+  // Even when the chat panel is closed, poll occasionally so the unread badge stays current
+  useEffect(() => {
+    if (!lead?.email || (tier !== "unlimited" && tier !== "annual") || showCoachChat) return;
+    loadCoachMessages(lead.email);
+    const interval = setInterval(() => loadCoachMessages(lead.email), 20000);
+    return () => clearInterval(interval);
+  }, [lead?.email, tier, showCoachChat]);
+
+  // ── ADMIN INBOX ──────────────────────────────────────────────────────────
+  const loadAdminThreads = async () => {
+    if (!lead?.email) return;
+    try {
+      const res = await dbRequest("getAllCoachThreads", { adminEmail: lead.email });
+      if (Array.isArray(res)) {
+        setAdminThreads(res);
+        setAdminUnreadTotal(res.reduce((sum, t) => sum + (t.unreadCount || 0), 0));
+      }
+    } catch (e) { console.error("loadAdminThreads failed:", e); }
+  };
+
+  const openAdminThread = async (userEmail) => {
+    setActiveAdminThread(userEmail);
+    await loadCoachMessages(userEmail);
+    try {
+      await dbRequest("markMessagesRead", { adminEmail: lead.email, reader: "coach", targetEmail: userEmail });
+    } catch {}
+    loadAdminThreads();
+  };
+
+  const sendAdminReply = async () => {
+    const text = adminChatInput.trim();
+    if (!text || !activeAdminThread) return;
+    setAdminChatInput("");
+    try {
+      const res = await dbRequest("sendCoachMessage", { sender: "coach", adminEmail: lead.email, targetEmail: activeAdminThread, message: text });
+      if (res?.error) { showToast(res.error, "error"); return; }
+      loadCoachMessages(activeAdminThread);
+    } catch (e) {
+      showToast("Couldn't send reply. Please try again.", "error");
+    }
+  };
+
+  // Admin inbox thread list: poll while open
+  useEffect(() => {
+    if (!showAdminInbox || !isAdmin) return;
+    loadAdminThreads();
+    const interval = setInterval(loadAdminThreads, 4000);
+    return () => clearInterval(interval);
+  }, [showAdminInbox, isAdmin, lead?.email]);
+
+  // Admin inbox: poll the currently open thread specifically, without re-marking read each tick
+  useEffect(() => {
+    if (!showAdminInbox || !activeAdminThread) return;
+    const interval = setInterval(() => loadCoachMessages(activeAdminThread), 4000);
+    return () => clearInterval(interval);
+  }, [showAdminInbox, activeAdminThread]);
+
+  useEffect(() => {
+    if (coachMessagesEndRef.current) coachMessagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+  }, [coachMessages, showCoachChat, activeAdminThread]);
 
   useEffect(() => {
     // Screen wake lock in workout mode
@@ -1795,6 +1947,7 @@ function WeightedAI() {
       }
       setProfileLoaded(true);
       setHasActiveSubscription(!!profile.stripe_subscription_id && (!profile.subscription_status || profile.subscription_status === "active" || profile.subscription_status === "trialing"));
+      checkAdmin(email);
       setStep("form");
       // Load workout log and history from Supabase
       try {
@@ -2008,6 +2161,7 @@ function WeightedAI() {
       setForm(f => ({ ...f, ...saved, thirtyDayGoal: thirty_day_goal || "", thirtyDayGoalSetAt: thirty_day_goal_set_at || "", thirtyDayOverviewCache: thirty_day_overview_cache || "", subscriptionCancelAtPeriodEnd: subscription_cancel_at_period_end || false, subscriptionPeriodEnd: subscription_period_end || "", muscles: f.muscles })); // keep muscles user chose
       setProfileLoaded(true);
       setHasActiveSubscription(!!existingProfile.stripe_subscription_id && (!existingProfile.subscription_status || existingProfile.subscription_status === "active" || existingProfile.subscription_status === "trialing"));
+      checkAdmin(leadData.email);
     }
 
     setStep("loading");
@@ -2928,7 +3082,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
             {/* A LA CARTE */}
             <div className={`tier-card ${tier==="individual"?"active":""}`} onClick={() => handleTierSelect("individual")}>
               <div className="tier-name">Individual</div>
-              <div className="tier-price"><sup>$</sup>4.99</div>
+              <div className="tier-price"><sup>$</sup>3.99</div>
               <div className="tier-price-note">per workout · <em>single session · no subscription</em></div>
               <div className="tier-features">
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Everything in Free, plus:</div>
@@ -2941,7 +3095,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
             {/* UNLIMITED MONTHLY */}
             <div className={`tier-card ${tier==="unlimited"?"active":""}`} onClick={() => handleTierSelect("unlimited")}>
               <div className="tier-name">Unlimited</div>
-              <div className="tier-price"><sup>$</sup>24.99</div>
+              <div className="tier-price"><sup>$</sup>14.99</div>
               <div className="tier-price-note">per month · cancel anytime</div>
               <div className="tier-features">
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Everything in Individual, plus:</div>
@@ -2954,7 +3108,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
             <div className={`tier-card popular-tier ${tier==="annual"?"active":""}`} onClick={() => handleTierSelect("annual")} style={{borderTop:"3px solid var(--acid)"}}>
               <div className="tier-popular-tag" style={{background:"var(--acid)",color:"var(--black)"}}>BEST VALUE</div>
               <div className="tier-name">Unlimited Annual</div>
-              <div className="tier-price"><sup>$</sup>249.99</div>
+              <div className="tier-price"><sup>$</sup>149.99</div>
               <div className="tier-price-note">per year · <em>2 months free!</em></div>
               <div className="tier-features">
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Everything in Unlimited, plus:</div>
@@ -3217,7 +3371,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 <h3>YOU'VE USED YOUR FREE WORKOUT THIS WEEK</h3>
                 <p>Your free workout becomes available again 7 days after your last one. Come back then — or upgrade now to train on your schedule with a full personalized program.</p>
                 <button className="blocked-upgrade-btn" onClick={() => { setBlocked(false); setTier("individual"); setStep("form"); setPlan(null); setTimeout(()=>{ const el=document.getElementById('form-top'); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:'smooth'}); }}, 50); }}>
-                  UPGRADE FOR $4.99 →
+                  UPGRADE FOR $3.99 →
                 </button>
               </div>
             ) : (
@@ -3392,10 +3546,10 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
 <div className="upsell-strip" style={{borderTopColor:"var(--acid)"}}>
                           <div className="upsell-strip-text">
                             <h4>GO UNLIMITED</h4>
-                            <p>Unlimited workouts, full nutrition plans, 4-week progression & more — $24.99/month.</p>
+                            <p>Unlimited workouts, full nutrition plans, 4-week progression & more — $14.99/month.</p>
                           </div>
                           <button className="upsell-strip-btn" style={{background:"var(--acid)",color:"var(--black)"}} onClick={()=>{ setTier("unlimited"); setStep("form"); setUnlocked(false); setPlan(null); setTimeout(()=>{ const el=document.getElementById("form-top"); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:"smooth"}); }}, 50); }}>
-                            GO UNLIMITED — $24.99 →
+                            GO UNLIMITED — $14.99 →
                           </button>
                         </div>
                     )}
@@ -3427,7 +3581,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                       <h3>YOUR PLAN IS <span>READY</span></h3>
                       <p className="paywall-sub">{tier==="individual"?"Unlock this workout now.":"Unlock your full program, nutrition plan, and 4-week progression."}</p>
                       <div className="paywall-price-row">
-                        <div className="paywall-price">{tier==="individual"?"$4.99":tier==="annual"?"$249.99":"$24.99"}</div>
+                        <div className="paywall-price">{tier==="individual"?"$3.99":tier==="annual"?"$149.99":"$14.99"}</div>
                         <div className="paywall-price-unit">{tier==="individual"?"one-time":tier==="annual"?"/year":"/month"}</div>
                       </div>
                       
@@ -3693,6 +3847,95 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* COACH CHAT - Unlimited tier only (monthly or annual) */}
+      {lead && (tier === "unlimited" || tier === "annual") && !showCoachChat && (
+        <button className="coach-chat-btn" onClick={() => setShowCoachChat(true)} aria-label="Message your coach">
+          💬
+          {coachUnread > 0 && <span className="coach-chat-badge">{coachUnread}</span>}
+        </button>
+      )}
+      {showCoachChat && (
+        <div className="coach-chat-panel">
+          <div className="coach-chat-header">
+            <span className="coach-chat-title">Message a Coach</span>
+            <button className="coach-chat-close" onClick={() => setShowCoachChat(false)} aria-label="Close chat">✕</button>
+          </div>
+          <div className="coach-chat-messages">
+            {coachMessages.length === 0 && (
+              <div className="coach-chat-empty">Send a message and Adam or the coaching team will get back to you here, in real time when they're online.</div>
+            )}
+            {coachMessages.map(m => (
+              <div key={m.id} className={`coach-msg ${m.sender}`}>{m.message}</div>
+            ))}
+            <div ref={coachMessagesEndRef} />
+          </div>
+          <div className="coach-chat-input-row">
+            <input
+              type="text"
+              placeholder="Type a message..."
+              value={coachChatInput}
+              onChange={e => setCoachChatInput(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") sendCoachMessage(); }}
+            />
+            <button className="coach-chat-send" onClick={sendCoachMessage} disabled={!coachChatInput.trim()} aria-label="Send">→</button>
+          </div>
+        </div>
+      )}
+
+      {/* ADMIN COACH INBOX */}
+      {isAdmin && !showAdminInbox && (
+        <button className="admin-inbox-btn" onClick={() => setShowAdminInbox(true)}>
+          Coach Inbox
+          {adminUnreadTotal > 0 && <span className="admin-inbox-badge">{adminUnreadTotal}</span>}
+        </button>
+      )}
+      {showAdminInbox && (
+        <div className="coach-chat-panel">
+          <div className="coach-chat-header">
+            <span className="coach-chat-title">{activeAdminThread ? activeAdminThread : "Coach Inbox"}</span>
+            <button className="coach-chat-close" onClick={() => { setShowAdminInbox(false); setActiveAdminThread(null); }} aria-label="Close inbox">✕</button>
+          </div>
+
+          {!activeAdminThread && (
+            <div className="admin-thread-list">
+              {adminThreads.length === 0 && <div className="admin-empty">No conversations yet.</div>}
+              {adminThreads.map(t => (
+                <div key={t.email} className="admin-thread-item" onClick={() => openAdminThread(t.email)}>
+                  <div>
+                    <div className="admin-thread-email">{t.email}</div>
+                    <div className="admin-thread-preview">{t.lastSender === "coach" ? "You: " : ""}{t.lastMessage}</div>
+                  </div>
+                  {t.unreadCount > 0 && <span className="admin-thread-unread">{t.unreadCount}</span>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {activeAdminThread && (
+            <>
+              <button className="admin-back-btn" onClick={() => setActiveAdminThread(null)}>← All conversations</button>
+              <div className="coach-chat-messages">
+                {coachMessages.length === 0 && <div className="coach-chat-empty">No messages yet.</div>}
+                {coachMessages.map(m => (
+                  <div key={m.id} className={`coach-msg ${m.sender === "coach" ? "user" : "coach"}`}>{m.message}</div>
+                ))}
+                <div ref={coachMessagesEndRef} />
+              </div>
+              <div className="coach-chat-input-row">
+                <input
+                  type="text"
+                  placeholder="Reply..."
+                  value={adminChatInput}
+                  onChange={e => setAdminChatInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") sendAdminReply(); }}
+                />
+                <button className="coach-chat-send" onClick={sendAdminReply} disabled={!adminChatInput.trim()} aria-label="Send">→</button>
+              </div>
+            </>
+          )}
         </div>
       )}
     </>
