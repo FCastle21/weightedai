@@ -610,6 +610,18 @@ const styles = `
   .rating-done { background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; padding: 16px 20px; font-size: 14px; color: #aaa; border-radius: 14px; }
   .rating-done strong { color: var(--acid); }
 
+  /* WEIGHT LOG */
+  .weight-log-title { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #666; margin-bottom: 4px; }
+  .weight-log-sub { font-size: 12px; color: #555; margin-bottom: 14px; }
+  .weight-log-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
+  .weight-log-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #111; border: 1px solid #1e1e1e; border-radius: 10px; padding: 10px 14px; }
+  .weight-log-name { font-size: 13px; color: var(--white); }
+  .weight-log-prescribed { font-size: 11px; color: #555; margin-top: 1px; }
+  .weight-log-input-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .weight-log-input { width: 64px; background: #0a0a0a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 8px 10px; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 13px; text-align: center; outline: none; }
+  .weight-log-input:focus { border-color: var(--acid); }
+  .weight-log-unit { font-size: 11px; color: #666; }
+
   /* PROGRESSIVE OVERLOAD BANNER */
   .overload-banner { background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; }
   .overload-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--acid); margin-bottom: 6px; font-weight: 500; }
@@ -1516,6 +1528,26 @@ function getWorkoutOnlyContent(text) {
   return result.trim();
 }
 
+// Extracts { name, prescribed } for each main exercise (bold text only, same reasoning as the
+// share feature: only real exercises are ever bolded, warm-up/cool-down are plain text). Used to
+// build the post-workout weight-logging list, so the user sees what was prescribed while entering
+// what they actually used.
+function getMainExercisesForLogging(planText) {
+  const workoutOnly = getWorkoutOnlyContent(planText || "");
+  const seen = new Set();
+  const results = [];
+  workoutOnly.split("\n").forEach(line => {
+    const m = line.match(/\*\*([^*]+)\*\*\s*(?:—|-)?\s*(.*)$/);
+    if (!m) return;
+    const name = m[1].trim();
+    if (name.length <= 3 || name.length > 80 || seen.has(name)) return;
+    seen.add(name);
+    const prescribed = m[2] ? m[2].split(",")[0].trim() : "";
+    results.push({ name, prescribed });
+  });
+  return results;
+}
+
 function parseMarkdown(text) {
   if (!text) return "";
   // Remove standalone ** and --- artifacts
@@ -1746,6 +1778,7 @@ function WeightedAI() {
   const [workoutMode, setWorkoutMode] = useState(false);
   const [savedWorkout, setSavedWorkout] = useState(null);
   const [difficulty, setDifficulty] = useState(0);
+  const [exerciseWeights, setExerciseWeights] = useState({});
   const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const [workoutHistory, setWorkoutHistory] = useState([]);
   const [videoModal, setVideoModal] = useState(null); // { name, query }
@@ -2223,7 +2256,7 @@ PROFILE:
 - Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}${currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
 - Goal: ${currentForm.goal}
 - Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
-${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
+${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; const perfList = h.performance ? h.performance.split("|").filter(Boolean) : []; const perfText = perfList.length > 0 ? "\nWeights used: " + perfList.map(p => p.replace(":", " - ") + " lb").join(", ") : ""; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : "") + perfText; }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed\n\nPROGRESSIVE OVERLOAD RULES (based on Session 1's difficulty rating above, which is the user's most recent session):\n1. If Session 1 difficulty was 4-5/5 (felt easy): for exercises from Session 1 that reasonably repeat this session, increase intensity. If a specific weight was logged in \"Weights used\" above for that exercise, calculate and recommend that exact weight plus 5-10% (e.g. if 135 lb was logged, recommend 140-145 lb) instead of vague language. If no weight was logged, add reps, add a set, or say \"increase weight slightly from last time\".\n2. If Session 1 difficulty was 3/5 (moderate): maintain the same intensity level as Session 1 for repeated movement patterns - same rep target, same suggested weight.\n3. If Session 1 difficulty was 1-2/5 (felt hard): maintain or slightly reduce intensity, prioritize form over load, and say so explicitly in that exercise's description (e.g. \"focus on control here - reduce weight slightly if last session felt tough\").\n4. If no history exists yet, use standard beginner/intermediate/advanced defaults per the user's stated level with no reference to a previous session." : ""}
 
 CORE TRAINING RULES — APPLY TO EVERY WORKOUT REGARDLESS OF TYPE:
 
@@ -2310,7 +2343,7 @@ PROFILE:
 - Days/week: ${currentForm.days}
 - IMPORTANT: Each of the ${currentForm.days} training days this week must have a CLEARLY DIFFERENT muscle group focus than the other days (unless Full Body is selected for every day, or the Workout Type itself dictates otherwise, e.g. Apex/HIIT). Never repeat the exact same muscle group combination on more than 2 days in a single week.
 - Injuries, Limitations & Special Instructions: ${currentForm.notes||"None"}${currentForm.notes && currentForm.notes.includes("HARD CONSTRAINT") ? " ← THESE ARE MANDATORY REQUIREMENTS. READ THEM CAREFULLY AND FOLLOW THEM EXACTLY. DO NOT GENERATE EXERCISES THAT VIOLATE ANY CONSTRAINT LISTED HERE." : ""}
-${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
+${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; const perfList = h.performance ? h.performance.split("|").filter(Boolean) : []; const perfText = perfList.length > 0 ? "\nWeights used: " + perfList.map(p => p.replace(":", " - ") + " lb").join(", ") : ""; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : "") + perfText; }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed\n\nPROGRESSIVE OVERLOAD RULES (based on Session 1's difficulty rating above, which is the user's most recent session):\n1. If Session 1 difficulty was 4-5/5 (felt easy): for exercises from Session 1 that reasonably repeat this session, increase intensity. If a specific weight was logged in \"Weights used\" above for that exercise, calculate and recommend that exact weight plus 5-10% (e.g. if 135 lb was logged, recommend 140-145 lb) instead of vague language. If no weight was logged, add reps, add a set, or say \"increase weight slightly from last time\".\n2. If Session 1 difficulty was 3/5 (moderate): maintain the same intensity level as Session 1 for repeated movement patterns - same rep target, same suggested weight.\n3. If Session 1 difficulty was 1-2/5 (felt hard): maintain or slightly reduce intensity, prioritize form over load, and say so explicitly in that exercise's description (e.g. \"focus on control here - reduce weight slightly if last session felt tough\").\n4. If no history exists yet, use standard beginner/intermediate/advanced defaults per the user's stated level with no reference to a previous session." : ""}
 
 PROGRESSIVE OVERLOAD:
 - Difficulty 4-5 last session: maintain volume, focus on form
@@ -2424,7 +2457,7 @@ PROFILE:
 - Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
 - Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
 - Injuries, Limitations & Special Instructions: ${currentForm.notes||"None"}${currentForm.notes && currentForm.notes.includes("HARD CONSTRAINT") ? " ← THESE ARE MANDATORY REQUIREMENTS. READ THEM CAREFULLY AND FOLLOW THEM EXACTLY. DO NOT GENERATE EXERCISES THAT VIOLATE ANY CONSTRAINT LISTED HERE." : ""}
-${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : ""); }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed" : ""}
+${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; const perfList = h.performance ? h.performance.split("|").filter(Boolean) : []; const perfText = perfList.length > 0 ? "\nWeights used: " + perfList.map(p => p.replace(":", " - ") + " lb").join(", ") : ""; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : "") + perfText; }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed\n\nPROGRESSIVE OVERLOAD RULES (based on Session 1's difficulty rating above, which is the user's most recent session):\n1. If Session 1 difficulty was 4-5/5 (felt easy): for exercises from Session 1 that reasonably repeat this session, increase intensity. If a specific weight was logged in \"Weights used\" above for that exercise, calculate and recommend that exact weight plus 5-10% (e.g. if 135 lb was logged, recommend 140-145 lb) instead of vague language. If no weight was logged, add reps, add a set, or say \"increase weight slightly from last time\".\n2. If Session 1 difficulty was 3/5 (moderate): maintain the same intensity level as Session 1 for repeated movement patterns - same rep target, same suggested weight.\n3. If Session 1 difficulty was 1-2/5 (felt hard): maintain or slightly reduce intensity, prioritize form over load, and say so explicitly in that exercise's description (e.g. \"focus on control here - reduce weight slightly if last session felt tough\").\n4. If no history exists yet, use standard beginner/intermediate/advanced defaults per the user's stated level with no reference to a previous session." : ""}
 
 PROGRESSIVE OVERLOAD:
 - Difficulty 4-5 last session: maintain volume, focus on form
@@ -2512,7 +2545,7 @@ At the end of the Nutrition Strategy section, add a heading "**Disclaimer**" fol
 ## Workout Plan (this is a SINGLE workout for ONE training session — do NOT generate multiple days, do NOT use "### Day N" headers, do NOT repeat this structure for a week. Just one workout: name, muscle focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — then one short sentence describing what it works, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown — warm-up and cool-down move names must be plain text. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh — every exercise must alternate properly.)
 ## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
 ## Recovery Protocol
-## 4-Week Progression
+## 4-Week Progression (Reference the PREVIOUS WORKOUT HISTORY above if provided, especially Session 1's difficulty rating, and the PROGRESSIVE OVERLOAD RULES given earlier. Give a specific week-by-week plan using the actual exercise names from today's workout, not generic advice: Week 1 is today's session as prescribed above; Week 2 - increase weight by 5-10% or add 1-2 reps per set on the main compound lifts if Week 1 felt manageable, name which specific exercises to progress; Week 3 - continue the same incremental increase on those exercises; Week 4 - either a deload (reduce volume by 40-50%) or a final intensity push, state which one and why based on the user's goal. Use concrete numbers tied to today's prescribed sets/reps, not phrases like "increase weight when ready".)
 ## Success Metrics
 
 Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separator rows) — they do not render correctly in this app. Instead, use bullet points or bold labels with colons (e.g. "**Protein:** 155-207g — use high end to preserve muscle") for any data you would otherwise put in a table.`
@@ -2969,12 +3002,20 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
         .slice(0, 15);
     } catch(e) {}
     const histEntry = { date: entry.date, muscles: entry.muscles, difficulty: difficultyRating, exercises: exerciseList.join("|") };
+    // Only include exercises where the user actually entered a weight - this is what enables real
+    // progressive overload math next time (comparing an actual number to an actual number) instead
+    // of just a whole-session difficulty vibe check.
+    const performanceEntries = Object.entries(exerciseWeights).filter(([name, w]) => w && String(w).trim() !== "");
+    if (performanceEntries.length > 0) {
+      histEntry.performance = performanceEntries.map(([name, w]) => `${name}:${w}`).join("|");
+    }
     const newHistory = [histEntry, ...workoutHistory].slice(0, 5);
     setWorkoutHistory(newHistory);
     if (lead) {
       try { await dbRequest("saveLog", { email: lead.email, logEntry: entry }); } catch(e) {}
       try { await dbRequest("saveHistory", { email: lead.email, historyEntry: { ...histEntry, exercises: histEntry.exercises || "" } }); } catch(e) {}
     }
+    setExerciseWeights({});
     setRatingSubmitted(true);
     // Clear active workout from localStorage
     try { 
@@ -3510,6 +3551,33 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                         )}
                         {!ratingSubmitted ? (
                           <div className="rating-section">
+                            {getMainExercisesForLogging(plan).length > 0 && (
+                              <>
+                                <div className="weight-log-title">Log Your Weights (Optional)</div>
+                                <div className="weight-log-sub">Helps us recommend the right weight next time.</div>
+                                <div className="weight-log-list">
+                                  {getMainExercisesForLogging(plan).map((ex, i) => (
+                                    <div key={i} className="weight-log-row">
+                                      <div>
+                                        <div className="weight-log-name">{ex.name}</div>
+                                        {ex.prescribed && <div className="weight-log-prescribed">{ex.prescribed}</div>}
+                                      </div>
+                                      <div className="weight-log-input-wrap">
+                                        <input
+                                          type="number"
+                                          inputMode="decimal"
+                                          className="weight-log-input"
+                                          placeholder="—"
+                                          value={exerciseWeights[ex.name] || ""}
+                                          onChange={e => setExerciseWeights(w => ({ ...w, [ex.name]: e.target.value }))}
+                                        />
+                                        <span className="weight-log-unit">lb</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </>
+                            )}
                             <div className="rating-title">HOW WAS THIS WORKOUT?</div>
                             <div className="rating-sub">Rate the difficulty so we can adjust your next session.</div>
                             <div className="rating-stars">
@@ -3686,6 +3754,26 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
             <div className="workout-mode-footer">
               {!ratingSubmitted ? (
                 <div>
+                  {getMainExercisesForLogging(plan).length > 0 && (
+                    <div style={{maxHeight:140,overflowY:"auto",marginBottom:12,display:"flex",flexDirection:"column",gap:6}}>
+                      {getMainExercisesForLogging(plan).map((ex, i) => (
+                        <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,background:"#111",border:"1px solid #1e1e1e",borderRadius:8,padding:"7px 10px"}}>
+                          <div style={{fontSize:12,color:"var(--white)"}}>{ex.name}</div>
+                          <div style={{display:"flex",alignItems:"center",gap:5,flexShrink:0}}>
+                            <input
+                              type="number"
+                              inputMode="decimal"
+                              placeholder="—"
+                              value={exerciseWeights[ex.name] || ""}
+                              onChange={e => setExerciseWeights(w => ({ ...w, [ex.name]: e.target.value }))}
+                              style={{width:52,background:"#0a0a0a",border:"1px solid #2a2a2a",borderRadius:6,padding:"6px 8px",color:"var(--white)",fontFamily:"'DM Sans',sans-serif",fontSize:12,textAlign:"center",outline:"none"}}
+                            />
+                            <span style={{fontSize:10,color:"#666"}}>lb</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   <div style={{display:"flex",gap:8,justifyContent:"center",marginBottom:12}}>
                     {[1,2,3,4,5].map(n => (
                       <button key={n} className={`rating-star ${difficulty===n?"selected":""}`} onClick={()=>setDifficulty(n)}>{n}</button>
