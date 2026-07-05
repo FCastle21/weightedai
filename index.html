@@ -1813,11 +1813,11 @@ function WeightedAI() {
 
   // Even when the chat panel is closed, poll occasionally so the unread badge stays current
   useEffect(() => {
-    if (!lead?.email || (tier !== "unlimited" && tier !== "annual") || showCoachChat) return;
+    if (!lead?.email || isAdmin || (tier !== "unlimited" && tier !== "annual") || showCoachChat) return;
     loadCoachMessages(lead.email);
     const interval = setInterval(() => loadCoachMessages(lead.email), 20000);
     return () => clearInterval(interval);
-  }, [lead?.email, tier, showCoachChat]);
+  }, [lead?.email, tier, showCoachChat, isAdmin]);
 
   // ── ADMIN INBOX ──────────────────────────────────────────────────────────
   const loadAdminThreads = async () => {
@@ -3868,8 +3868,8 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
         </div>
       )}
 
-      {/* COACH CHAT - Unlimited tier only (monthly or annual) */}
-      {lead && (tier === "unlimited" || tier === "annual") && !showCoachChat && (
+      {/* COACH CHAT - Unlimited tier only (monthly or annual), hidden for admins since they use the Coach Inbox instead */}
+      {lead && (tier === "unlimited" || tier === "annual") && !isAdmin && !showCoachChat && (
         <button className="coach-chat-btn" onClick={() => setShowCoachChat(true)} aria-label="Message your coach">
           💬
           {coachUnread > 0 && <span className="coach-chat-badge">{coachUnread}</span>}
