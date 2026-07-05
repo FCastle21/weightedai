@@ -457,7 +457,16 @@ const styles = `
   .badge { background: var(--acid); color: var(--black); font-size: 11px; font-weight: 500; letter-spacing: 2px; padding: 6px 14px; border-radius: 500px; text-transform: uppercase; }
 
   /* HERO */
-  .app-hero { padding: 16px 20px 14px; max-width: 100%; border-bottom: 1px solid #1a1a1a; }
+  .app-hero { padding: 16px 20px 14px; max-width: 100%; border-bottom: 1px solid #1a1a1a; position: relative; overflow: hidden; }
+  .app-hero-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+  .app-hero-bg::before {
+    content: ""; position: absolute; inset: 0; opacity: 0.2;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .app-hero-bg::after {
+    content: ""; position: absolute; width: 320px; height: 320px; top: -140px; left: -60px;
+    background: radial-gradient(circle, rgba(93,138,122,0.20) 0%, rgba(93,138,122,0) 70%);
+  }
   .app-hero-label { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--acid); margin-bottom: 8px; }
   .app-hero-h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px, 5vw, 52px); line-height: 0.92; letter-spacing: 2px; color: var(--white); margin-bottom: 8px; }
   .app-hero-h1 em { font-style: normal; color: var(--white); }
@@ -3031,6 +3040,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
         </header>
 
         <section className="app-hero">
+          <div className="app-hero-bg"></div>
           <p className="app-hero-label">AI-Powered Fitness Intelligence</p>
           <h1 className="app-hero-h1">YOUR PLAN.<br />BUILT IN<br />SECONDS.</h1>
           <p className="app-hero-p">Choose your plan below. Our AI engine builds a personalized workout instantly — for free, on-demand, or unlimited.</p>
