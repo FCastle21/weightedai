@@ -1528,11 +1528,33 @@ function getWorkoutOnlyContent(text) {
   return result.trim();
 }
 
+// Exercise names/keywords that don't use external weight, so a weight-logging field would be
+// meaningless for them - bodyweight movements, cardio/interval work, and isometric holds (holds
+// are already excluded from "reps" entirely by fixHoldExerciseTiming, but weight is irrelevant
+// for them too, e.g. Plank or Wall Sit).
+const NO_WEIGHT_KEYWORDS = [
+  "push-up", "push up", "pushup", "pull-up", "pull up", "pullup", "chin-up", "chin up", "chinup",
+  "burpee", "mountain climber", "jumping jack", "air squat", "bodyweight squat", "sit-up", "sit up",
+  "crunch", "bear crawl", "high knee", "jump rope", "box jump", "broad jump", "sprint", "jog",
+  "run", "jumping lunge", "star jump", "squat jump", "tuck jump", "skater", "shuttle run",
+  "plank", "hollow hold", "wall sit", "dead hang", "l-sit", "glute bridge hold", "superman hold",
+  "flag hold", "isometric hold", "chair hold", "side plank"
+];
+function isNoWeightExercise(name) {
+  const lower = name.toLowerCase();
+  return NO_WEIGHT_KEYWORDS.some(kw => lower.includes(kw));
+}
+
 // Extracts { name, prescribed } for each main exercise (bold text only, same reasoning as the
 // share feature: only real exercises are ever bolded, warm-up/cool-down are plain text). Used to
 // build the post-workout weight-logging list, so the user sees what was prescribed while entering
-// what they actually used.
-function getMainExercisesForLogging(planText) {
+// what they actually used. Skips exercises that don't meaningfully use external weight - see
+// NO_WEIGHT_KEYWORDS above - and skips the whole list for Bodyweight Only equipment or HIIT
+// workouts, where weight tracking doesn't apply the same way at all.
+function getMainExercisesForLogging(planText, options = {}) {
+  const { equipment, goal } = options;
+  if (equipment === "Bodyweight Only" || goal === "HIIT") return [];
+
   const workoutOnly = getWorkoutOnlyContent(planText || "");
   const seen = new Set();
   const results = [];
@@ -1541,6 +1563,7 @@ function getMainExercisesForLogging(planText) {
     if (!m) return;
     const name = m[1].trim();
     if (name.length <= 3 || name.length > 80 || seen.has(name)) return;
+    if (isNoWeightExercise(name)) return;
     seen.add(name);
     const prescribed = m[2] ? m[2].split(",")[0].trim() : "";
     results.push({ name, prescribed });
@@ -1787,6 +1810,7 @@ function WeightedAI() {
   const [showWorkoutHistory, setShowWorkoutHistory] = useState(false);
   const [thirtyDayOverviewModal, setThirtyDayOverviewModal] = useState(null); // { status: "loading"|"ready"|"error", content: "" }
   const [shareWorkout, setShareWorkout] = useState(() => { try { const v = localStorage.getItem("weightedai_share_workout"); return v === null ? true : v === "true"; } catch { return true; } });
+  const [logWeights, setLogWeights] = useState(() => { try { const v = localStorage.getItem("weightedai_log_weights"); return v === null ? true : v === "true"; } catch { return true; } });
 
   // Toast + confirm modal helpers (replace native alert()/confirm() for a consistent, on-brand UI)
   const dismissToast = (id) => setToasts(ts => ts.filter(t => t.id !== id));
@@ -1995,6 +2019,12 @@ function WeightedAI() {
         const shareVal = profile.share_workout !== false;
         setShareWorkout(shareVal);
         try { localStorage.setItem("weightedai_share_workout", String(shareVal)); } catch {}
+      }
+      // Only update logWeights from profile if explicitly set in Supabase
+      if (profile.log_weights !== undefined && profile.log_weights !== null) {
+        const logVal = profile.log_weights !== false;
+        setLogWeights(logVal);
+        try { localStorage.setItem("weightedai_log_weights", String(logVal)); } catch {}
       }
       setProfileLoaded(true);
       setHasActiveSubscription(!!profile.stripe_subscription_id && (!profile.subscription_status || profile.subscription_status === "active" || profile.subscription_status === "trialing"));
@@ -3270,6 +3300,20 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     </div>
                     <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",maxWidth:"100%"}}>
                       <div style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:"#555"}}>
+                        <span style={{letterSpacing:1}}>Log weights</span>
+                        <div
+                          onClick={async () => {
+                            const newVal = !logWeights;
+                            setLogWeights(newVal);
+                            try { localStorage.setItem("weightedai_log_weights", String(newVal)); } catch {}
+                            if (lead) await dbRequest("saveProfile", { email: lead.email, profileData: { log_weights: newVal } });
+                          }}
+                          style={{width:36,height:20,borderRadius:500,background:logWeights?"var(--acid)":"#2a2a2a",cursor:"pointer",position:"relative",transition:"background 0.2s",flexShrink:0}}
+                        >
+                          <div style={{position:"absolute",top:3,left:logWeights?18:3,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
+                        </div>
+                      </div>
+                      <div style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:"#555"}}>
                         <span style={{letterSpacing:1}}>Share workouts</span>
                         <div 
                           onClick={async () => {
@@ -3551,12 +3595,12 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                         )}
                         {!ratingSubmitted ? (
                           <div className="rating-section">
-                            {getMainExercisesForLogging(plan).length > 0 && (
+                            {logWeights && getMainExercisesForLogging(plan, { equipment: form.equipment, goal: form.goal }).length > 0 && (
                               <>
                                 <div className="weight-log-title">Log Your Weights (Optional)</div>
                                 <div className="weight-log-sub">Helps us recommend the right weight next time.</div>
                                 <div className="weight-log-list">
-                                  {getMainExercisesForLogging(plan).map((ex, i) => (
+                                  {getMainExercisesForLogging(plan, { equipment: form.equipment, goal: form.goal }).map((ex, i) => (
                                     <div key={i} className="weight-log-row">
                                       <div>
                                         <div className="weight-log-name">{ex.name}</div>
@@ -3754,9 +3798,9 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
             <div className="workout-mode-footer">
               {!ratingSubmitted ? (
                 <div>
-                  {getMainExercisesForLogging(plan).length > 0 && (
+                  {logWeights && getMainExercisesForLogging(plan, { equipment: form.equipment, goal: form.goal }).length > 0 && (
                     <div style={{maxHeight:140,overflowY:"auto",marginBottom:12,display:"flex",flexDirection:"column",gap:6}}>
-                      {getMainExercisesForLogging(plan).map((ex, i) => (
+                      {getMainExercisesForLogging(plan, { equipment: form.equipment, goal: form.goal }).map((ex, i) => (
                         <div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,background:"#111",border:"1px solid #1e1e1e",borderRadius:8,padding:"7px 10px"}}>
                           <div style={{fontSize:12,color:"var(--white)"}}>{ex.name}</div>
                           <div style={{display:"flex",alignItems:"center",gap:5,flexShrink:0}}>
