@@ -3298,8 +3298,8 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                   <div style={{fontSize:14,color:"#888",lineHeight:1.8,marginBottom:16}}>
                     {[form.age && `Age: ${form.age}`, form.gender && form.gender !== "Prefer not to say" && form.gender, form.weight && `${form.weight}`, form.height && form.height].filter(Boolean).join(" · ")}
                   </div>
-                  <div style={{display:"flex",alignItems:"center",gap:20,flexWrap:"nowrap",marginBottom:14,overflowX:"auto"}}>
-                    <div style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:"#555"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:16,flexWrap:"nowrap",marginBottom:14,overflowX:"auto"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:5,fontSize:12,color:"#555"}}>
                       <span style={{letterSpacing:1}}>Log weights</span>
                       <div
                         onClick={async () => {
@@ -3313,7 +3313,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                         <div style={{position:"absolute",top:3,left:logWeights?18:3,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
                       </div>
                     </div>
-                    <div style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:"#555"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:5,fontSize:12,color:"#555"}}>
                       <span style={{letterSpacing:1}}>Share workouts</span>
                       <div 
                         onClick={async () => {
