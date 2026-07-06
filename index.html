@@ -3298,7 +3298,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                   <div style={{fontSize:14,color:"#888",lineHeight:1.8,marginBottom:16}}>
                     {[form.age && `Age: ${form.age}`, form.gender && form.gender !== "Prefer not to say" && form.gender, form.weight && `${form.weight}`, form.height && form.height].filter(Boolean).join(" · ")}
                   </div>
-                  <div style={{display:"flex",alignItems:"center",gap:20,flexWrap:"wrap",marginBottom:14}}>
+                  <div style={{display:"flex",alignItems:"center",gap:20,flexWrap:"nowrap",marginBottom:14,overflowX:"auto"}}>
                     <div style={{display:"flex",alignItems:"center",gap:8,fontSize:12,color:"#555"}}>
                       <span style={{letterSpacing:1}}>Log weights</span>
                       <div
