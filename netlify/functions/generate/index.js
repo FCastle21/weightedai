@@ -396,6 +396,19 @@ Building muscle increases resting metabolic rate, making it an effective long-te
 - Fat: 20-35% of total calories.
 - Carbs: fill remaining calories, typically 3-7 g/kg depending on training volume.
 
+IF GOAL IS BUILD & BURN:
+This is a body recomposition goal - building muscle while losing fat simultaneously. This requires
+a different approach than pure Fat Loss (an aggressive deficit would work against muscle building)
+or pure Muscle Building (a surplus would work against fat loss).
+- Calories: at maintenance, or a small deficit (0-15% below estimated maintenance) - never larger,
+  since a steeper deficit will cost the muscle-building side of this goal.
+- Protein: HIGHER than standard - 1.0-1.2 g/lb bodyweight (2.2-2.6 g/kg), above the usual 0.8 g/lb,
+  since preserving and building muscle in a deficit or at maintenance requires more protein than a
+  single-focus goal does.
+- Fat: 20-30% of calories.
+- Carbs: fill remaining calories, with a note to prioritize carbs around training sessions to fuel
+  performance and recovery.
+
 IF GOAL IS FAT LOSS:
 - Calories: deficit of 10-25% below estimated maintenance. Target fat loss of 0.5-1% of bodyweight per week.
 - Protein: 0.8 g/lb bodyweight (1.76 g/kg) to preserve muscle during the deficit.
