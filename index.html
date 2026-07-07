@@ -877,6 +877,66 @@ async function dbRequest(action, payload) {
   } catch(e) { console.error(`dbRequest(${action}) failed:`, e); return null; }
 }
 
+// Workout generation runs as a Netlify Background Function (15-minute execution limit) instead of
+// a regular synchronous function, since generation was hitting the ~60s synchronous ceiling and
+// returning 504 errors - especially for paid-tier plans with detailed nutrition/progression
+// content. Background functions can't return a response directly, so this kicks off the job, then
+// polls a status endpoint until the result (written to Supabase by the background function) is
+// ready. Returns the same {content:[...]} shape the old direct call used to return, so none of the
+// downstream prompt-processing/safety-net logic in generatePlan needs to know anything changed.
+async function generateViaBackground(prompt, { pollIntervalMs = 2000, maxWaitMs = 90000 } = {}) {
+  const jobId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+  let kickoffRes;
+  try {
+    kickoffRes = await fetch("/.netlify/functions/generate-background", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jobId, prompt })
+    });
+  } catch (e) {
+    throw new Error("Network error - please check your connection and try again.");
+  }
+  // Background functions respond with 202 Accepted immediately - a non-2xx here means the
+  // request never made it to the background function at all (not a generation failure).
+  if (!kickoffRes.ok && kickoffRes.status !== 202) {
+    throw new Error(`Server error (${kickoffRes.status}). Please try again in a moment.`);
+  }
+
+  const startTime = Date.now();
+  while (Date.now() - startTime < maxWaitMs) {
+    await new Promise(r => setTimeout(r, pollIntervalMs));
+
+    let statusData;
+    try {
+      const statusRes = await fetch("/.netlify/functions/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "checkGenerationStatus", jobId })
+      });
+      if (!statusRes.ok) continue; // transient hiccup - just try again on the next poll
+      statusData = await statusRes.json();
+    } catch (e) {
+      continue; // dropped connection mid-poll (e.g. mobile network switch) - keep polling rather
+                // than failing the whole generation over one missed poll
+    }
+
+    if (statusData.status === "completed") {
+      try {
+        return JSON.parse(statusData.result);
+      } catch (e) {
+        throw new Error("Received an unexpected response. Please try again.");
+      }
+    }
+    if (statusData.status === "failed") {
+      throw new Error(statusData.error || "Something went wrong generating your workout. Please try again.");
+    }
+    // status === "pending" (or no job row yet) - keep polling
+  }
+
+  throw new Error("This is taking longer than expected. Please check your connection and try again.");
+}
+
 async function loadProfile(email) {
   try {
     const data = await dbRequest("loadProfile", { email });
@@ -2575,49 +2635,14 @@ At the end of the Nutrition Strategy section, add a heading "**Disclaimer**" fol
 ## Workout Plan (this is a SINGLE workout for ONE training session — do NOT generate multiple days, do NOT use "### Day N" headers, do NOT repeat this structure for a week. Just one workout: name, muscle focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — then one short sentence describing what it works, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown — warm-up and cool-down move names must be plain text. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh — every exercise must alternate properly.)
 ## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
 ## Recovery Protocol
-## 4-Week Progression (Reference the PREVIOUS WORKOUT HISTORY above if provided, especially Session 1's difficulty rating, and the PROGRESSIVE OVERLOAD RULES given earlier. Give a specific week-by-week plan using the actual exercise names from today's workout, not generic advice: Week 1 is today's session as prescribed above; Week 2 - increase weight by 5-10% or add 1-2 reps per set on the main compound lifts if Week 1 felt manageable, name which specific exercises to progress; Week 3 - continue the same incremental increase on those exercises; Week 4 - either a deload (reduce volume by 40-50%) or a final intensity push, state which one and why based on the user's goal. Use concrete numbers tied to today's prescribed sets/reps, not phrases like "increase weight when ready".)
+## 4-Week Progression (Reference the PREVIOUS WORKOUT HISTORY above if provided, especially Session 1's difficulty rating and the PROGRESSIVE OVERLOAD RULES given earlier. Keep this section BRIEF - 3-4 sentences total, not an exhaustive week-by-week breakdown. State one concrete change for Week 2 using an actual exercise name and number from today's workout (e.g. "Week 2: increase Bench Press to 140 lb"), then one sentence covering Weeks 3-4 together (continue the same trend, then a Week 4 deload or final push - state which and why). Use concrete numbers, not vague phrases like "increase weight when ready".)
 ## Success Metrics
 
 Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separator rows) — they do not render correctly in this app. Instead, use bullet points or bold labels with colons (e.g. "**Protein:** 155-207g — use high end to preserve muscle") for any data you would otherwise put in a table.`
 
     setIsStreaming(true);
     try {
-      // Netlify's synchronous function limit is 60s - abort just under that so the user gets a
-      // clear, friendly timeout message instead of the connection hanging until Netlify itself
-      // kills it with a raw 502/504 (which showed up to users as an opaque "API error" before,
-      // since the old code created this AbortController but never actually attached it to the
-      // fetch call - the 60s abort never did anything).
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 55000);
-      let res;
-      try {
-        res = await fetch("/.netlify/functions/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "generate", prompt }),
-          signal: controller.signal
-        });
-      } catch (fetchErr) {
-        clearTimeout(timeout);
-        if (fetchErr.name === "AbortError") {
-          throw new Error("This is taking longer than expected. Please check your connection and try again.");
-        }
-        // Covers dropped/lost connections - common on mobile when switching between WiFi and
-        // cellular, losing signal, or the browser tab getting backgrounded mid-request.
-        throw new Error("Network error - please check your connection and try again.");
-      }
-      clearTimeout(timeout);
-
-      if (!res.ok) {
-        throw new Error(`Server error (${res.status}). Please try again in a moment.`);
-      }
-
-      let data;
-      try {
-        data = await res.json();
-      } catch (parseErr) {
-        throw new Error("Received an unexpected response. Please try again.");
-      }
+      const data = await generateViaBackground(prompt);
       if (!data || data.error) throw new Error(data?.error || "Something went wrong generating your workout. Please try again.");
 
       const raw = data.content?.find(b => b.type === "text")?.text || "";
