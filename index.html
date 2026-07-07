@@ -4,15 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>WeightedAI — Your AI Fitness Trainer</title>
-  <meta name="description" content="Human performance. AI precision. WeightedAI builds a fully personalized workout and nutrition plan in seconds, backed by 15+ years of real coaching experience." />
+  <meta name="description" content="Human performance. AI precision. WeightedAI builds a fully personalized workout and nutrition plan in seconds, backed by 15+ years of real training experience." />
   <meta property="og:title" content="WeightedAI — Your AI Fitness Trainer" />
-  <meta property="og:description" content="Human performance. AI precision. WeightedAI builds a fully personalized workout and nutrition plan in seconds, backed by 15+ years of real coaching experience." />
+  <meta property="og:description" content="Human performance. AI precision. WeightedAI builds a fully personalized workout and nutrition plan in seconds, backed by 15+ years of real training experience." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://weightedai.net" />
   <meta property="og:image" content="https://weightedai.net/og-image.png" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="WeightedAI — Your AI Fitness Trainer" />
-  <meta name="twitter:description" content="Human performance. AI precision. WeightedAI builds a fully personalized workout and nutrition plan in seconds, backed by 15+ years of real coaching experience." />
+  <meta name="twitter:description" content="Human performance. AI precision. WeightedAI builds a fully personalized workout and nutrition plan in seconds, backed by 15+ years of real training experience." />
   <meta name="twitter:image" content="https://weightedai.net/og-image.png" />
   <meta name="application-name" content="WeightedAI" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -266,7 +266,7 @@
 
     <p class="hero-label">AI-Powered Fitness Training</p>
     <h1>HUMAN <em>PERFORMANCE.</em><br />AI <em>PRECISION.</em></h1>
-    <p class="hero-sub">50+ proprietary training rules built from real coaching principles — not generic AI prompts.</p>
+    <p class="hero-sub">50+ proprietary training rules built from real training principles — not generic AI prompts.</p>
 
     <div class="hero-actions">
       <a href="#how-it-works" class="btn-primary">HOW IT WORKS</a>
@@ -280,7 +280,7 @@
   <div class="stats">
     <div class="stat">
       <div class="stat-number">REAL</div>
-      <div class="stat-label">Coaching principles, not guesswork</div>
+      <div class="stat-label">Training principles, not guesswork</div>
     </div>
     <div class="stat">
       <div class="stat-number">100%</div>
@@ -616,7 +616,7 @@ const styles = `
   .weight-log-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 22px; }
   .weight-log-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #111; border: 1px solid #1e1e1e; border-radius: 10px; padding: 10px 14px; }
   .weight-log-name { font-size: 13px; color: var(--white); }
-  .weight-log-prescribed { font-size: 11px; color: #555; margin-top: 1px; }
+  .weight-log-prescribed { font-size: 11px; color: #888; margin-top: 1px; }
   .weight-log-input-wrap { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
   .weight-log-input { width: 64px; background: #0a0a0a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 8px 10px; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 13px; text-align: center; outline: none; }
   .weight-log-input:focus { border-color: var(--acid); }
@@ -2521,7 +2521,7 @@ Then create a complete 30-DAY plan:
 ## Overview & Goals
 ## How To Use This Plan
 ## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
-## The 30-Day Schedule (4 weeks, every training day MUST start with a "### Day N" header, e.g. "### Day 1" — this exact format is required. Within each day: focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps") — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — one short sentence on what it works, one coaching note per day, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh at the beginning of EACH day — every single day's exercises must alternate independently.)
+## The 30-Day Schedule (4 weeks, every training day MUST start with a "### Day N" header, e.g. "### Day 1" — this exact format is required. Within each day: focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps") — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — one short sentence on what it works, one training note per day, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh at the beginning of EACH day — every single day's exercises must alternate independently.)
 ## Recovery Protocol
 ## End of 30 Days
 
@@ -3047,7 +3047,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
     try {
       const planText = plan || "";
       const boldMatches = planText.match(/\*\*([^*]+)\*\*/g) || [];
-      const junkPatterns = /^(exercise\s*\d|muscle group|balance check|total:|warm-?up|cool-?down|session difficulty|note:|tip:|coaching)/i;
+      const junkPatterns = /^(exercise\s*\d|muscle group|balance check|total:|warm-?up|cool-?down|session difficulty|note:|tip:|coaching|training note)/i;
       exerciseList = boldMatches
         .map(m => m.replace(/\*\*/g, "").split("—")[0].split("–")[0].trim())
         .map(e => e.replace(/^\d+[\.\)\:]\s*/, "").trim()) // strip leading "1. " or "1: " numbering
@@ -3327,29 +3327,57 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     <div style={{display:"flex",alignItems:"center",gap:4,fontSize:12,color:"#555"}}>
                       <span style={{letterSpacing:1}}>Log weights</span>
                       <div
+                        role="switch"
+                        aria-checked={logWeights}
+                        aria-label="Log weights"
+                        tabIndex={0}
                         onClick={async () => {
                           const newVal = !logWeights;
                           setLogWeights(newVal);
                           try { localStorage.setItem("weightedai_log_weights", String(newVal)); } catch {}
                           if (lead) await dbRequest("saveProfile", { email: lead.email, profileData: { log_weights: newVal } });
                         }}
-                        style={{width:36,height:20,borderRadius:500,background:logWeights?"var(--acid)":"#2a2a2a",cursor:"pointer",position:"relative",transition:"background 0.2s",flexShrink:0}}
+                        onKeyDown={async (e) => {
+                          if (e.key !== "Enter" && e.key !== " ") return;
+                          e.preventDefault();
+                          const newVal = !logWeights;
+                          setLogWeights(newVal);
+                          try { localStorage.setItem("weightedai_log_weights", String(newVal)); } catch {}
+                          if (lead) await dbRequest("saveProfile", { email: lead.email, profileData: { log_weights: newVal } });
+                        }}
+                        style={{width:56,height:44,display:"flex",alignItems:"center",justifyContent:"center",margin:"-12px -10px",cursor:"pointer",flexShrink:0,outline:"none"}}
                       >
-                        <div style={{position:"absolute",top:3,left:logWeights?18:3,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
+                        <div style={{width:36,height:20,borderRadius:500,background:logWeights?"var(--acid)":"#2a2a2a",position:"relative",transition:"background 0.2s"}}>
+                          <div style={{position:"absolute",top:3,left:logWeights?18:3,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
+                        </div>
                       </div>
                     </div>
                     <div style={{display:"flex",alignItems:"center",gap:4,fontSize:12,color:"#555"}}>
                       <span style={{letterSpacing:1}}>Share workouts</span>
                       <div 
+                        role="switch"
+                        aria-checked={shareWorkout}
+                        aria-label="Share workouts"
+                        tabIndex={0}
                         onClick={async () => {
                           const newVal = !shareWorkout;
                           setShareWorkout(newVal);
                           try { localStorage.setItem("weightedai_share_workout", String(newVal)); } catch {}
                           if (lead) await dbRequest("saveProfile", { email: lead.email, profileData: { share_workout: newVal } });
                         }}
-                        style={{width:36,height:20,borderRadius:500,background:shareWorkout?"var(--acid)":"#2a2a2a",cursor:"pointer",position:"relative",transition:"background 0.2s",flexShrink:0}}
+                        onKeyDown={async (e) => {
+                          if (e.key !== "Enter" && e.key !== " ") return;
+                          e.preventDefault();
+                          const newVal = !shareWorkout;
+                          setShareWorkout(newVal);
+                          try { localStorage.setItem("weightedai_share_workout", String(newVal)); } catch {}
+                          if (lead) await dbRequest("saveProfile", { email: lead.email, profileData: { share_workout: newVal } });
+                        }}
+                        style={{width:56,height:44,display:"flex",alignItems:"center",justifyContent:"center",margin:"-12px -10px",cursor:"pointer",flexShrink:0,outline:"none"}}
                       >
-                        <div style={{position:"absolute",top:3,left:shareWorkout?18:3,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
+                        <div style={{width:36,height:20,borderRadius:500,background:shareWorkout?"var(--acid)":"#2a2a2a",position:"relative",transition:"background 0.2s"}}>
+                          <div style={{position:"absolute",top:3,left:shareWorkout?18:3,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -4041,8 +4069,8 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       )}
 
       {/* COACH CHAT - Unlimited tier only (monthly or annual), hidden for admins since they use the Coach Inbox instead */}
-      {lead && (tier === "unlimited" || tier === "annual") && !isAdmin && !showCoachChat && (
-        <button className="coach-chat-btn" onClick={() => setShowCoachChat(true)} aria-label="Message your coach">
+      {lead && (tier === "unlimited" || tier === "annual") && !isAdmin && !showCoachChat && !workoutMode && (
+        <button className="coach-chat-btn" onClick={() => setShowCoachChat(true)} aria-label="Message a trainer">
           💬
           {coachUnread > 0 && <span className="coach-chat-badge">{coachUnread}</span>}
         </button>
@@ -4050,12 +4078,12 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       {showCoachChat && (
         <div className="coach-chat-panel">
           <div className="coach-chat-header">
-            <span className="coach-chat-title">Message a Coach</span>
+            <span className="coach-chat-title">Message a Trainer</span>
             <button className="coach-chat-close" onClick={() => setShowCoachChat(false)} aria-label="Close chat">✕</button>
           </div>
           <div className="coach-chat-messages">
             {coachMessages.length === 0 && (
-              <div className="coach-chat-empty">Send a message and Adam or the coaching team will get back to you here, in real time when they're online.</div>
+              <div className="coach-chat-empty">Send a message and Adam or the training team will get back to you here, in real time when they're online.</div>
             )}
             {coachMessages.map(m => (
               <div key={m.id} className={`coach-msg ${m.sender}`}>{m.message}</div>
@@ -4076,9 +4104,9 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       )}
 
       {/* ADMIN COACH INBOX */}
-      {isAdmin && !showAdminInbox && (
+      {isAdmin && !showAdminInbox && !workoutMode && (
         <button className="admin-inbox-btn" onClick={() => setShowAdminInbox(true)}>
-          Coach Inbox
+          Training Inbox
           {adminUnreadTotal > 0 && <span className="admin-inbox-badge">{adminUnreadTotal}</span>}
         </button>
       )}
