@@ -467,10 +467,34 @@ Apply the guidelines above using the user's actual weight and goal. Show calorie
       return { statusCode: 200, headers, body: JSON.stringify({ overview: overviewText }) };
     }
 
+    if (action === "checkGenerationStatus") {
+      const { jobId } = parsed;
+      if (!jobId) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: "Missing jobId" }) };
+      }
+
+      // Opportunistic cleanup - fire and forget, don't block the actual status check on this.
+      // Keeps generation_jobs from growing unbounded without needing a separate scheduled job.
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      supabase("DELETE", `generation_jobs?created_at=lt.${encodeURIComponent(oneHourAgo)}`).catch(() => {});
+
+      const res = await supabase("GET", `generation_jobs?job_id=eq.${encodeURIComponent(jobId)}&select=status,result,error`);
+      const rows = JSON.parse(res.body);
+      const job = rows?.[0];
+
+      if (!job) {
+        // No row yet (background function may not have started writing its initial "pending"
+        // row) - treat this the same as pending rather than an error, and keep polling.
+        return { statusCode: 200, headers, body: JSON.stringify({ status: "pending" }) };
+      }
+
+      return { statusCode: 200, headers, body: JSON.stringify(job) };
+    }
+
     if (action === "generate" || prompt) {
       const postData = JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 4096,
+        max_tokens: 3500,
         messages: [{ role: "user", content: prompt }]
       });
 
