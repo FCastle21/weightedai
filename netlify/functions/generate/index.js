@@ -285,6 +285,14 @@ exports.handler = async function(event, context) {
       return { statusCode: 200, headers, body: res.body };
     }
 
+    if (action === "loadWeightProgress") {
+      // Separate from loadHistory (capped at 5, used for AI prompt context) - this pulls a much
+      // longer window specifically for the user-facing weight progress chart, since a trend needs
+      // more than 5 data points to be meaningful.
+      const res = await supabase("GET", `workout_history?email=eq.${encodeURIComponent(email)}&select=date,performance&order=created_at.asc&limit=50`);
+      return { statusCode: 200, headers, body: res.body };
+    }
+
     if (action === "saveHistory") {
       const res = await supabase("POST", "workout_history", { ...historyEntry, email });
       return { statusCode: 200, headers, body: JSON.stringify({ ok: true, status: res.status }) };
