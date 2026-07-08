@@ -1868,6 +1868,10 @@ function WeightedAI() {
   const [regenCount, setRegenCount] = useState(0);
   const [showGoalDescriptions, setShowGoalDescriptions] = useState(false);
   const [showWorkoutHistory, setShowWorkoutHistory] = useState(false);
+  const [showProgressChart, setShowProgressChart] = useState(false);
+  const [weightProgressByExercise, setWeightProgressByExercise] = useState({});
+  const [selectedProgressExercise, setSelectedProgressExercise] = useState(null);
+  const [progressChartLoading, setProgressChartLoading] = useState(false);
   const [thirtyDayOverviewModal, setThirtyDayOverviewModal] = useState(null); // { status: "loading"|"ready"|"error", content: "" }
   const [shareWorkout, setShareWorkout] = useState(() => { try { const v = localStorage.getItem("weightedai_share_workout"); return v === null ? true : v === "true"; } catch { return true; } });
   const [logWeights, setLogWeights] = useState(() => { try { const v = localStorage.getItem("weightedai_log_weights"); return v === null ? true : v === "true"; } catch { return true; } });
@@ -1989,6 +1993,10 @@ function WeightedAI() {
   useEffect(() => {
     if (coachMessagesEndRef.current) coachMessagesEndRef.current.scrollIntoView({ behavior: "smooth" });
   }, [coachMessages, showCoachChat, activeAdminThread]);
+
+  useEffect(() => {
+    if (showProgressChart) loadWeightProgress();
+  }, [showProgressChart]);
 
   useEffect(() => {
     // Screen wake lock in workout mode
@@ -3032,6 +3040,81 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
     return untrained;
   };
 
+  // Loads a longer window of workout_history (separate from the capped loadHistory used for AI
+  // prompt context) and groups the logged weights by exercise name into a chronological series,
+  // for the weight progress chart. Only exercises with at least 2 logged data points are worth
+  // showing as a trend, so single-entry exercises are filtered out.
+  const loadWeightProgress = async () => {
+    if (!lead?.email) return;
+    setProgressChartLoading(true);
+    try {
+      const res = await dbRequest("loadWeightProgress", { email: lead.email });
+      const byExercise = {};
+      if (Array.isArray(res)) {
+        res.forEach(entry => {
+          if (!entry.performance) return;
+          entry.performance.split("|").filter(Boolean).forEach(p => {
+            const colonIdx = p.lastIndexOf(":");
+            if (colonIdx === -1) return;
+            const name = p.slice(0, colonIdx).trim();
+            const weight = parseFloat(p.slice(colonIdx + 1));
+            if (!name || isNaN(weight)) return;
+            if (!byExercise[name]) byExercise[name] = [];
+            byExercise[name].push({ date: entry.date, weight });
+          });
+        });
+      }
+      // Only keep exercises with a real trend (2+ points) to chart
+      const filtered = {};
+      Object.entries(byExercise).forEach(([name, points]) => {
+        if (points.length >= 2) filtered[name] = points;
+      });
+      setWeightProgressByExercise(filtered);
+      const names = Object.keys(filtered);
+      setSelectedProgressExercise(prev => (prev && filtered[prev]) ? prev : (names[0] || null));
+    } catch (e) {
+      console.error("loadWeightProgress failed:", e);
+    } finally {
+      setProgressChartLoading(false);
+    }
+  };
+
+  // Hand-built SVG line chart (no charting library - consistent with the rest of this app's
+  // zero-dependency architecture). Takes a chronological [{date, weight}] series and returns the
+  // SVG elements for it: axis line, connecting polyline, a dot + value label per point, and date
+  // labels along the bottom (thinned out if there are too many points to label without overlap).
+  const renderWeightChart = (points) => {
+    const W = 460, H = 200, padL = 36, padR = 16, padT = 20, padB = 30;
+    const weights = points.map(p => p.weight);
+    let min = Math.min(...weights), max = Math.max(...weights);
+    if (min === max) { min -= 5; max += 5; } // flat line - still give it visible vertical range
+    const range = max - min;
+    const pad = range * 0.15;
+    min -= pad; max += pad;
+
+    const xFor = i => padL + (i / Math.max(points.length - 1, 1)) * (W - padL - padR);
+    const yFor = w => padT + (1 - (w - min) / (max - min)) * (H - padT - padB);
+
+    const linePoints = points.map((p, i) => `${xFor(i)},${yFor(p.weight)}`).join(" ");
+    const labelEvery = points.length > 8 ? Math.ceil(points.length / 6) : 1;
+
+    return (
+      <svg viewBox={`0 0 ${W} ${H}`} style={{width:"100%",height:"auto"}}>
+        <line x1={padL} y1={H-padB} x2={W-padR} y2={H-padB} stroke="#2a2a2a" strokeWidth="1" />
+        <polyline points={linePoints} fill="none" stroke="var(--acid)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+        {points.map((p, i) => (
+          <g key={i}>
+            <circle cx={xFor(i)} cy={yFor(p.weight)} r="4" fill="var(--acid)" />
+            <text x={xFor(i)} y={yFor(p.weight)-12} fontSize="11" fill="#f5f3ef" textAnchor="middle">{p.weight}</text>
+            {(i % labelEvery === 0 || i === points.length-1) && (
+              <text x={xFor(i)} y={H-10} fontSize="9" fill="#666" textAnchor="middle">{p.date}</text>
+            )}
+          </g>
+        ))}
+      </svg>
+    );
+  };
+
   const handleMarkDone = async (difficultyRating) => {
     const entry = {
       date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
@@ -3272,6 +3355,11 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                   <div onClick={() => setShowWorkoutHistory(true)} style={{cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",fontSize:13,color:"#888"}}>
                     <span><strong style={{color:"var(--acid)"}}>Last Workout</strong> — {workoutLog[0].muscles} · {workoutLog[0].date}</span>
                     <span style={{color:"var(--acid)",letterSpacing:1,whiteSpace:"nowrap",fontSize:12}}>VIEW ALL →</span>
+                  </div>
+                )}
+                {logWeights && (
+                  <div onClick={() => setShowProgressChart(true)} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:12,color:"#666"}}>
+                    <span>📈</span><span style={{textDecoration:"underline"}}>View weight progress</span>
                   </div>
                 )}
                 {workoutLog.length > 0 && (
@@ -4000,6 +4088,52 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     <div className="workout-log-badge">{w.difficulty}/5</div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showProgressChart && (
+          <div className="info-overlay" onClick={e => e.target===e.currentTarget && setShowProgressChart(false)}>
+            <div className="info-modal" style={{maxWidth:560,maxHeight:"80vh",overflowY:"auto"}}>
+              <div className="info-modal-header">
+                <div className="info-modal-title">WEIGHT PROGRESS</div>
+                <button className="info-modal-close" onClick={() => setShowProgressChart(false)}>✕</button>
+              </div>
+              <div style={{padding:"18px 22px"}}>
+                {progressChartLoading ? (
+                  <div style={{fontSize:13,color:"#666",textAlign:"center",padding:"30px 0"}}>Loading...</div>
+                ) : Object.keys(weightProgressByExercise).length === 0 ? (
+                  <div style={{fontSize:13,color:"#666",textAlign:"center",padding:"20px 0",lineHeight:1.6}}>
+                    No trends yet. Log a weight for the same exercise across a couple of workouts and it'll show up here.
+                  </div>
+                ) : (
+                  <>
+                    <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>
+                      {Object.keys(weightProgressByExercise).map(name => (
+                        <button
+                          key={name}
+                          onClick={() => setSelectedProgressExercise(name)}
+                          style={{
+                            background: selectedProgressExercise===name ? "var(--acid)" : "transparent",
+                            color: selectedProgressExercise===name ? "var(--black)" : "#999",
+                            border: `1px solid ${selectedProgressExercise===name ? "var(--acid)" : "#2a2a2a"}`,
+                            fontFamily:"DM Sans,sans-serif", fontSize:12, padding:"7px 14px",
+                            borderRadius:500, cursor:"pointer", whiteSpace:"nowrap"
+                          }}
+                        >{name}</button>
+                      ))}
+                    </div>
+                    {selectedProgressExercise && weightProgressByExercise[selectedProgressExercise] && (
+                      <>
+                        {renderWeightChart(weightProgressByExercise[selectedProgressExercise])}
+                        <div style={{fontSize:11,color:"#555",textAlign:"center",marginTop:8}}>
+                          {weightProgressByExercise[selectedProgressExercise][0].weight} lb → {weightProgressByExercise[selectedProgressExercise][weightProgressByExercise[selectedProgressExercise].length-1].weight} lb
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>
