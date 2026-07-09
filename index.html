@@ -270,7 +270,7 @@
 
     <div class="hero-actions">
       <a href="#how-it-works" class="btn-primary">HOW IT WORKS</a>
-      <a href="#app" class="btn-primary">GET STARTED — FREE</a>
+      <a href="#app" class="btn-primary">GET STARTED →</a>
     </div>
 
     
@@ -3271,36 +3271,34 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
           <>
           <p className="tier-label">Get Started</p>
           <div style={{maxWidth:420,margin:"0 auto"}}>
-            <div className={`tier-card active`} onClick={() => handleTierSelect("free")} style={{cursor:"pointer"}}>
-              <div className="tier-name">Free</div>
-              <div className="tier-price">$0</div>
-              <div className="tier-price-note">1 workout per week · no card needed</div>
+            <div className={`tier-card active`} onClick={() => handleTierSelect("individual")} style={{cursor:"pointer"}}>
+              <div className="tier-name">Individual</div>
+              <div className="tier-price"><sup>$</sup>3.99</div>
+              <div className="tier-price-note">per workout · <em>single session · no subscription</em></div>
               <div className="tier-features">
-                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> 1 full-body workout per week</div>
-                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Profile saved</div>
+                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Any workout type, full nutrition & recovery guidance</div>
+                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> No weekly limit — pay per workout, whenever</div>
               </div>
             </div>
-            <button onClick={() => handleTierSelect("free")} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Bebas Neue',sans-serif",fontSize:17,letterSpacing:3,padding:"16px",cursor:"pointer",borderRadius:500,marginTop:14}}>
-              TRY IT FREE →
+            <button onClick={() => handleTierSelect("individual")} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Bebas Neue',sans-serif",fontSize:17,letterSpacing:3,padding:"16px",cursor:"pointer",borderRadius:500,marginTop:14}}>
+              GET STARTED →
             </button>
             <div onClick={() => setShowAllPlans(s => !s)} style={{textAlign:"center",marginTop:18,fontSize:13,color:"#888",cursor:"pointer",textDecoration:"underline"}}>
-              {showAllPlans ? "Hide other plans" : "Want unlimited workouts? See all plans"}
+              {showAllPlans ? "Hide other plans" : "See all plans, including a free option"}
             </div>
           </div>
 
           {showAllPlans && (
           <div className="tier-grid" style={{marginTop:24}}>
 
-            {/* A LA CARTE */}
-            <div className={`tier-card ${tier==="individual"?"active":""}`} onClick={() => handleTierSelect("individual")}>
-              <div className="tier-name">Individual</div>
-              <div className="tier-price"><sup>$</sup>3.99</div>
-              <div className="tier-price-note">per workout · <em>single session · no subscription</em></div>
+            {/* FREE */}
+            <div className={`tier-card ${tier==="free"?"active":""}`} onClick={() => handleTierSelect("free")}>
+              <div className="tier-name">Free</div>
+              <div className="tier-price">$0</div>
+              <div className="tier-price-note">1 workout per week · no card needed</div>
               <div className="tier-features">
-                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Everything in Free, plus:</div>
-                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Any workout type, not just full-body</div>
-                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Full nutrition plan & recovery guidance</div>
-                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> No weekly limit — pay per workout, whenever</div>
+                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> 1 full-body workout per week</div>
+                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Profile saved</div>
               </div>
             </div>
 
@@ -3349,12 +3347,14 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
         {(step==="form"||step==="email-gate") && tier && (
           <section className="form-section" id="form-top">
             {profileLoaded && !editingProfile && (
-              <div className="profile-banner" style={{flexDirection:"column",alignItems:"flex-start",gap:8}}>
+              <div className="profile-banner" style={{flexDirection:"column",alignItems:"flex-start",gap:16}}>
                 <span>✓ Profile auto-loaded for <strong>{lead?.name || "you"}</strong>. Just pick your muscle groups and go.</span>
                 {workoutLog.length > 0 && (
-                  <div onClick={() => setShowWorkoutHistory(true)} style={{cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",width:"100%",fontSize:13,color:"#888"}}>
-                    <span><strong style={{color:"var(--acid)"}}>Last Workout</strong> — {workoutLog[0].muscles} · {workoutLog[0].date}</span>
-                    <span style={{color:"var(--acid)",letterSpacing:1,whiteSpace:"nowrap",fontSize:12}}>VIEW ALL →</span>
+                  <div style={{width:"100%"}}>
+                    <div style={{fontSize:13,color:"#888",lineHeight:1.5,marginBottom:6}}>
+                      <strong style={{color:"var(--acid)"}}>Last Workout</strong> — {workoutLog[0].muscles} · {workoutLog[0].date}
+                    </div>
+                    <span onClick={() => setShowWorkoutHistory(true)} style={{cursor:"pointer",color:"var(--acid)",letterSpacing:1,fontSize:12}}>VIEW ALL →</span>
                   </div>
                 )}
                 {logWeights && (
@@ -3373,7 +3373,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     setError(null);
                     setStep("loading");
                     generatePlan(lead, null, repeatForm);
-                  }} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:2,padding:"10px 16px",cursor:"pointer",borderRadius:500,marginTop:2}}>
+                  }} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:2,padding:"10px 16px",cursor:"pointer",borderRadius:500,marginTop:4}}>
                     REPEAT LAST WORKOUT →
                   </button>
                 )}
