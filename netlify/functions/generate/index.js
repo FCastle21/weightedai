@@ -102,6 +102,7 @@ exports.handler = async function(event, context) {
       params.append("mode", mode === "subscription" ? "subscription" : "payment");
       params.append("success_url", successUrl || "https://weightedai.net?payment=success&session_id={CHECKOUT_SESSION_ID}");
       params.append("cancel_url", cancelUrl || "https://weightedai.net?payment=cancelled");
+      params.append("allow_promotion_codes", "true");
       if (checkoutEmail) params.append("customer_email", checkoutEmail);
 
       const postData = params.toString();
