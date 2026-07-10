@@ -3390,16 +3390,22 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               <div className="profile-banner" style={{flexDirection:"column",alignItems:"flex-start",gap:16}}>
                 <span>✓ Profile auto-loaded for <strong>{lead?.name || "you"}</strong>. Just pick your muscle groups and go.</span>
                 {workoutLog.length > 0 && (
-                  <div style={{width:"100%"}}>
-                    <div style={{fontSize:13,color:"#888",lineHeight:1.5,marginBottom:6}}>
-                      <strong style={{color:"var(--acid)"}}>Last Workout</strong> — {workoutLog[0].muscles} · {workoutLog[0].date}
-                    </div>
-                    <span onClick={() => setShowWorkoutHistory(true)} style={{cursor:"pointer",color:"var(--acid)",letterSpacing:1,fontSize:12}}>VIEW ALL →</span>
+                  <div style={{fontSize:13,color:"#888",lineHeight:1.5}}>
+                    <strong style={{color:"var(--acid)"}}>Last Workout</strong> — {workoutLog[0].muscles} · {workoutLog[0].date}
                   </div>
                 )}
-                {logWeights && (
-                  <div onClick={() => setShowProgressChart(true)} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontSize:12,color:"#666"}}>
-                    <span>📈</span><span style={{textDecoration:"underline"}}>View weight progress</span>
+                {(workoutLog.length > 0 || logWeights) && (
+                  <div style={{display:"flex",gap:10,flexWrap:"wrap",width:"100%"}}>
+                    {workoutLog.length > 0 && (
+                      <button onClick={() => setShowWorkoutHistory(true)} style={{display:"flex",alignItems:"center",gap:7,background:"transparent",border:"1px solid var(--acid)",color:"var(--acid)",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:0.5,padding:"8px 14px",cursor:"pointer",borderRadius:500}}>
+                        📋 Workout History
+                      </button>
+                    )}
+                    {logWeights && (
+                      <button onClick={() => setShowProgressChart(true)} style={{display:"flex",alignItems:"center",gap:7,background:"transparent",border:"1px solid var(--acid)",color:"var(--acid)",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:0.5,padding:"8px 14px",cursor:"pointer",borderRadius:500}}>
+                        📈 Weight Progress
+                      </button>
+                    )}
                   </div>
                 )}
                 {workoutLog.length > 0 && (
