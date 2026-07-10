@@ -1845,6 +1845,7 @@ function WeightedAI() {
   const [adminUnreadTotal, setAdminUnreadTotal] = useState(0);
   const coachMessagesEndRef = useRef(null);
   const [editingProfile, setEditingProfile] = useState(false);
+  const [showDemographics, setShowDemographics] = useState(false);
   const [blocked, setBlocked]   = useState(false); // free tier weekly limit hit
   const [plan, setPlan]         = useState(null);
   const [expandedSections, setExpandedSections] = useState({});
@@ -3421,6 +3422,15 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
             <div className="form-grid">
               {(!profileLoaded || editingProfile) ? (
                 <>
+                  {!(showDemographics || editingProfile) ? (
+                    <div className="field full">
+                      <div onClick={()=>setShowDemographics(true)} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#888"}}>
+                        <span style={{color:"var(--acid)"}}>+</span>
+                        <span style={{textDecoration:"underline"}}>Personalize further (optional) — age, gender, weight, height</span>
+                      </div>
+                    </div>
+                  ) : (
+                  <>
                   <div className="field">
                     <label>Age <span className="optional-tag">(optional)</span></label>
                     <input type="number" placeholder="e.g. 28" value={form.age} onChange={e=>set("age",e.target.value)} />
@@ -3440,6 +3450,8 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     <label>Height <span className="optional-tag">(optional)</span></label>
                     <input type="text" placeholder="e.g. 5'11&quot;" value={form.height} onChange={e=>set("height",e.target.value)} />
                   </div>
+                  </>
+                  )}
                 </>
               ) : (
                 <div className="field full" style={{background:"var(--black)",padding:"20px 28px"}}>
