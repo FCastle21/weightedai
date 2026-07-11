@@ -294,6 +294,35 @@ exports.handler = async function(event, context) {
       return { statusCode: 200, headers, body: res.body };
     }
 
+    if (action === "saveIndividualPurchase") {
+      // Persists a completed Individual-tier ($3.99 one-time) purchase so access survives a page
+      // refresh or a later return visit, instead of only existing as in-memory state tied to the
+      // current browser tab. Paired with loadRecentIndividualPurchase, which enforces the real
+      // 24-hour access window.
+      const { planContent, formSnapshot, sessionId } = parsed;
+      const res = await supabase("POST", "individual_purchases", {
+        email,
+        plan_content: planContent,
+        form_snapshot: formSnapshot || null,
+        stripe_session_id: sessionId || null,
+        purchased_at: new Date().toISOString()
+      });
+      return { statusCode: 200, headers, body: JSON.stringify({ ok: true, status: res.status }) };
+    }
+
+    if (action === "loadRecentIndividualPurchase") {
+      // Returns the most recent Individual purchase for this email if it's within the last 24
+      // hours, so a returning customer gets their paid workout back automatically. Past 24 hours,
+      // returns nothing - the purchase existed, but the access window on it has closed.
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const res = await supabase(
+        "GET",
+        `individual_purchases?email=eq.${encodeURIComponent(email)}&purchased_at=gte.${encodeURIComponent(twentyFourHoursAgo)}&order=purchased_at.desc&limit=1`
+      );
+      const rows = JSON.parse(res.body);
+      return { statusCode: 200, headers, body: JSON.stringify(rows?.[0] || null) };
+    }
+
     if (action === "saveHistory") {
       const res = await supabase("POST", "workout_history", { ...historyEntry, email });
       return { statusCode: 200, headers, body: JSON.stringify({ ok: true, status: res.status }) };
