@@ -1499,8 +1499,12 @@ function fixApexAlternation(planText, level) {
 // that's a secondary concern compared to a stretching section literally interrupting the workout.
 function fixCoolDownPosition(planText) {
   try {
-    const headingMatch = planText.match(/^###?\s*Cool-Down.*$/im);
-    if (!headingMatch) return planText; // no Cool-Down heading found, nothing to fix
+    // Match "Cool-Down" regardless of how the AI formatted it - a proper ### heading, bold text
+    // with no heading, or plain text with no formatting at all. The prompt asks for a ### heading
+    // specifically, but that instruction isn't always followed reliably, and a heading-only regex
+    // would silently miss the bold-text and plain-text variants entirely.
+    const headingMatch = planText.match(/^[ \t#*]*Cool-Down.*$/im);
+    if (!headingMatch) return planText; // no Cool-Down section found, nothing to fix
 
     const headingIndex = planText.indexOf(headingMatch[0]);
     const beforeCoolDown = planText.slice(0, headingIndex);
