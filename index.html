@@ -1403,7 +1403,7 @@ function fixApexAlternation(planText, level) {
         if (/##?#?\s*(Main Workout|Workout Plans?)/i.test(lines[i])) { mainStartLine = i; break; }
       }
       for (let i = mainStartLine + 1; i < range.end; i++) {
-        if (/##?#?\s*(Cool-?Down|Cooldown|Recovery|Nutrition|Progression|Success Metrics)/i.test(lines[i])) { mainEndLine = i; break; }
+        if (/[#*\s]*(Cool-?Down|Cooldown|Recovery|Nutrition|Progression|Success Metrics)/i.test(lines[i])) { mainEndLine = i; break; }
       }
 
       const exerciseLineIndices = [];
