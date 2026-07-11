@@ -2223,6 +2223,19 @@ function WeightedAI() {
             if (currentEmail) {
               await saveProfile(currentEmail, { tier: _paidTier || "unlimited" });
             }
+            // Individual tier is a one-time purchase, not a subscription - persist it so access
+            // survives a refresh or later return visit instead of only existing as in-memory state
+            // for the current tab. loadRecentIndividualPurchase enforces the real 24-hour window.
+            if (_paidTier === "individual" && restoredPlan && currentEmail) {
+              try {
+                await dbRequest("saveIndividualPurchase", {
+                  email: currentEmail,
+                  planContent: restoredPlan,
+                  formSnapshot: restoredForm || null,
+                  sessionId: _sessionId
+                });
+              } catch (e) {}
+            }
           } else {
             showToast("Payment could not be verified. Please contact support if you were charged.", "error");
           }
@@ -2342,6 +2355,26 @@ function WeightedAI() {
       }
     } catch (e) {}
 
+    if (tier === "individual") {
+      // One-time purchase, not a subscription - check for a still-valid (within 24h) previous
+      // purchase and restore it directly, rather than making them pay again or regenerate a plan
+      // they already have access to.
+      try {
+        const recentPurchase = await dbRequest("loadRecentIndividualPurchase", { email: leadData.email });
+        if (recentPurchase && recentPurchase.plan_content) {
+          if (recentPurchase.form_snapshot) setForm(f => ({ ...f, ...recentPurchase.form_snapshot }));
+          setPlan(recentPurchase.plan_content);
+          setUnlocked(true);
+          setStep("plan");
+          setTimeout(() => {
+            const el = document.getElementById("app");
+            if (el) el.scrollIntoView({ behavior: "smooth" });
+          }, 200);
+          return;
+        }
+      } catch (e) {}
+    }
+
     if (tier === "free") {
       const profile = existingProfile || {};
       const lastUsed = profile.free_week_used || profile.freeWeekUsed;
@@ -2454,7 +2487,7 @@ PROFILE:
 - Level: ${currentForm.goal === "The Marla" ? "Advanced" : currentForm.level}
 - Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}${currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
 - Goal: ${currentForm.goal}
-- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
+- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : "Full Body — Free tier workouts are always full-body, regardless of any muscle selection in the profile data."} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
 - Injuries or Limitations: ${currentForm.notes ? expandSafetyNotes(currentForm.notes) : "None"}
 ${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; const perfList = h.performance ? h.performance.split("|").filter(Boolean) : []; const perfText = perfList.length > 0 ? "\nWeights used: " + perfList.map(p => p.replace(":", " - ") + " lb").join(", ") : ""; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : "") + perfText; }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed\n\nPROGRESSIVE OVERLOAD RULES (based on Session 1's difficulty rating above, which is the user's most recent session):\n1. If Session 1 difficulty was 4-5/5 (felt easy): for exercises from Session 1 that reasonably repeat this session, increase intensity. If a specific weight was logged in \"Weights used\" above for that exercise, calculate and recommend that exact weight plus 5-10% (e.g. if 135 lb was logged, recommend 140-145 lb) instead of vague language. If no weight was logged, add reps, add a set, or say \"increase weight slightly from last time\".\n2. If Session 1 difficulty was 3/5 (moderate): maintain the same intensity level as Session 1 for repeated movement patterns - same rep target, same suggested weight.\n3. If Session 1 difficulty was 1-2/5 (felt hard): maintain or slightly reduce intensity, prioritize form over load, and say so explicitly in that exercise's description (e.g. \"focus on control here - reduce weight slightly if last session felt tough\").\n4. If no history exists yet, use standard beginner/intermediate/advanced defaults per the user's stated level with no reference to a previous session." : ""}
 
@@ -3625,21 +3658,28 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                   {EQUIPMENT.map(e=><button key={e} className={`toggle ${form.equipment===e?"active":""}`} onClick={()=>toggle("equipment",e)}>{e}</button>)}
                 </div>
               </div>
-              <div className="field full">
-                <label>Muscle Groups <span className="optional-tag">(optional — defaults to Full Body)</span></label>
-                {(() => {
-                  const suggestion = getSuggestedMuscleGroups(workoutLog);
-                  if (!suggestion) return null;
-                  return (
-                    <div style={{fontSize:12,color:"#888",marginBottom:8,lineHeight:1.5}}>
-                      💡 Based on your recent workouts, you might focus on: <strong style={{color:"var(--acid)"}}>{suggestion.join(", ")}</strong>
-                    </div>
-                  );
-                })()}
-                <div className="toggle-group">
-                  {MUSCLES.map(m=><button key={m} className={`toggle ${form.muscles.includes(m)?"active":""}`} onClick={()=>toggleMuscle(m)}>{m}</button>)}
+              {tier==="free" ? (
+                <div className="field full">
+                  <label>Muscle Groups</label>
+                  <div style={{fontSize:13,color:"#666",lineHeight:1.5}}>Free workouts are always Full Body. Upgrade to target specific muscle groups.</div>
                 </div>
-              </div>
+              ) : (
+                <div className="field full">
+                  <label>Muscle Groups <span className="optional-tag">(optional — defaults to Full Body)</span></label>
+                  {(() => {
+                    const suggestion = getSuggestedMuscleGroups(workoutLog);
+                    if (!suggestion) return null;
+                    return (
+                      <div style={{fontSize:12,color:"#888",marginBottom:8,lineHeight:1.5}}>
+                        💡 Based on your recent workouts, you might focus on: <strong style={{color:"var(--acid)"}}>{suggestion.join(", ")}</strong>
+                      </div>
+                    );
+                  })()}
+                  <div className="toggle-group">
+                    {MUSCLES.map(m=><button key={m} className={`toggle ${form.muscles.includes(m)?"active":""}`} onClick={()=>toggleMuscle(m)}>{m}</button>)}
+                  </div>
+                </div>
+              )}
               {tier==="unlimited" && (
                 <div className="field full">
                   <label>Plan Type <span className="optional-tag">(optional — defaults to Standard Program)</span></label>
