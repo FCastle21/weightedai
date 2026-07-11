@@ -2342,20 +2342,19 @@ function WeightedAI() {
       }
     } catch (e) {}
 
-    // FREE TIER: weekly limit disabled for testing
-    // if (tier === "free") {
-    //   const profile = existingProfile || {};
-    //   const lastUsed = profile.freeWeekUsed || profile.free_week_used;
-    //   if (lastUsed) {
-    //     const lastUsedDate = new Date(lastUsed);
-    //     const daysSince = (Date.now() - lastUsedDate.getTime()) / (1000 * 60 * 60 * 24);
-    //     if (daysSince < 7) {
-    //       setBlocked(true);
-    //       setStep("plan");
-    //       return;
-    //     }
-    //   }
-    // }
+    if (tier === "free") {
+      const profile = existingProfile || {};
+      const lastUsed = profile.free_week_used || profile.freeWeekUsed;
+      if (lastUsed) {
+        const lastUsedDate = new Date(lastUsed);
+        const daysSince = (Date.now() - lastUsedDate.getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSince < 7) {
+          setBlocked(true);
+          setStep("plan");
+          return;
+        }
+      }
+    }
 
     // PAID TIERS: if returning user with saved profile, auto-fill (muscles reset each session)
     if ((tier === "unlimited" || tier === "annual" || tier === "individual") && existingProfile && !editingProfile) {
@@ -2821,6 +2820,10 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       setIsStreaming(false);
       setPlan(cleanPlan);
       setStep("plan");
+      setRegenCount(0); // fresh rebuild allowance for this newly generated workout
+      if (tier === "free" && leadData?.email) {
+        try { await dbRequest("saveProfile", { email: leadData.email, profileData: { free_week_used: new Date().toISOString() } }); } catch (e) {}
+      }
       // Unlock immediately if: free tier, OR this user already has an active paid subscription
       // (don't re-paywall someone who's already paying monthly/annually for unlimited access)
       setUnlocked(tier === "free" || hasActiveSubscription);
@@ -2928,6 +2931,10 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
   };
 
   const handleRegenerate = async () => {
+    if (tier === "free") {
+      showToast("Rebuilds aren't available on the Free plan. Upgrade to unlock this.", "info");
+      return;
+    }
     if (tier === "individual" && regenCount >= 1) {
       showToast("Single workouts include one free rebuild. Upgrade to Unlimited for unlimited rebuilds on every workout.", "info");
       return;
@@ -3768,10 +3775,23 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
   }}
 />
                     {/* REGENERATE */}
-                    {!isStreaming && (tier !== "individual" || regenCount < 1) && (
+                    {!isStreaming && tier !== "free" && (tier !== "individual" || regenCount < 1) && (
                       <div className="regen-row">
                         <input className="regen-input" placeholder='Adjust: "make it harder", "no deadlifts", "shorter rest"...' value={regenNote} onChange={e=>setRegenNote(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleRegenerate()} />
                         <button className="regen-submit" onClick={handleRegenerate}>REBUILD →</button>
+                      </div>
+                    )}
+                    {!isStreaming && tier === "free" && (
+                      <div className="regen-row">
+                        <input className="regen-input" placeholder="Rebuilds are a paid feature" disabled style={{opacity:0.4,cursor:"not-allowed"}} />
+                        <button
+                          className="regen-submit"
+                          disabled
+                          title="Not available in Free"
+                          style={{background:"#2a2a2a",color:"#666",cursor:"not-allowed",opacity:0.7}}
+                        >
+                          NOT AVAILABLE IN FREE
+                        </button>
                       </div>
                     )}
                     {!isStreaming && tier === "individual" && regenCount >= 1 && (
