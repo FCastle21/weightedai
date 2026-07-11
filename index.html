@@ -1490,6 +1490,43 @@ function fixApexAlternation(planText, level) {
 // metcon exercise) - are correctly left as rep-based and NOT mistakenly converted to a hold.
 // Must run BEFORE fixMuscleBuildingRepRange, so hold exercises are already in "seconds" format by
 // the time that function scans for "reps" patterns and no longer match it.
+// Safety net: Cool-Down is supposed to be the last thing in a workout, but the AI sometimes
+// generates one or more main exercises AFTER the Cool-Down heading instead of before it (observed
+// in production - e.g. a Cool-Down section with stretches, followed by another bolded exercise).
+// This detects any bolded exercise blocks trailing after the Cool-Down heading and moves them to
+// immediately before it, so Cool-Down always ends up last. Preserves the relative order of the
+// misplaced exercises rather than trying to also re-derive correct muscle-group sequencing, since
+// that's a secondary concern compared to a stretching section literally interrupting the workout.
+function fixCoolDownPosition(planText) {
+  try {
+    const headingMatch = planText.match(/^###?\s*Cool-Down.*$/im);
+    if (!headingMatch) return planText; // no Cool-Down heading found, nothing to fix
+
+    const headingIndex = planText.indexOf(headingMatch[0]);
+    const beforeCoolDown = planText.slice(0, headingIndex);
+    const fromCoolDown = planText.slice(headingIndex);
+
+    // Within the Cool-Down section, find where its own plain-text stretch content ends and a
+    // misplaced bolded exercise begins - bolded lines are only ever real main exercises, never
+    // warm-up/cool-down content (established convention used throughout this codebase).
+    const coolDownLines = fromCoolDown.split("\n");
+    let splitAt = -1;
+    for (let i = 1; i < coolDownLines.length; i++) { // start at 1, skip the heading line itself
+      if (/\*\*[^*]+\*\*/.test(coolDownLines[i])) { splitAt = i; break; }
+    }
+    if (splitAt === -1) return planText; // nothing bolded after Cool-Down - already correctly last
+
+    const coolDownOwnContent = coolDownLines.slice(0, splitAt).join("\n");
+    const misplacedContent = coolDownLines.slice(splitAt).join("\n");
+
+    // Reassemble: everything before Cool-Down, then the misplaced exercise(s), then Cool-Down's
+    // own content moved to the true end.
+    return beforeCoolDown.trim() + "\n\n" + misplacedContent.trim() + "\n\n" + coolDownOwnContent.trim();
+  } catch (e) {
+    return planText;
+  }
+}
+
 function fixHoldExerciseTiming(planText) {
   try {
     const holdNames = [
@@ -2771,6 +2808,9 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       // run before the rep-range fixer below so holds are already in "seconds" format and don't
       // get incorrectly normalized to a rep range instead.
       cleanPlan = fixHoldExerciseTiming(cleanPlan);
+      // Safety net: Cool-Down must be the last thing in the workout - the AI sometimes generates
+      // a main exercise after it instead of before.
+      cleanPlan = fixCoolDownPosition(cleanPlan);
       // Safety net: each goal type needs ONE consistent rep range on every exercise - normalize any
       // single-number rep count (e.g. "10 reps" or "4 reps") the AI wrote instead of the required range
       if (["Muscle Building", "Apex", "The Marla"].includes(currentForm.goal)) {
