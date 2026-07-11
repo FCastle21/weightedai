@@ -1799,7 +1799,7 @@ function EmailGate({ tier, onSubmit, onClose, waiverAccepted, setWaiverAccepted,
         )}
 
         <button className="gate-submit" onClick={handle} disabled={loading || (!existingProfile && !waiverAccepted)}>
-          {loading ? "LOADING..." : isFree ? "GET MY FREE WORKOUT →" : "CONTINUE →"}
+          {loading ? "LOADING..." : isFree ? "BUILD IT →" : "CONTINUE →"}
         </button>
         <p className="gate-privacy">🔒 No spam. Unsubscribe anytime.</p>
       </div>
@@ -3693,7 +3693,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
             {error && <p style={{color:"#ff5c00",fontSize:14,marginTop:16}}>{error}</p>}
             <div className="submit-row">
               <button className="submit-btn" onClick={handleFormSubmit}>
-                {tier==="free"?"GET MY FREE WORKOUT →":tier==="individual"?"BUILD MY WORKOUT →":"BUILD MY PLAN →"}
+                BUILD IT →
               </button>
             </div>
           </section>
@@ -3778,7 +3778,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     {!isStreaming && tier !== "free" && (tier !== "individual" || regenCount < 1) && (
                       <div className="regen-row">
                         <input className="regen-input" placeholder='Adjust: "make it harder", "no deadlifts", "shorter rest"...' value={regenNote} onChange={e=>setRegenNote(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleRegenerate()} />
-                        <button className="regen-submit" onClick={handleRegenerate}>REBUILD →</button>
+                        <button className="regen-submit" onClick={handleRegenerate}>REBUILD IT →</button>
                       </div>
                     )}
                     {!isStreaming && tier === "free" && (
