@@ -1612,6 +1612,36 @@ function splitPlanIntoSections(text) {
 
 // Extracts ONLY the actual workout content (title + warm-up/main/cool-down) for Workout Mode,
 // stripping out Overview, Nutrition Strategy, Recovery Protocol, Progression, Success Metrics, etc.
+// Safety net: the AI sometimes writes Nutrition Strategy content without ever including a proper
+// "## Nutrition Strategy" heading - it just dives straight into sub-labels like "Total Daily
+// Calories:" or "Recommended Approach:". Since getWorkoutOnlyContent's section-splitting only
+// recognizes "## " headings, unheaded content like this bleeds into the main visible workout view
+// instead of being isolated into the collapsible Nutrition Strategy section. This detects strong,
+// nutrition-specific signal phrases and inserts a proper heading right before the earliest one
+// found, so the existing splitting logic can then correctly isolate it.
+function ensureNutritionHeading(planText) {
+  try {
+    if (!planText || /^##\s*Nutrition Strategy/im.test(planText)) return planText; // already has a proper heading, or nothing to fix
+
+    const signalPhrases = [
+      "Total Daily Calories", "Recommended Approach:", "Calorie Target:",
+      "Estimated maintenance calories", "Daily Calorie Target", "Caloric Intake:",
+      "Macronutrient", "Protein Target:"
+    ];
+    let earliestIdx = -1;
+    signalPhrases.forEach(phrase => {
+      const idx = planText.indexOf(phrase);
+      if (idx !== -1 && (earliestIdx === -1 || idx < earliestIdx)) earliestIdx = idx;
+    });
+    if (earliestIdx === -1) return planText; // no nutrition content detected at all
+
+    const lineStart = planText.lastIndexOf("\n", earliestIdx) + 1;
+    return planText.slice(0, lineStart) + "## Nutrition Strategy\n\n" + planText.slice(lineStart);
+  } catch (e) {
+    return planText;
+  }
+}
+
 function getWorkoutOnlyContent(text) {
   if (!text) return "";
   const sections = splitPlanIntoSections(text);
@@ -2504,6 +2534,11 @@ SETS BY LEVEL: Beginner = 3 sets per exercise. Intermediate = 3 sets per exercis
 
 EXERCISE COUNT BY LEVEL: Beginner = 6-7 exercises. Intermediate = 8-9 exercises. Advanced = 10-11 exercises. (Exception: if the user has noted a time restriction, you may reduce the count accordingly.)
 
+EXERCISE COMPLEXITY BY LEVEL: This affects which exercises get chosen, not just how many - level should change exercise selection, not just volume.
+- Beginner: prioritize stable, lower-skill-demand movements - machines, bodyweight, and dumbbells over barbells for compound lifts where a reasonable alternative exists. Avoid highly technical or balance-intensive variations (single-leg/unilateral work, unstable-surface exercises, Olympic-lift-style movements like cleans or snatches). Favor exercises with a short learning curve and lower technique-error injury risk.
+- Intermediate: standard free-weight compound lifts (barbell squat, bench press, deadlift variations, barbell rows) are appropriate. Moderate unilateral/balance work is fine (e.g. Bulgarian split squats, single-arm rows). Still avoid true Olympic-lift-style movements (cleans, snatches, jerks) unless the context specifically calls for them.
+- Advanced: full range of movement complexity is appropriate - more technically demanding variations, unilateral/instability-challenging work, and (where equipment allows) Olympic-lift-adjacent movements. May include advanced techniques like paused reps, tempo work, or complexes where it fits the workout type.
+
 MUSCLE GROUP SELECTION: If the user selected multiple specific muscle groups (not Full Body), order them larger-to-smaller per the Exercise Order above, and distribute exercises as evenly as possible across the selected groups (see STRICT BALANCE RULE below).
 
 METCON AS A MUSCLE GROUP: If "Metcon" is selected alongside other muscle groups, alternate between exercises for the selected muscle group(s) and Metcon/conditioning exercises for the entire workout: Muscle Group Exercise, Metcon, Muscle Group Exercise, Metcon... Never two of the same type in a row. Metcon exercises in this rotation use "40 seconds work" and "20 second rest" on EVERY one of them, exactly this format. If "Metcon" is selected alone with no other muscle group, the entire workout is conditioning exercises only, following the standard Exercise Order/Count rules for structure, and ALSO uses 40 seconds work / 20 second rest on every exercise.
@@ -2595,6 +2630,11 @@ EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order
 SETS BY LEVEL: Beginner = 3 sets per exercise. Intermediate = 3 sets per exercise. Advanced = 4 sets per exercise.
 
 EXERCISE COUNT BY LEVEL: Beginner = 6-7 exercises. Intermediate = 8-9 exercises. Advanced = 10-11 exercises. (Exception: if the user has noted a time restriction, you may reduce the count accordingly.)
+
+EXERCISE COMPLEXITY BY LEVEL: This affects which exercises get chosen, not just how many - level should change exercise selection, not just volume.
+- Beginner: prioritize stable, lower-skill-demand movements - machines, bodyweight, and dumbbells over barbells for compound lifts where a reasonable alternative exists. Avoid highly technical or balance-intensive variations (single-leg/unilateral work, unstable-surface exercises, Olympic-lift-style movements like cleans or snatches). Favor exercises with a short learning curve and lower technique-error injury risk.
+- Intermediate: standard free-weight compound lifts (barbell squat, bench press, deadlift variations, barbell rows) are appropriate. Moderate unilateral/balance work is fine (e.g. Bulgarian split squats, single-arm rows). Still avoid true Olympic-lift-style movements (cleans, snatches, jerks) unless the context specifically calls for them.
+- Advanced: full range of movement complexity is appropriate - more technically demanding variations, unilateral/instability-challenging work, and (where equipment allows) Olympic-lift-adjacent movements. May include advanced techniques like paused reps, tempo work, or complexes where it fits the workout type.
 
 MUSCLE GROUP SELECTION: If the user selected multiple specific muscle groups (not Full Body), order them larger-to-smaller per the Exercise Order above, and distribute exercises as evenly as possible across the selected groups (see STRICT BALANCE RULE below).
 
@@ -2709,6 +2749,11 @@ EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order
 SETS BY LEVEL: Beginner = 3 sets per exercise. Intermediate = 3 sets per exercise. Advanced = 4 sets per exercise.
 
 EXERCISE COUNT BY LEVEL: Beginner = 6-7 exercises. Intermediate = 8-9 exercises. Advanced = 10-11 exercises. (Exception: if the user has noted a time restriction, you may reduce the count accordingly.)
+
+EXERCISE COMPLEXITY BY LEVEL: This affects which exercises get chosen, not just how many - level should change exercise selection, not just volume.
+- Beginner: prioritize stable, lower-skill-demand movements - machines, bodyweight, and dumbbells over barbells for compound lifts where a reasonable alternative exists. Avoid highly technical or balance-intensive variations (single-leg/unilateral work, unstable-surface exercises, Olympic-lift-style movements like cleans or snatches). Favor exercises with a short learning curve and lower technique-error injury risk.
+- Intermediate: standard free-weight compound lifts (barbell squat, bench press, deadlift variations, barbell rows) are appropriate. Moderate unilateral/balance work is fine (e.g. Bulgarian split squats, single-arm rows). Still avoid true Olympic-lift-style movements (cleans, snatches, jerks) unless the context specifically calls for them.
+- Advanced: full range of movement complexity is appropriate - more technically demanding variations, unilateral/instability-challenging work, and (where equipment allows) Olympic-lift-adjacent movements. May include advanced techniques like paused reps, tempo work, or complexes where it fits the workout type.
 
 MUSCLE GROUP SELECTION: If the user selected multiple specific muscle groups (not Full Body), order them larger-to-smaller per the Exercise Order above, and distribute exercises as evenly as possible across the selected groups (see STRICT BALANCE RULE below).
 
@@ -2848,6 +2893,9 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       // Safety net: Cool-Down must be the last thing in the workout - the AI sometimes generates
       // a main exercise after it instead of before.
       cleanPlan = fixCoolDownPosition(cleanPlan);
+      // Safety net: ensure Nutrition Strategy content has a proper heading so it gets correctly
+      // isolated into the collapsible section instead of bleeding into the main workout view.
+      cleanPlan = ensureNutritionHeading(cleanPlan);
       // Safety net: each goal type needs ONE consistent rep range on every exercise - normalize any
       // single-number rep count (e.g. "10 reps" or "4 reps") the AI wrote instead of the required range
       if (["Muscle Building", "Apex", "The Marla"].includes(currentForm.goal)) {
