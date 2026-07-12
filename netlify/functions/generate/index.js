@@ -424,7 +424,7 @@ exports.handler = async function(event, context) {
 - Level: ${level || "Not specified"}
 - 30-Day Goal: ${thirtyDayGoal}
 
-NUTRITION GUIDELINES — APPLY BASED ON THE 30-DAY GOAL. Use weight (convert to kg if needed: lbs / 2.2 = kg) to calculate exact numbers, not vague ranges. Show your math briefly (e.g. "180 lb = ~82 kg").
+NUTRITION GUIDELINES — APPLY BASED ON THE 30-DAY GOAL. Use weight (convert to kg if needed: lbs / 2.2 = kg) to calculate exact numbers, not vague ranges. Do this conversion silently in your own reasoning - do NOT show the arithmetic, a "Your Stats" section, or restate the goal definition as its own heading. Just state the final calorie/macro numbers directly, as you normally would in the Nutrition Strategy section.
 
 IF GOAL IS MUSCLE BUILDING:
 Building muscle increases resting metabolic rate, making it an effective long-term strategy for fat loss as well as strength and aesthetics. Offer two calorie approaches:
