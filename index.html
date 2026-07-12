@@ -1699,10 +1699,37 @@ function normalizeCollapsibleHeadings(planText) {
     let result = planText;
     titles.forEach(title => {
       const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const regex = new RegExp(`^(?!#)[ \\t]*\\*{0,2}${escaped}\\*{0,2}[ \\t]*$`, "gim");
+      const regex = new RegExp(`^(?!#)[ \\t]*\\*{0,2}${escaped}\\*{0,2}[ \\t›:]*$`, "gim");
       result = result.replace(regex, `## ${title}`);
     });
     return result;
+  } catch (e) {
+    return planText;
+  }
+}
+
+// Safety net: permanently strips Overview, Nutrition Strategy, Recovery Protocol, 4-Week
+// Progression, and Success Metrics from the plan text itself (not just at render time). The
+// prompt already instructs the AI not to generate these sections, but that instruction isn't
+// reliably followed - this ensures that even when the AI includes them anyway, they never end up
+// stored in the plan, so there's nothing left for the collapsible-section UI to render as a
+// dropdown. Reuses the same section-splitting logic as getWorkoutOnlyContent, but applies it
+// permanently to what gets stored, not just filtered at display time.
+function stripUnwantedSections(planText) {
+  try {
+    if (!planText) return planText;
+    const sections = splitPlanIntoSections(planText);
+    const unwantedTitles = /^(overview|nutrition strategy|recovery protocol|4-week progression|success metrics)/i;
+    const keptSections = sections.filter(s => {
+      if (s.isTitle) return true;
+      if (!s.title) return true;
+      return !unwantedTitles.test(s.title);
+    });
+    let result = keptSections.map(s => s.title ? "## " + s.title + "\n" + s.contentText : s.contentText).join("\n");
+    result = result.replace(/\*{0,2}Disclaimer\*{0,2}:?\s*/gi, "");
+    result = result.replace(/These nutrition recommendations are general guidelines[\s\S]{0,400}?changes to your diet\.?/gi, "");
+    result = result.replace(/^\s*\*{1,2}\s*$/gm, "");
+    return result.trim();
   } catch (e) {
     return planText;
   }
@@ -2742,10 +2769,9 @@ Then create a complete 30-DAY plan:
 # ${leadData.name}'s 30-Day Plan
 ## How To Use This Plan
 ## The 30-Day Schedule (4 weeks, every training day MUST start with a "### Day N" header, e.g. "### Day 1" — this exact format is required. Within each day: focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps") — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — one short sentence on what it works, one training note per day, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh at the beginning of EACH day — every single day's exercises must alternate independently.)
-## Recovery Protocol
 ## End of 30 Days
 
-Do NOT include an Overview section or a Nutrition Strategy section anywhere in this output - that information is already available to the user elsewhere in their profile (the 30-Day Goal overview) and should not be duplicated here.
+Do NOT include an Overview section, a Nutrition Strategy section, a Recovery Protocol section, a 4-Week Progression section, or a Success Metrics section anywhere in this output. This information is already available to the user elsewhere in their profile and should never be duplicated here. The ONLY sections in this output are: How To Use This Plan, The 30-Day Schedule, and End of 30 Days.
 
 Be thorough and specific. Do NOT use markdown tables (no | pipe characters or |---|---| separator rows) — they do not render correctly in this app. Instead, use bullet points or bold labels with colons (e.g. "**Protein:** 155-207g — use high end to preserve muscle") for any data you would otherwise put in a table.`
       : `CRITICAL OUTPUT RULE: All verification steps, self-checks, sequence labels (like A/B), randomization notes, rotation checks, balance checks, and internal reasoning described in this prompt are for YOUR INTERNAL USE ONLY when constructing the workout. NEVER include any of this meta-commentary in your actual output. The user-facing output must contain ONLY the workout content itself — exercise names, sets, reps, rest, and brief descriptions. Do not mention "Type A", "Type B", "balanced", "verified", "rotation check", "sequence", "randomization seed", or any other planning/verification language in your response. NEVER write a heading like "Critical Analysis", "Internal Planning", "Self-Check", "Verification Step", "Planning Notes", or anything similar — your response must begin directly with the workout title/heading (e.g. "## This Week's Full-Body Workout"), with zero preamble, meta-commentary, or visible planning process of any kind before it.
@@ -2827,11 +2853,8 @@ VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different sta
 
 # ${leadData.name}'s Personalized Plan
 ## Workout Plan (this is a SINGLE workout for ONE training session — do NOT generate multiple days, do NOT use "### Day N" headers, do NOT repeat this structure for a week. Just one workout: name, muscle focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — then one short sentence describing what it works, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown — warm-up and cool-down move names must be plain text. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh — every exercise must alternate properly.)
-## Recovery Protocol
-## 4-Week Progression (Reference the PREVIOUS WORKOUT HISTORY above if provided, especially Session 1's difficulty rating and the PROGRESSIVE OVERLOAD RULES given earlier. Keep this section BRIEF - 3-4 sentences total, not an exhaustive week-by-week breakdown. State one concrete change for Week 2 using an actual exercise name and number from today's workout (e.g. "Week 2: increase Bench Press to 140 lb"), then one sentence covering Weeks 3-4 together (continue the same trend, then a Week 4 deload or final push - state which and why). Use concrete numbers, not vague phrases like "increase weight when ready".)
-## Success Metrics
 
-Do NOT include an Overview section or a Nutrition Strategy section anywhere in this output - that information is already available to the user elsewhere in their profile (the 30-Day Goal overview) and should not be duplicated here.
+Do NOT include an Overview section, a Nutrition Strategy section, a Recovery Protocol section, a 4-Week Progression section, or a Success Metrics section anywhere in this output. This information is already available to the user elsewhere in their profile and should never be duplicated here. The ONLY section in this output is Workout Plan itself - Warm-Up, Main Workout, and Cool-Down. Nothing else.
 
 Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separator rows) — they do not render correctly in this app. Instead, use bullet points or bold labels with colons (e.g. "**Protein:** 155-207g — use high end to preserve muscle") for any data you would otherwise put in a table.`
 
@@ -2901,6 +2924,10 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       // missing their ## prefix, before checking for nutrition content specifically.
       cleanPlan = normalizeCollapsibleHeadings(cleanPlan);
       cleanPlan = ensureNutritionHeading(cleanPlan);
+      // Final safety net: permanently remove Overview, Nutrition Strategy, Recovery Protocol,
+      // 4-Week Progression, and Success Metrics from the stored plan - the workout view should
+      // only ever contain Warm-Up, Main Workout, and Cool-Down, with no dropdown sections at all.
+      cleanPlan = stripUnwantedSections(cleanPlan);
       // Safety net: each goal type needs ONE consistent rep range on every exercise - normalize any
       // single-number rep count (e.g. "10 reps" or "4 reps") the AI wrote instead of the required range
       if (["Muscle Building", "Apex", "The Marla"].includes(currentForm.goal)) {
