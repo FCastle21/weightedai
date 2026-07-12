@@ -1770,6 +1770,24 @@ function isNoWeightExercise(name) {
   return NO_WEIGHT_KEYWORDS.some(kw => lower.includes(kw));
 }
 
+// Defensive backstop for the share feature: warm-up and cool-down moves are required by the
+// prompt to always be plain text, never bolded, so extracting only bolded lines should already
+// exclude them entirely. But given how unreliably the AI has followed similar formatting rules
+// elsewhere this session, this catches the case where a warm-up/cool-down move gets bolded by
+// mistake and would otherwise slip into a shared workout.
+const WARMUP_COOLDOWN_KEYWORDS = [
+  "arm circle", "leg swing", "band pull-apart", "band pull apart", "doorway stretch",
+  "chest stretch", "shoulder stretch", "tricep stretch", "quad stretch", "hamstring stretch",
+  "hip flexor stretch", "figure-four", "figure four", "spinal twist", "child's pose",
+  "cat-cow", "cat cow", "cobra stretch", "pigeon stretch", "inchworm", "scapular",
+  "dislocate", "wall slide", "activation", "mobility", "dynamic stretch", "foam roll",
+  "walkout", "torso twist", "hip circle", "ankle circle", "neck roll", "shoulder roll"
+];
+function isWarmupCooldownMove(name) {
+  const lower = name.toLowerCase();
+  return WARMUP_COOLDOWN_KEYWORDS.some(kw => lower.includes(kw));
+}
+
 // Extracts { name, prescribed } for each main exercise (bold text only, same reasoning as the
 // share feature: only real exercises are ever bolded, warm-up/cool-down are plain text). Used to
 // build the post-workout weight-logging list, so the user sees what was prescribed while entering
@@ -4045,6 +4063,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                                   if (!m) return null;
                                   const exName = m[1].trim();
                                   if (exName.length <= 3 || exName.length > 80) return null;
+                                  if (isWarmupCooldownMove(exName)) return null; // defensive backstop, see isWarmupCooldownMove comment
                                   const sets = m[2] ? m[2].split(",")[0].trim() : "";
                                   return sets ? `• ${exName} — ${sets}` : `• ${exName}`;
                                 })
@@ -4236,6 +4255,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                           if (!m) return null;
                           const exName = m[1].trim();
                           if (exName.length <= 3 || exName.length > 80) return null;
+                          if (isWarmupCooldownMove(exName)) return null; // defensive backstop, see isWarmupCooldownMove comment
                           const sets = m[2] ? m[2].split(",")[0].trim() : "";
                           return sets ? `• ${exName} — ${sets}` : `• ${exName}`;
                         })
