@@ -1613,15 +1613,17 @@ function splitPlanIntoSections(text) {
 // Extracts ONLY the actual workout content (title + warm-up/main/cool-down) for Workout Mode,
 // stripping out Overview, Nutrition Strategy, Recovery Protocol, Progression, Success Metrics, etc.
 // Safety net: the AI sometimes writes Nutrition Strategy content without ever including a proper
-// "## Nutrition Strategy" heading - it just dives straight into sub-labels like "Total Daily
-// Calories:" or "Estimated Maintenance Calories:". Since getWorkoutOnlyContent's section-splitting
-// only recognizes "## " headings, unheaded content like this bleeds into the main visible workout
-// view instead of being isolated into the collapsible Nutrition Strategy section. This detects
-// strong, nutrition-specific signal phrases and inserts a proper heading right before the earliest
-// one found, so the existing splitting logic can then correctly isolate it.
-// Matching is case-insensitive throughout - an earlier version matched "Estimated maintenance
-// calories" (lowercase) but missed real output using "Estimated Maintenance Calories"
-// (capitalized), since indexOf() is case-sensitive and the AI doesn't reliably standardize casing.
+// "## Nutrition Strategy" heading - it just dives straight into a sub-heading of its own invention
+// ("Total Daily Calories", "Estimated Maintenance Calories", "Calorie Target & Macronutrient
+// Breakdown", "Your Stats & Targets" have all been observed - a different phrase nearly every
+// time). Since getWorkoutOnlyContent's section-splitting only recognizes "## " headings, unheaded
+// content like this bleeds into the main visible workout view. An earlier version of this
+// function tried to whitelist specific phrases, but the AI keeps inventing new ones - that
+// approach can never fully catch up. Instead, this anchors on something structurally reliable:
+// every real exercise is required by the prompt to end its prescription line with a "N sets x M
+// reps/seconds" pattern, which nutrition content never uses. Finding the LAST such match and
+// inserting the heading right after that exercise's description paragraph works regardless of
+// what the AI decides to call the section that follows.
 function ensureNutritionHeading(planText) {
   try {
     if (!planText) return planText;
@@ -1632,11 +1634,8 @@ function ensureNutritionHeading(planText) {
     const strayLabelRegex = /^[ \t]*\*{0,2}Nutrition Strategy\*{0,2}[ \t]*$/gim;
     let cleaned = planText;
     if (!/^##\s*Nutrition Strategy/im.test(planText)) {
-      // No proper heading exists yet, so any bare "Nutrition Strategy" line found is a stray
-      // duplicate, not the real section marker - strip it before inserting the real one below.
       cleaned = cleaned.replace(strayLabelRegex, "");
     } else {
-      // A proper heading already exists - still strip any OTHER bare occurrence later in the text.
       let firstRealHeadingSeen = false;
       cleaned = cleaned.replace(/^([ \t]*)(##\s*Nutrition Strategy|\*{0,2}Nutrition Strategy\*{0,2})[ \t]*$/gim, (match, indent, title) => {
         if (/^##/.test(title.trim())) { firstRealHeadingSeen = true; return match; }
@@ -1646,21 +1645,31 @@ function ensureNutritionHeading(planText) {
 
     if (/^##\s*Nutrition Strategy/im.test(cleaned)) return cleaned; // already has a proper heading, nothing more to fix
 
-    const signalPhrases = [
-      "total daily calories", "recommended approach:", "calorie target:",
-      "estimated maintenance calories", "daily calorie target", "caloric intake:",
-      "macronutrient", "protein target:"
-    ];
-    const lowerText = cleaned.toLowerCase();
-    let earliestIdx = -1;
-    signalPhrases.forEach(phrase => {
-      const idx = lowerText.indexOf(phrase);
-      if (idx !== -1 && (earliestIdx === -1 || idx < earliestIdx)) earliestIdx = idx;
-    });
-    if (earliestIdx === -1) return cleaned; // no nutrition content detected at all
+    // Find the LAST "N sets x M reps/seconds" prescription line - the most structurally reliable
+    // marker for "this is a real exercise", since every exercise is required to use this exact
+    // format regardless of workout type, while nutrition content never does.
+    const setsPattern = /\d+\s*sets?\s*[x×]\s*[\d.\-–—]+\s*(reps?|seconds?|second)\b/gi;
+    let lastMatch = null, match;
+    while ((match = setsPattern.exec(cleaned)) !== null) lastMatch = match;
+    if (!lastMatch) return cleaned; // no exercises found to anchor on - leave as-is rather than guess
 
-    const lineStart = cleaned.lastIndexOf("\n", earliestIdx) + 1;
-    return cleaned.slice(0, lineStart) + "## Nutrition Strategy\n\n" + cleaned.slice(lineStart);
+    // From the end of that line, skip forward past the exercise's description paragraph (up to
+    // the next blank line) to find where the next section actually begins.
+    const afterLastExercise = cleaned.slice(lastMatch.index + lastMatch[0].length);
+    const blankLineMatch = afterLastExercise.match(/\n[ \t]*\n/);
+    if (!blankLineMatch) return cleaned; // no clean paragraph break found - bail out safely
+
+    const insertPos = lastMatch.index + lastMatch[0].length + blankLineMatch.index + blankLineMatch[0].length;
+    const restOfText = cleaned.slice(insertPos);
+    if (!restOfText.trim()) return cleaned; // nothing follows this exercise - nothing to fix
+
+    // Sanity check before inserting anything: the content that follows should actually look
+    // nutrition-related somewhere in the next few hundred characters. Without this, a workout
+    // that legitimately ends right after its last exercise with unrelated trailing text could get
+    // an incorrect heading inserted.
+    if (!/\b(calories?|kcal|cal\/day|g\/day|grams?|protein|macronutrient|carbohydrates?)\b/i.test(restOfText.slice(0, 400))) return cleaned;
+
+    return cleaned.slice(0, insertPos) + "## Nutrition Strategy\n\n" + restOfText;
   } catch (e) {
     return planText;
   }
