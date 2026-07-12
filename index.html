@@ -1614,29 +1614,59 @@ function splitPlanIntoSections(text) {
 // stripping out Overview, Nutrition Strategy, Recovery Protocol, Progression, Success Metrics, etc.
 // Safety net: the AI sometimes writes Nutrition Strategy content without ever including a proper
 // "## Nutrition Strategy" heading - it just dives straight into sub-labels like "Total Daily
-// Calories:" or "Recommended Approach:". Since getWorkoutOnlyContent's section-splitting only
-// recognizes "## " headings, unheaded content like this bleeds into the main visible workout view
-// instead of being isolated into the collapsible Nutrition Strategy section. This detects strong,
-// nutrition-specific signal phrases and inserts a proper heading right before the earliest one
-// found, so the existing splitting logic can then correctly isolate it.
+// Calories:" or "Estimated Maintenance Calories:". Since getWorkoutOnlyContent's section-splitting
+// only recognizes "## " headings, unheaded content like this bleeds into the main visible workout
+// view instead of being isolated into the collapsible Nutrition Strategy section. This detects
+// strong, nutrition-specific signal phrases and inserts a proper heading right before the earliest
+// one found, so the existing splitting logic can then correctly isolate it.
+// Matching is case-insensitive throughout - an earlier version matched "Estimated maintenance
+// calories" (lowercase) but missed real output using "Estimated Maintenance Calories"
+// (capitalized), since indexOf() is case-sensitive and the AI doesn't reliably standardize casing.
 function ensureNutritionHeading(planText) {
   try {
     if (!planText || /^##\s*Nutrition Strategy/im.test(planText)) return planText; // already has a proper heading, or nothing to fix
 
     const signalPhrases = [
-      "Total Daily Calories", "Recommended Approach:", "Calorie Target:",
-      "Estimated maintenance calories", "Daily Calorie Target", "Caloric Intake:",
-      "Macronutrient", "Protein Target:"
+      "total daily calories", "recommended approach:", "calorie target:",
+      "estimated maintenance calories", "daily calorie target", "caloric intake:",
+      "macronutrient", "protein target:"
     ];
+    const lowerText = planText.toLowerCase();
     let earliestIdx = -1;
     signalPhrases.forEach(phrase => {
-      const idx = planText.indexOf(phrase);
+      const idx = lowerText.indexOf(phrase);
       if (idx !== -1 && (earliestIdx === -1 || idx < earliestIdx)) earliestIdx = idx;
     });
     if (earliestIdx === -1) return planText; // no nutrition content detected at all
 
     const lineStart = planText.lastIndexOf("\n", earliestIdx) + 1;
     return planText.slice(0, lineStart) + "## Nutrition Strategy\n\n" + planText.slice(lineStart);
+  } catch (e) {
+    return planText;
+  }
+}
+
+// Safety net: the AI sometimes writes a section's title (Overview, Warm-Up, Main Workout,
+// Cool-Down, Recovery Protocol, etc.) as a bare line of text with no "## " prefix at all - e.g.
+// just "Overview" sitting on its own line, followed by the section's actual content. Since
+// section-splitting only recognizes "## " headings, a bare title never gets recognized as a
+// section boundary, and its content bleeds into whatever section precedes it - or worse, if only
+// SOME titles get normalized and not others, a fixed heading can accidentally swallow real
+// unheaded content that follows it (e.g. giving "Overview" a proper heading while "Warm-Up" and
+// "Main Workout" right after it stay bare would pull the entire workout into the Overview
+// section). This normalizes every known section title consistently, not just the collapsible
+// ones, so section boundaries stay intact throughout the whole document.
+function normalizeCollapsibleHeadings(planText) {
+  try {
+    if (!planText) return planText;
+    const titles = ["Overview", "Warm-Up", "Warm Up", "Main Workout", "Workout Plan", "Cool-Down", "Cool Down", "Recovery Protocol", "4-Week Progression", "Success Metrics", "How To Use This Plan"];
+    let result = planText;
+    titles.forEach(title => {
+      const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(`^(?!#)[ \\t]*\\*{0,2}${escaped}\\*{0,2}[ \\t]*$`, "gim");
+      result = result.replace(regex, `## ${title}`);
+    });
+    return result;
   } catch (e) {
     return planText;
   }
@@ -2895,6 +2925,9 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       cleanPlan = fixCoolDownPosition(cleanPlan);
       // Safety net: ensure Nutrition Strategy content has a proper heading so it gets correctly
       // isolated into the collapsible section instead of bleeding into the main workout view.
+      // Safety net: normalize any bare-line collapsible titles (Overview, Recovery Protocol, etc.)
+      // missing their ## prefix, before checking for nutrition content specifically.
+      cleanPlan = normalizeCollapsibleHeadings(cleanPlan);
       cleanPlan = ensureNutritionHeading(cleanPlan);
       // Safety net: each goal type needs ONE consistent rep range on every exercise - normalize any
       // single-number rep count (e.g. "10 reps" or "4 reps") the AI wrote instead of the required range
