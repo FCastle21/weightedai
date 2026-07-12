@@ -1624,23 +1624,43 @@ function splitPlanIntoSections(text) {
 // (capitalized), since indexOf() is case-sensitive and the AI doesn't reliably standardize casing.
 function ensureNutritionHeading(planText) {
   try {
-    if (!planText || /^##\s*Nutrition Strategy/im.test(planText)) return planText; // already has a proper heading, or nothing to fix
+    if (!planText) return planText;
+
+    // Clean up a stray bare "Nutrition Strategy" line if one exists elsewhere in the document
+    // with nothing real following it - this shows up as a leftover/duplicate section marker,
+    // separate from wherever the actual nutrition content ended up.
+    const strayLabelRegex = /^[ \t]*\*{0,2}Nutrition Strategy\*{0,2}[ \t]*$/gim;
+    let cleaned = planText;
+    if (!/^##\s*Nutrition Strategy/im.test(planText)) {
+      // No proper heading exists yet, so any bare "Nutrition Strategy" line found is a stray
+      // duplicate, not the real section marker - strip it before inserting the real one below.
+      cleaned = cleaned.replace(strayLabelRegex, "");
+    } else {
+      // A proper heading already exists - still strip any OTHER bare occurrence later in the text.
+      let firstRealHeadingSeen = false;
+      cleaned = cleaned.replace(/^([ \t]*)(##\s*Nutrition Strategy|\*{0,2}Nutrition Strategy\*{0,2})[ \t]*$/gim, (match, indent, title) => {
+        if (/^##/.test(title.trim())) { firstRealHeadingSeen = true; return match; }
+        return firstRealHeadingSeen ? "" : match;
+      });
+    }
+
+    if (/^##\s*Nutrition Strategy/im.test(cleaned)) return cleaned; // already has a proper heading, nothing more to fix
 
     const signalPhrases = [
       "total daily calories", "recommended approach:", "calorie target:",
       "estimated maintenance calories", "daily calorie target", "caloric intake:",
       "macronutrient", "protein target:"
     ];
-    const lowerText = planText.toLowerCase();
+    const lowerText = cleaned.toLowerCase();
     let earliestIdx = -1;
     signalPhrases.forEach(phrase => {
       const idx = lowerText.indexOf(phrase);
       if (idx !== -1 && (earliestIdx === -1 || idx < earliestIdx)) earliestIdx = idx;
     });
-    if (earliestIdx === -1) return planText; // no nutrition content detected at all
+    if (earliestIdx === -1) return cleaned; // no nutrition content detected at all
 
-    const lineStart = planText.lastIndexOf("\n", earliestIdx) + 1;
-    return planText.slice(0, lineStart) + "## Nutrition Strategy\n\n" + planText.slice(lineStart);
+    const lineStart = cleaned.lastIndexOf("\n", earliestIdx) + 1;
+    return cleaned.slice(0, lineStart) + "## Nutrition Strategy\n\n" + cleaned.slice(lineStart);
   } catch (e) {
     return planText;
   }
