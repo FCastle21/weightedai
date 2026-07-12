@@ -1366,6 +1366,68 @@ function injectMetconExercises(planText, neededCount) {
 }
 
 // Safety net: detect and fix broken Apex muscle-building/metcon alternation
+// Safety net: the prompt requires ALL Abs/Core exercises to be grouped at the very end of the
+// Main Workout, but the AI sometimes only satisfies the weaker "ends with at least one Abs/Core
+// exercise" reading - scattering additional Abs/Core exercises earlier in the sequence instead of
+// keeping them all together at the end. This detects that and moves any out-of-place Abs/Core
+// exercise block to the end, preserving the relative order within each group. Deliberately skips
+// Apex-style workouts entirely (detected by the presence of both rep-based AND time-interval
+// formatted exercises in the same workout) since Apex's Muscle Building/Metcon alternation is a
+// different, already-enforced ordering rule that this shouldn't interfere with.
+function fixAbsCoreOrder(planText) {
+  try {
+    if (!planText) return planText;
+
+    const isApexStyle = /\d+\s*sets?\s*[x×]\s*[\d.\-–—]+\s*reps?/i.test(planText) && /\d+\s*seconds?\s*work/i.test(planText);
+    if (isApexStyle) return planText;
+
+    const lines = planText.split("\n");
+    let mainStartLine = 0, mainEndLine = lines.length;
+    for (let i = 0; i < lines.length; i++) {
+      if (/##?#?\s*(Main Workout|Workout Plans?)/i.test(lines[i])) { mainStartLine = i + 1; break; }
+    }
+    for (let i = mainStartLine; i < lines.length; i++) {
+      if (/^[ \t#*]*(Cool-?Down|Cooldown)/i.test(lines[i])) { mainEndLine = i; break; }
+    }
+    if (mainEndLine <= mainStartLine) return planText; // no identifiable Main Workout range
+
+    const absCoreKeywords = ["sit-up", "sit up", "crunch", "dead bug", "plank", "russian twist", "leg raise", "ab wheel", "hollow hold", "bicycle crunch", "v-up", "toe touch", "flutter kick", "hanging leg raise", "cable crunch", "pallof press", "wood chop", "side plank", "ab rollout", "reverse crunch", "knee raise"];
+
+    // Find every bolded exercise-name line within the Main Workout range - each one starts a block
+    const boldLineIdxs = [];
+    for (let i = mainStartLine; i < mainEndLine; i++) {
+      if (/\*\*[^*]+\*\*/.test(lines[i])) boldLineIdxs.push(i);
+    }
+    if (boldLineIdxs.length < 2) return planText; // nothing meaningful to reorder
+
+    // Build exercise blocks: each spans from one bold line to just before the next (or mainEndLine)
+    const blocks = boldLineIdxs.map((startIdx, i) => {
+      const endIdx = i + 1 < boldLineIdxs.length ? boldLineIdxs[i + 1] : mainEndLine;
+      const blockLines = lines.slice(startIdx, endIdx);
+      const nameMatch = blockLines[0].match(/\*\*([^*]+)\*\*/);
+      const name = nameMatch ? nameMatch[1].toLowerCase() : "";
+      const isAbsCore = absCoreKeywords.some(kw => name.includes(kw));
+      return { lines: blockLines, isAbsCore };
+    });
+
+    // Already correctly ordered if every Abs/Core block comes after every non-Abs/Core block
+    const firstAbsCoreIdx = blocks.findIndex(b => b.isAbsCore);
+    const lastNonAbsCoreIdx = blocks.map(b => b.isAbsCore).lastIndexOf(false);
+    if (firstAbsCoreIdx === -1 || firstAbsCoreIdx > lastNonAbsCoreIdx) return planText; // already fine, or no Abs/Core exercises at all
+
+    const nonAbsCore = blocks.filter(b => !b.isAbsCore);
+    const absCore = blocks.filter(b => b.isAbsCore);
+    const reordered = [...nonAbsCore, ...absCore];
+
+    const preBlock = lines.slice(0, boldLineIdxs[0]);
+    const postBlock = lines.slice(mainEndLine);
+    const newLines = [...preBlock, ...reordered.flatMap(b => b.lines), ...postBlock];
+    return newLines.join("\n");
+  } catch (e) {
+    return planText;
+  }
+}
+
 function fixApexAlternation(planText, level) {
   try {
     const metconKeywords = ["burpee", "mountain climber", "ski erg", "jump rope", "box jump", "battle rope", "kettlebell swing", "sled", "row sprint", "rowing sprint", "rowing machine", "sprint", "carry", "drag", "jump squat", "broad jump", "skater", "plyo", "tuck jump", "high knee", "jumping jack", "shuttle", "assault bike", "devil press", "thruster", "wall ball", "butt kicker", "lateral shuffle", "plank jack", "bear crawl", "crab walk", "jumping lunge", "star jump", "squat jump", "slam", "tire flip", "farmer"];
@@ -2639,7 +2701,7 @@ ${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(cur
 
 CORE TRAINING RULES — APPLY TO EVERY WORKOUT REGARDLESS OF TYPE:
 
-EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order: Legs/Glutes first, then Back and Chest (can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Abs/Core last. Every workout MUST end with at least one Abs/Core exercise as the final exercise in the Main Workout, before cool-down.
+EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order: Legs/Glutes first, then Back and Chest (can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Abs/Core last. ALL Abs/Core exercises must be grouped together at the very end of the Main Workout, immediately before cool-down - not just the final exercise. If you include more than one Abs/Core exercise, do not scatter them earlier in the sequence; they must all come after every non-Abs/Core exercise.
 
 SETS BY LEVEL: Beginner = 3 sets per exercise. Intermediate = 3 sets per exercise. Advanced = 4 sets per exercise.
 
@@ -2736,7 +2798,7 @@ PROGRESSIVE OVERLOAD:
 
 CORE TRAINING RULES — APPLY TO EVERY WORKOUT REGARDLESS OF TYPE:
 
-EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order: Legs/Glutes first, then Back and Chest (can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Abs/Core last. Every workout MUST end with at least one Abs/Core exercise as the final exercise in the Main Workout, before cool-down.
+EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order: Legs/Glutes first, then Back and Chest (can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Abs/Core last. ALL Abs/Core exercises must be grouped together at the very end of the Main Workout, immediately before cool-down - not just the final exercise. If you include more than one Abs/Core exercise, do not scatter them earlier in the sequence; they must all come after every non-Abs/Core exercise.
 
 SETS BY LEVEL: Beginner = 3 sets per exercise. Intermediate = 3 sets per exercise. Advanced = 4 sets per exercise.
 
@@ -2822,7 +2884,7 @@ PROGRESSIVE OVERLOAD:
 
 CORE TRAINING RULES — APPLY TO EVERY WORKOUT REGARDLESS OF TYPE:
 
-EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order: Legs/Glutes first, then Back and Chest (can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Abs/Core last. Every workout MUST end with at least one Abs/Core exercise as the final exercise in the Main Workout, before cool-down.
+EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order: Legs/Glutes first, then Back and Chest (can be interleaved with each other), then Shoulders, then Triceps, then Biceps, then Abs/Core last. ALL Abs/Core exercises must be grouped together at the very end of the Main Workout, immediately before cool-down - not just the final exercise. If you include more than one Abs/Core exercise, do not scatter them earlier in the sequence; they must all come after every non-Abs/Core exercise.
 
 SETS BY LEVEL: Beginner = 3 sets per exercise. Intermediate = 3 sets per exercise. Advanced = 4 sets per exercise.
 
@@ -2936,6 +2998,9 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       // Safety net: Cool-Down must be the last thing in the workout - the AI sometimes generates
       // a main exercise after it instead of before.
       cleanPlan = fixCoolDownPosition(cleanPlan);
+      // Safety net: cluster all Abs/Core exercises at the end of the Main Workout, not just the
+      // final exercise - skips Apex workouts, which have their own alternation rule.
+      cleanPlan = fixAbsCoreOrder(cleanPlan);
       // Safety net: ensure Nutrition Strategy content has a proper heading so it gets correctly
       // isolated into the collapsible section instead of bleeding into the main workout view.
       // Safety net: normalize any bare-line collapsible titles (Overview, Recovery Protocol, etc.)
