@@ -3,9 +3,15 @@ const https = require("https");
 function httpsRequest(options, body) {
   return new Promise((resolve, reject) => {
     const req = https.request(options, (res) => {
-      let data = "";
-      res.on("data", chunk => data += chunk);
-      res.on("end", () => resolve({ status: res.statusCode, body: data }));
+      // Collect raw Buffer chunks and join them at the byte level before converting to a string
+      // just once at the end. Converting each chunk to a string individually (e.g. `data +=
+      // chunk`, which implicitly calls chunk.toString('utf8') per chunk) corrupts any multi-byte
+      // UTF-8 character - like an em dash, used throughout this app's exercise formatting - that
+      // happens to be split across a chunk boundary, since each incomplete half gets
+      // independently misread as invalid UTF-8 and rendered as a replacement character.
+      const chunks = [];
+      res.on("data", chunk => chunks.push(chunk));
+      res.on("end", () => resolve({ status: res.statusCode, body: Buffer.concat(chunks).toString("utf8") }));
     });
     req.on("error", reject);
     if (body) req.write(body);
@@ -69,9 +75,9 @@ exports.handler = async function(event, context) {
           }
         };
         const req = https.request(options, (r) => {
-          let data = '';
-          r.on('data', chunk => data += chunk);
-          r.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { resolve({}); } });
+          const chunks = [];
+          r.on('data', chunk => chunks.push(chunk));
+          r.on('end', () => { try { resolve(JSON.parse(Buffer.concat(chunks).toString("utf8"))); } catch(e) { resolve({}); } });
         });
         req.on('error', reject);
         req.end();
