@@ -449,7 +449,11 @@ or pure Muscle Building (a surplus would work against fat loss).
 
 IF GOAL IS FAT LOSS:
 - Calories: deficit of 10-25% below estimated maintenance. Target fat loss of 0.5-1% of bodyweight per week.
-- Protein: 0.8 g/lb bodyweight (1.76 g/kg) to preserve muscle during the deficit.
+- Protein: HIGHER than maintenance-goal targets - 1.0-1.2 g/lb bodyweight (2.2-2.6 g/kg), above the usual
+  0.8 g/lb. Research on dieting/energy restriction consistently shows protein needs rise during a deficit
+  to protect lean mass - more so than at maintenance or in a small surplus. Use the higher end of this
+  range (closer to 1.2 g/lb) for deeper deficits (20-25%) and the lower end (closer to 1.0 g/lb) for
+  smaller deficits (10-15%).
 - Fat: minimum 20% of calories.
 - Carbs: fill remaining calories — avoid going too low.
 
