@@ -1653,41 +1653,26 @@ function ensureNutritionHeading(planText) {
     while ((match = setsPattern.exec(cleaned)) !== null) lastMatch = match;
     if (!lastMatch) return cleaned; // no exercises found to anchor on - leave as-is rather than guess
 
-    // Split everything after the last exercise into discrete paragraph chunks (text between
-    // consecutive blank-line breaks), then find the first CHUNK that itself contains a nutrition
-    // signal - checking each chunk individually, not a wide lookahead window, since a wide window
-    // can catch a keyword several paragraphs ahead and match on the wrong (too-early) break.
+    // Scan line-by-line (not by blank-line paragraph breaks, which have proven too inconsistent -
+    // some reports have no blank line at all between the last exercise and what follows it) for
+    // the first line that looks like nutrition content is starting. A line qualifies either by
+    // containing a strong nutrition keyword, or by matching a known label-line pattern ("30-Day
+    // Goal: X", "Your Stats", "Calorie Target", etc.) even if that specific line has no explicit
+    // calorie/protein number of its own - the actual numbers are usually a line or two later.
     const afterLastExercise = cleaned.slice(lastMatch.index + lastMatch[0].length);
-    const blankLineRegex = /\n[ \t]*\n/g;
     const nutritionSignal = /\b(calories?|kcal|cal\/day|g\/day|grams?|protein|macronutrient|carbohydrates?|recomposition|caloric deficit|maintenance calories)\b/i;
-    const breaks = [];
-    let bm;
-    while ((bm = blankLineRegex.exec(afterLastExercise)) !== null) breaks.push({ start: bm.index, end: bm.index + bm[0].length });
-    if (breaks.length === 0) return cleaned; // no paragraph break at all - bail out safely
+    const headingLikeLine = /^\s*(\d+[\s.\-–—]*Day\s+Goal|Your\s+(Stats|Nutrition|Targets?|30-Day)|Adam'?s?\b.{0,40}\bgoal\b|Calorie\s+Target|Estimated\s+.{0,20}Calories|Macronutrient|Total\s+Daily\s+Calories|Recommended\s+Approach|Caloric\s+Intake|Protein\s+Target)/i;
 
-    let matchedChunkIdx = -1;
-    for (let i = 0; i < breaks.length; i++) {
-      const chunkStart = breaks[i].end;
-      const chunkEnd = (i + 1 < breaks.length) ? breaks[i + 1].start : afterLastExercise.length;
-      if (nutritionSignal.test(afterLastExercise.slice(chunkStart, chunkEnd))) { matchedChunkIdx = i; break; }
+    const lines = afterLastExercise.split("\n");
+    let charOffset = 0, foundAt = -1;
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (headingLikeLine.test(line) || nutritionSignal.test(line)) { foundAt = charOffset; break; }
+      charOffset += line.length + 1; // +1 for the newline consumed by split
     }
-    if (matchedChunkIdx === -1) return cleaned; // no chunk looks nutrition-related - nothing to fix
+    if (foundAt === -1) return cleaned; // nothing looked nutrition-related - nothing to fix
 
-    // If the chunk immediately before the matched one is short (a standalone heading like "Your
-    // Stats & Targets" or "Calorie Target" with no nutrition keyword of its own) rather than a
-    // normal sentence, treat it as part of the same section and include it too - otherwise it'd
-    // leak as an orphaned heading line right before the properly-labeled content.
-    let useBreakIdx = matchedChunkIdx;
-    if (matchedChunkIdx > 0) {
-      const prevChunkStart = breaks[matchedChunkIdx - 1].end;
-      const prevChunkEnd = breaks[matchedChunkIdx].start;
-      const prevChunk = afterLastExercise.slice(prevChunkStart, prevChunkEnd).trim();
-      if (prevChunk.length > 0 && prevChunk.length < 60 && !/[.!?]\s*$/.test(prevChunk)) {
-        useBreakIdx = matchedChunkIdx - 1;
-      }
-    }
-
-    const insertPos = lastMatch.index + lastMatch[0].length + breaks[useBreakIdx].end;
+    const insertPos = lastMatch.index + lastMatch[0].length + foundAt;
     const restOfText = cleaned.slice(insertPos);
     if (!restOfText.trim()) return cleaned; // nothing follows this exercise - nothing to fix
 
@@ -2753,46 +2738,14 @@ VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different sta
 
 VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group — these are last resorts only. Rotate movement patterns. Across the 30 days, ensure later weeks don't repeat the same exercises as earlier weeks for the same muscle groups.
 
-NUTRITION GUIDELINES — APPLY BASED ON THE USER'S GOAL. Use their weight (convert to kg if needed: lbs / 2.2 = kg) to calculate exact numbers, not vague ranges. Do this conversion silently in your own reasoning - do NOT show the arithmetic, a "Your Stats" section, or restate the goal definition as its own heading. Just state the final calorie/macro numbers directly, as you normally would in the Nutrition Strategy section.
-
-IF GOAL IS MUSCLE BUILDING:
-Building muscle increases resting metabolic rate, making it an effective long-term strategy for fat loss as well as strength and aesthetics. Offer the user TWO calorie approaches depending on their stated priority (mention both options if their goal/notes are unclear):
-- OPTION A (Lean Muscle Gain): small surplus, 5-15% above estimated maintenance. Target weight gain of 0.25-0.5% of bodyweight per week (e.g. 180 lb person gains ~0.5-1 lb/week).
-- OPTION B (Recomp / Fat Loss While Building): small deficit, 0-10% below estimated maintenance, OR maintenance calories. This preserves/builds muscle while still allowing gradual fat loss, especially effective for beginners/intermediate lifters.
-- Protein: 0.8 g/lb bodyweight (1.76 g/kg). Spread across 3-5 meals daily.
-- Fat: 20-35% of total calories. Do not go extremely low-fat for extended periods.
-- Carbs: fill remaining calories, typically 3-7 g/kg depending on training volume.
-- Note importance of progressive overload and 7-9 hours sleep for muscle growth and fat loss alike.
-
-IF GOAL IS STRENGTH GAINING:
-- Calories: generally at or near maintenance. High-volume training may require more.
-- Protein: 0.8 g/lb bodyweight (1.76 g/kg).
-- Fat: 20-35% of calories.
-- Carbs: moderate amount, 3-5 g/kg — sufficient to fuel training without being high-carb.
-- Mention hydration for training sessions.
-
-IF GOAL IS APEX (hybrid muscle building + metabolic conditioning):
-- Calories: at or slightly below maintenance (0-10% deficit) to support simultaneous muscle retention/gain and fat loss.
-- Protein: 0.8 g/lb bodyweight (1.76 g/kg) to support recomposition.
-- Fat: 25-30% of calories.
-- Carbs: fill remaining calories, moderate amount given the metcon conditioning demands.
-
-IF GOAL IS THE MARLA: Treat as Muscle Building nutrition guidance above.
-
-PRIORITY ORDER TO MENTION (most to least important): 1) Total calories 2) Protein intake 3) Training consistency 4) Sleep and recovery 5) Carbohydrate intake 6) Food timing 7) Supplements. Make clear that calories, protein, consistency, and sleep drive the vast majority of results — supplements and precise meal timing matter far less.
-
-Default fallback if no goal matches the above: Protein 0.8 g/lb, Fat 0.3-0.4 g/lb, Carbs fill the rest, calories adjusted based on whether the aim is gaining or losing weight.
-
-At the end of the Nutrition Strategy section, add a heading "**Disclaimer**" followed by this exact text verbatim (do not include any other instructional text, just this sentence): "These nutrition recommendations are general guidelines based on widely accepted sports nutrition principles, not personalized medical or dietary prescriptions. Individual needs vary based on health history, medical conditions, and other factors. Please consult a registered dietitian or physician with any specific questions or concerns before making significant changes to your diet."
-
 Then create a complete 30-DAY plan:
 # ${leadData.name}'s 30-Day Plan
-## Overview & Goals
 ## How To Use This Plan
-## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
 ## The 30-Day Schedule (4 weeks, every training day MUST start with a "### Day N" header, e.g. "### Day 1" — this exact format is required. Within each day: focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps") — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — one short sentence on what it works, one training note per day, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh at the beginning of EACH day — every single day's exercises must alternate independently.)
 ## Recovery Protocol
 ## End of 30 Days
+
+Do NOT include an Overview section or a Nutrition Strategy section anywhere in this output - that information is already available to the user elsewhere in their profile (the 30-Day Goal overview) and should not be duplicated here.
 
 Be thorough and specific. Do NOT use markdown tables (no | pipe characters or |---|---| separator rows) — they do not render correctly in this app. Instead, use bullet points or bold labels with colons (e.g. "**Protein:** 155-207g — use high end to preserve muscle") for any data you would otherwise put in a table.`
       : `CRITICAL OUTPUT RULE: All verification steps, self-checks, sequence labels (like A/B), randomization notes, rotation checks, balance checks, and internal reasoning described in this prompt are for YOUR INTERNAL USE ONLY when constructing the workout. NEVER include any of this meta-commentary in your actual output. The user-facing output must contain ONLY the workout content itself — exercise names, sets, reps, rest, and brief descriptions. Do not mention "Type A", "Type B", "balanced", "verified", "rotation check", "sequence", "randomization seed", or any other planning/verification language in your response. NEVER write a heading like "Critical Analysis", "Internal Planning", "Self-Check", "Verification Step", "Planning Notes", or anything similar — your response must begin directly with the workout title/heading (e.g. "## This Week's Full-Body Workout"), with zero preamble, meta-commentary, or visible planning process of any kind before it.
@@ -2811,7 +2764,7 @@ PROFILE:
 - Weight: ${currentForm.weight||"Not specified"}
 - Height: ${currentForm.height||"Not specified"}
 - Goal: ${currentForm.goal}
-- 30-Day Goal: ${currentForm.thirtyDayGoal || "Not specified"}${currentForm.thirtyDayGoal ? " — IMPORTANT: base the Nutrition Strategy section on THIS 30-Day Goal, not on the daily Workout Type above. The Workout Type changes session to session, but nutrition should stay consistent with the user's actual longer-term objective." + (currentForm.thirtyDayGoal === "Build & Burn" ? " Build & Burn is a body recomposition goal (building muscle while losing fat) - structure the 30 days as mostly Muscle Building sessions with 1-2 HIIT sessions per week woven in, not a 50/50 split and not pure cardio." : "") : ""}
+- 30-Day Goal: ${currentForm.thirtyDayGoal || "Not specified"}${currentForm.thirtyDayGoal === "Build & Burn" ? " — Build & Burn is a body recomposition goal (building muscle while losing fat) - structure the 30 days as mostly Muscle Building sessions with 1-2 HIIT sessions per week woven in, not a 50/50 split and not pure cardio." : ""}
 - Level: ${currentForm.goal === "The Marla" ? "Advanced" : currentForm.level}
 - Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
 - Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
@@ -2872,45 +2825,13 @@ VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different sta
 
 VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group — these are last resorts only. Rotate movement patterns. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
-NUTRITION GUIDELINES — APPLY BASED ON THE USER'S 30-DAY GOAL IF SPECIFIED ABOVE, OTHERWISE FALL BACK TO THE WORKOUT TYPE/GOAL. Use their weight (convert to kg if needed: lbs / 2.2 = kg) to calculate exact numbers, not vague ranges. Do this conversion silently in your own reasoning - do NOT show the arithmetic, a "Your Stats" section, or restate the goal definition as its own heading. Just state the final calorie/macro numbers directly, as you normally would in the Nutrition Strategy section.
-
-IF GOAL IS MUSCLE BUILDING:
-Building muscle increases resting metabolic rate, making it an effective long-term strategy for fat loss as well as strength and aesthetics. Offer the user TWO calorie approaches depending on their stated priority (mention both options if their goal/notes are unclear):
-- OPTION A (Lean Muscle Gain): small surplus, 5-15% above estimated maintenance. Target weight gain of 0.25-0.5% of bodyweight per week (e.g. 180 lb person gains ~0.5-1 lb/week).
-- OPTION B (Recomp / Fat Loss While Building): small deficit, 0-10% below estimated maintenance, OR maintenance calories. This preserves/builds muscle while still allowing gradual fat loss, especially effective for beginners/intermediate lifters.
-- Protein: 0.8 g/lb bodyweight (1.76 g/kg). Spread across 3-5 meals daily.
-- Fat: 20-35% of total calories. Do not go extremely low-fat for extended periods.
-- Carbs: fill remaining calories, typically 3-7 g/kg depending on training volume.
-- Note importance of progressive overload and 7-9 hours sleep for muscle growth and fat loss alike.
-
-IF GOAL IS STRENGTH GAINING:
-- Calories: generally at or near maintenance. High-volume training may require more.
-- Protein: 0.8 g/lb bodyweight (1.76 g/kg).
-- Fat: 20-35% of calories.
-- Carbs: moderate amount, 3-5 g/kg — sufficient to fuel training without being high-carb.
-- Mention hydration for training sessions.
-
-IF GOAL IS APEX (hybrid muscle building + metabolic conditioning):
-- Calories: at or slightly below maintenance (0-10% deficit) to support simultaneous muscle retention/gain and fat loss.
-- Protein: 0.8 g/lb bodyweight (1.76 g/kg) to support recomposition.
-- Fat: 25-30% of calories.
-- Carbs: fill remaining calories, moderate amount given the metcon conditioning demands.
-
-IF GOAL IS THE MARLA: Treat as Muscle Building nutrition guidance above.
-
-PRIORITY ORDER TO MENTION (most to least important): 1) Total calories 2) Protein intake 3) Training consistency 4) Sleep and recovery 5) Carbohydrate intake 6) Food timing 7) Supplements. Make clear that calories, protein, consistency, and sleep drive the vast majority of results — supplements and precise meal timing matter far less.
-
-Default fallback if no goal matches the above: Protein 0.8 g/lb, Fat 0.3-0.4 g/lb, Carbs fill the rest, calories adjusted based on whether the aim is gaining or losing weight.
-
-At the end of the Nutrition Strategy section, add a heading "**Disclaimer**" followed by this exact text verbatim (do not include any other instructional text, just this sentence): "These nutrition recommendations are general guidelines based on widely accepted sports nutrition principles, not personalized medical or dietary prescriptions. Individual needs vary based on health history, medical conditions, and other factors. Please consult a registered dietitian or physician with any specific questions or concerns before making significant changes to your diet."
-
 # ${leadData.name}'s Personalized Plan
-## Overview
 ## Workout Plan (this is a SINGLE workout for ONE training session — do NOT generate multiple days, do NOT use "### Day N" headers, do NOT repeat this structure for a week. Just one workout: name, muscle focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — then one short sentence describing what it works, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown — warm-up and cool-down move names must be plain text. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh — every exercise must alternate properly.)
-## Nutrition Strategy (Apply the NUTRITION GUIDELINES above using the user's actual weight and goal. Show calorie target, exact protein/fat/carb grams, meal timing guidance, and food recommendations. Be specific with numbers, not vague ranges.)
 ## Recovery Protocol
 ## 4-Week Progression (Reference the PREVIOUS WORKOUT HISTORY above if provided, especially Session 1's difficulty rating and the PROGRESSIVE OVERLOAD RULES given earlier. Keep this section BRIEF - 3-4 sentences total, not an exhaustive week-by-week breakdown. State one concrete change for Week 2 using an actual exercise name and number from today's workout (e.g. "Week 2: increase Bench Press to 140 lb"), then one sentence covering Weeks 3-4 together (continue the same trend, then a Week 4 deload or final push - state which and why). Use concrete numbers, not vague phrases like "increase weight when ready".)
 ## Success Metrics
+
+Do NOT include an Overview section or a Nutrition Strategy section anywhere in this output - that information is already available to the user elsewhere in their profile (the 30-Day Goal overview) and should not be duplicated here.
 
 Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separator rows) — they do not render correctly in this app. Instead, use bullet points or bold labels with colons (e.g. "**Protein:** 155-207g — use high end to preserve muscle") for any data you would otherwise put in a table.`
 
