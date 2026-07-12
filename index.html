@@ -1886,6 +1886,7 @@ function WeightedAI() {
   const [adminUnreadTotal, setAdminUnreadTotal] = useState(0);
   const coachMessagesEndRef = useRef(null);
   const [editingProfile, setEditingProfile] = useState(false);
+  const [showTierUpgrade, setShowTierUpgrade] = useState(false);
   const [showDemographics, setShowDemographics] = useState(false);
   const [blocked, setBlocked]   = useState(false); // free tier weekly limit hit
   const [plan, setPlan]         = useState(null);
@@ -3391,9 +3392,9 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               }}>RESUME →</button>
             </div>
           )}
-          {!lead || !tier ? (
+          {!lead || !tier || showTierUpgrade ? (
           <>
-          <p className="tier-label">Get Started</p>
+          <p className="tier-label" id="tier-upgrade-section">Get Started</p>
           <div style={{maxWidth:420,margin:"0 auto"}}>
             <div className={`tier-card active`} onClick={() => handleTierSelect("individual")} style={{cursor:"pointer"}}>
               <div className="tier-name">Individual</div>
@@ -3611,6 +3612,9 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     </div>
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",maxWidth:"100%"}}>
+                    {tier === "free" && (
+                      <button onClick={() => { setShowTierUpgrade(true); setTimeout(() => { const el = document.getElementById("tier-upgrade-section"); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({top:y,behavior:"smooth"}); } }, 50); }} style={{background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"DM Sans,sans-serif",fontWeight:600,fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 14px",cursor:"pointer",borderRadius:500,whiteSpace:"nowrap",flexShrink:0}}>Upgrade Plan</button>
+                    )}
                     {(tier === "unlimited" || tier === "annual") && (
                       form.subscriptionCancelAtPeriodEnd ? (
                         <div style={{fontSize:11,letterSpacing:0.5,color:"#888",padding:"8px 14px",border:"1px solid #2a2a2a",borderRadius:12,whiteSpace:"normal",lineHeight:1.5,maxWidth:"100%"}}>
