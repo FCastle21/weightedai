@@ -1653,21 +1653,43 @@ function ensureNutritionHeading(planText) {
     while ((match = setsPattern.exec(cleaned)) !== null) lastMatch = match;
     if (!lastMatch) return cleaned; // no exercises found to anchor on - leave as-is rather than guess
 
-    // From the end of that line, skip forward past the exercise's description paragraph (up to
-    // the next blank line) to find where the next section actually begins.
+    // Split everything after the last exercise into discrete paragraph chunks (text between
+    // consecutive blank-line breaks), then find the first CHUNK that itself contains a nutrition
+    // signal - checking each chunk individually, not a wide lookahead window, since a wide window
+    // can catch a keyword several paragraphs ahead and match on the wrong (too-early) break.
     const afterLastExercise = cleaned.slice(lastMatch.index + lastMatch[0].length);
-    const blankLineMatch = afterLastExercise.match(/\n[ \t]*\n/);
-    if (!blankLineMatch) return cleaned; // no clean paragraph break found - bail out safely
+    const blankLineRegex = /\n[ \t]*\n/g;
+    const nutritionSignal = /\b(calories?|kcal|cal\/day|g\/day|grams?|protein|macronutrient|carbohydrates?|recomposition|caloric deficit|maintenance calories)\b/i;
+    const breaks = [];
+    let bm;
+    while ((bm = blankLineRegex.exec(afterLastExercise)) !== null) breaks.push({ start: bm.index, end: bm.index + bm[0].length });
+    if (breaks.length === 0) return cleaned; // no paragraph break at all - bail out safely
 
-    const insertPos = lastMatch.index + lastMatch[0].length + blankLineMatch.index + blankLineMatch[0].length;
+    let matchedChunkIdx = -1;
+    for (let i = 0; i < breaks.length; i++) {
+      const chunkStart = breaks[i].end;
+      const chunkEnd = (i + 1 < breaks.length) ? breaks[i + 1].start : afterLastExercise.length;
+      if (nutritionSignal.test(afterLastExercise.slice(chunkStart, chunkEnd))) { matchedChunkIdx = i; break; }
+    }
+    if (matchedChunkIdx === -1) return cleaned; // no chunk looks nutrition-related - nothing to fix
+
+    // If the chunk immediately before the matched one is short (a standalone heading like "Your
+    // Stats & Targets" or "Calorie Target" with no nutrition keyword of its own) rather than a
+    // normal sentence, treat it as part of the same section and include it too - otherwise it'd
+    // leak as an orphaned heading line right before the properly-labeled content.
+    let useBreakIdx = matchedChunkIdx;
+    if (matchedChunkIdx > 0) {
+      const prevChunkStart = breaks[matchedChunkIdx - 1].end;
+      const prevChunkEnd = breaks[matchedChunkIdx].start;
+      const prevChunk = afterLastExercise.slice(prevChunkStart, prevChunkEnd).trim();
+      if (prevChunk.length > 0 && prevChunk.length < 60 && !/[.!?]\s*$/.test(prevChunk)) {
+        useBreakIdx = matchedChunkIdx - 1;
+      }
+    }
+
+    const insertPos = lastMatch.index + lastMatch[0].length + breaks[useBreakIdx].end;
     const restOfText = cleaned.slice(insertPos);
     if (!restOfText.trim()) return cleaned; // nothing follows this exercise - nothing to fix
-
-    // Sanity check before inserting anything: the content that follows should actually look
-    // nutrition-related somewhere in the next few hundred characters. Without this, a workout
-    // that legitimately ends right after its last exercise with unrelated trailing text could get
-    // an incorrect heading inserted.
-    if (!/\b(calories?|kcal|cal\/day|g\/day|grams?|protein|macronutrient|carbohydrates?)\b/i.test(restOfText.slice(0, 400))) return cleaned;
 
     return cleaned.slice(0, insertPos) + "## Nutrition Strategy\n\n" + restOfText;
   } catch (e) {
