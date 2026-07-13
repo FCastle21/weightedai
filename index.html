@@ -885,7 +885,7 @@ async function dbRequest(action, payload) {
 // polls a status endpoint until the result (written to Supabase by the background function) is
 // ready. Returns the same {content:[...]} shape the old direct call used to return, so none of the
 // downstream prompt-processing/safety-net logic in generatePlan needs to know anything changed.
-async function generateViaBackground(prompt, { pollIntervalMs = 2000, maxWaitMs = 90000 } = {}) {
+async function generateViaBackground(prompt, email, { pollIntervalMs = 2000, maxWaitMs = 90000 } = {}) {
   const jobId = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
   let kickoffRes;
@@ -893,7 +893,7 @@ async function generateViaBackground(prompt, { pollIntervalMs = 2000, maxWaitMs 
     kickoffRes = await fetch("/.netlify/functions/generate-background", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ jobId, prompt })
+      body: JSON.stringify({ jobId, prompt, email })
     });
   } catch (e) {
     throw new Error("Network error - please check your connection and try again.");
@@ -2940,7 +2940,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
 
     setIsStreaming(true);
     try {
-      const data = await generateViaBackground(prompt);
+      const data = await generateViaBackground(prompt, leadData?.email);
       if (!data || data.error) throw new Error(data?.error || "Something went wrong generating your workout. Please try again.");
 
       const raw = data.content?.find(b => b.type === "text")?.text || "";
@@ -2998,19 +2998,22 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       // Safety net: Cool-Down must be the last thing in the workout - the AI sometimes generates
       // a main exercise after it instead of before.
       cleanPlan = fixCoolDownPosition(cleanPlan);
-      // Safety net: cluster all Abs/Core exercises at the end of the Main Workout, not just the
-      // final exercise - skips Apex workouts, which have their own alternation rule.
-      cleanPlan = fixAbsCoreOrder(cleanPlan);
       // Safety net: ensure Nutrition Strategy content has a proper heading so it gets correctly
       // isolated into the collapsible section instead of bleeding into the main workout view.
       // Safety net: normalize any bare-line collapsible titles (Overview, Recovery Protocol, etc.)
       // missing their ## prefix, before checking for nutrition content specifically.
       cleanPlan = normalizeCollapsibleHeadings(cleanPlan);
       cleanPlan = ensureNutritionHeading(cleanPlan);
-      // Final safety net: permanently remove Overview, Nutrition Strategy, Recovery Protocol,
+      // Safety net: permanently remove Overview, Nutrition Strategy, Recovery Protocol,
       // 4-Week Progression, and Success Metrics from the stored plan - the workout view should
       // only ever contain Warm-Up, Main Workout, and Cool-Down, with no dropdown sections at all.
+      // This runs BEFORE fixAbsCoreOrder deliberately: if leaked nutrition content (with its own
+      // bolded sub-labels like "**Protein:**") were still present when Abs/Core reordering scans
+      // for exercise blocks, it could misread those labels as exercises and reorder them too.
       cleanPlan = stripUnwantedSections(cleanPlan);
+      // Safety net: cluster all Abs/Core exercises at the end of the Main Workout, not just the
+      // final exercise - skips Apex workouts, which have their own alternation rule.
+      cleanPlan = fixAbsCoreOrder(cleanPlan);
       // Safety net: each goal type needs ONE consistent rep range on every exercise - normalize any
       // single-number rep count (e.g. "10 reps" or "4 reps") the AI wrote instead of the required range
       if (["Muscle Building", "Apex", "The Marla"].includes(currentForm.goal)) {
