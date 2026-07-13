@@ -375,7 +375,7 @@ exports.handler = async function(event, context) {
         const profileRows = JSON.parse(profileRes.body);
         const userTier = profileRows?.[0]?.tier;
         if (userTier !== "unlimited" && userTier !== "annual") {
-          return { statusCode: 403, headers, body: JSON.stringify({ error: "Coach chat is available on the Unlimited plan only" }) };
+          return { statusCode: 403, headers, body: JSON.stringify({ error: "Coach chat is available on Unlimited and Unlimited Annual plans only" }) };
         }
         await supabase("POST", "coach_messages", { email, sender: "user", message });
         return { statusCode: 200, headers, body: JSON.stringify({ ok: true }) };
