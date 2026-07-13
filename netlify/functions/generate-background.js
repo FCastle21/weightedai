@@ -9,7 +9,8 @@
 // client polls for it via the checkGenerationStatus action (added to generate-function.js).
 //
 // SETUP REQUIRED:
-// 1. Run add-generation-jobs-table.sql against Supabase before deploying this.
+// 1. Run add-generation-jobs-table.sql and add-rate-limits-table.sql against Supabase before
+//    deploying this.
 // 2. Deploy this file to netlify/functions/generate-background/index.js.
 // 3. Background Functions require at least the Pro plan - confirm this is available on your plan
 //    (WeightedAI is already on Netlify Pro per prior setup, so this should already be covered).
@@ -21,12 +22,28 @@
 
 const https = require("https");
 
+// Max generation requests allowed per email within the rolling window below. This is deliberately
+// generous - a real user might generate a workout, rebuild it once or twice, and try a different
+// muscle group in one sitting, easily reaching 5-8 calls. This exists to stop a script hitting the
+// endpoint directly and repeatedly (bypassing the app's UI, and with it the tier-based checks that
+// only apply inside the normal generation flow), not to constrain ordinary use.
+const RATE_LIMIT_MAX_REQUESTS = 15;
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
 function httpsRequest(options, body) {
   return new Promise((resolve, reject) => {
     const req = https.request(options, (res) => {
-      let data = "";
-      res.on("data", chunk => data += chunk);
-      res.on("end", () => resolve({ status: res.statusCode, body: data }));
+      // Collect raw Buffer chunks and join them at the byte level before converting to a string
+      // just once at the end. Converting each chunk to a string individually (e.g. `data +=
+      // chunk`, which implicitly calls chunk.toString('utf8') per chunk) corrupts any multi-byte
+      // UTF-8 character - like an em dash, used throughout this app's exercise formatting - that
+      // happens to be split across a chunk boundary, since each incomplete half gets
+      // independently misread as invalid UTF-8 and rendered as a replacement character. This is
+      // the function that generates every workout's actual text, so this bug likely affected a
+      // meaningful share of generations before being fixed here.
+      const chunks = [];
+      res.on("data", chunk => chunks.push(chunk));
+      res.on("end", () => resolve({ status: res.statusCode, body: Buffer.concat(chunks).toString("utf8") }));
     });
     req.on("error", reject);
     if (body) req.write(body);
@@ -62,6 +79,43 @@ async function writeJobResult(jobId, status, extra) {
   }
 }
 
+// Checks and updates the rate-limit counter for this email. Returns true if the request should be
+// BLOCKED (limit exceeded), false if it should proceed. Fails open (returns false, allowing the
+// request through) on any error talking to Supabase - a rate limiter that accidentally blocks
+// everyone during a database hiccup is a worse failure mode than one that occasionally
+// under-enforces during a genuine outage.
+async function checkAndUpdateRateLimit(email) {
+  if (!email) return false; // no identifier to rate-limit by - let it through rather than guess
+  try {
+    const res = await supabase(
+      "GET",
+      `rate_limits?email=eq.${encodeURIComponent(email)}&select=id,request_count,window_start&order=window_start.desc&limit=1`
+    );
+    const rows = JSON.parse(res.body);
+    const existing = rows?.[0];
+
+    const now = Date.now();
+    const windowExpired = !existing || (now - new Date(existing.window_start).getTime()) > RATE_LIMIT_WINDOW_MS;
+
+    if (windowExpired) {
+      // No active window, or the previous one has rolled over - start a fresh one.
+      await supabase("POST", "rate_limits", { email, request_count: 1, window_start: new Date().toISOString() });
+      return false;
+    }
+
+    if (existing.request_count >= RATE_LIMIT_MAX_REQUESTS) {
+      return true; // blocked - still within the window and already at the cap
+    }
+
+    // Still within the window and under the cap - increment and allow through.
+    await supabase("PATCH", `rate_limits?id=eq.${existing.id}`, { request_count: existing.request_count + 1 });
+    return false;
+  } catch (e) {
+    console.error("Rate limit check failed, failing open:", e.message);
+    return false;
+  }
+}
+
 exports.config = {
   background: true
 };
@@ -72,6 +126,7 @@ exports.handler = async function(event, context) {
     const parsed = JSON.parse(event.body);
     jobId = parsed.jobId;
     const prompt = parsed.prompt;
+    const email = parsed.email;
 
     if (!jobId || !prompt) {
       console.error("Missing jobId or prompt in background generation request");
@@ -82,6 +137,12 @@ exports.handler = async function(event, context) {
     // call below finishes (checkGenerationStatus already treats a missing row as pending too, so
     // this is a belt-and-suspenders row rather than strictly required).
     await writeJobResult(jobId, "pending", {});
+
+    const isBlocked = await checkAndUpdateRateLimit(email);
+    if (isBlocked) {
+      await writeJobResult(jobId, "failed", { error: "You're generating workouts faster than we can keep up - please wait a bit and try again." });
+      return;
+    }
 
     const postData = JSON.stringify({
       model: "claude-haiku-4-5-20251001",
