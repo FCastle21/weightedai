@@ -123,24 +123,21 @@
       margin-bottom: 20px;
     }
     .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: #111; }
-    .step { background: var(--black); padding: 20px 16px; position: relative; }
+    .step { background: var(--black); padding: 16px 16px; position: relative; }
     .step-num {
       font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 3px;
-      color: var(--mint); margin-bottom: 10px;
+      color: var(--mint); margin-bottom: 8px;
     }
-    .step-icon { font-size: 16px; color: var(--mint); margin-bottom: 10px; }
     .step h3 { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; margin-bottom: 6px; color: var(--white); }
     .step p { font-size: 12px; color: var(--muted); line-height: 1.6; }
 
     /* ── FEATURE SPLIT ── */
     .feature-split { padding: 0 24px 24px; }
     .feature-text { padding: 0; }
-    .feature-list { display: flex; flex-direction: column; margin-top: 16px; }
+    .feature-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 28px; margin-top: 16px; }
     .feature-item {
-      display: flex; align-items: flex-start; gap: 14px;
-      padding: 12px 0; border-bottom: 1px solid #111;
+      display: flex; align-items: flex-start; gap: 12px;
     }
-    .feature-item:first-child { border-top: 1px solid #111; }
     .feature-icon { color: var(--mint); font-size: 14px; flex-shrink: 0; margin-top: 2px; }
     .feature-item h4 { font-size: 13px; font-weight: 500; margin-bottom: 2px; color: var(--white); }
     .feature-item p { font-size: 12px; color: var(--muted); line-height: 1.5; }
@@ -190,7 +187,7 @@
       .stat { border-right: none; border-bottom: none; padding: 36px 20px; }
       .section, .pricing-section, .testimonials, .app-section { padding: 80px 20px; }
       .steps, .pricing-grid, .testimonial-grid { grid-template-columns: 1fr; }
-      .feature-split { grid-template-columns: 1fr; }
+      .feature-list { grid-template-columns: 1fr; }
       .feature-text { padding: 60px 20px; }
       .cta-strip { flex-direction: column; padding: 60px 20px; }
       footer { flex-direction: column; gap: 20px; padding: 32px 20px; text-align: center; }
@@ -292,21 +289,18 @@
     <div class="steps">
       <div class="step">
         <div class="step-num">01</div>
-        <div class="step-icon">◆</div>
         <h3>Tell Us About You</h3>
-        <p>Share your goals, experience level, available equipment, and any limitations. Takes about 45 seconds.</p>
+        <p>Goals, experience, equipment, any limitations. About 45 seconds.</p>
       </div>
       <div class="step">
         <div class="step-num">02</div>
-        <div class="step-icon">◆</div>
-        <h3>AI Builds Your Plan</h3>
-        <p>Our AI engine analyzes your profile and builds a fully personalized workout and nutrition program in seconds.</p>
+        <h3>We Build Your Plan</h3>
+        <p>A fully personalized workout and nutrition program, built in seconds.</p>
       </div>
       <div class="step">
         <div class="step-num">03</div>
-        <div class="step-icon">◆</div>
         <h3>Progress With Precision</h3>
-        <p>Rate each session and log your weights, and the AI analyzes your history — recommending exact numbers, not vague advice, and automatically adjusting volume, intensity, and exercise selection for consistent, measurable progress.</p>
+        <p>Rate sessions and log weights — get exact numbers back, not vague advice.</p>
       </div>
     </div>
   </section>
@@ -321,28 +315,28 @@
           <div class="feature-icon">◆</div>
           <div>
             <h4>Remembers, Adapts, Improves</h4>
-            <p>Generic AI gives you a workout once. WeightedAI remembers your history, tracks what you've done, and adjusts every session — like having a real trainer instead of a one-time chatbot answer.</p>
+            <p>Generic AI gives you a workout once. WeightedAI tracks your history and adjusts every session.</p>
           </div>
         </div>
         <div class="feature-item">
           <div class="feature-icon">◆</div>
           <div>
-            <h4>Specialized Programs, Not Generic Templates</h4>
-            <p>Beyond standard goals, WeightedAI offers specialized programs built for specific outcomes — real training methodology, not one-size-fits-all plans.</p>
+            <h4>Specialized Programs</h4>
+            <p>Beyond standard goals — real training methodology, not one-size-fits-all plans.</p>
           </div>
         </div>
         <div class="feature-item">
           <div class="feature-icon">◆</div>
           <div>
-            <h4>Kinesiology-Informed Programming</h4>
-            <p>Plans follow real exercise science — muscle group balance, exercise ordering by size, recovery windows.</p>
+            <h4>Kinesiology-Informed</h4>
+            <p>Real exercise science — muscle balance, exercise ordering, recovery windows.</p>
           </div>
         </div>
         <div class="feature-item">
           <div class="feature-icon">◆</div>
           <div>
-            <h4>Precision Nutrition Targets</h4>
-            <p>Calorie and macro targets calculated to your body, your goal, and your training volume — not generic templates.</p>
+            <h4>Precision Nutrition</h4>
+            <p>Calorie and macro targets calculated to your body, goal, and training volume.</p>
           </div>
         </div>
 
