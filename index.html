@@ -3957,7 +3957,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     {tier!=="free" && (
                       <div className="success-banner">
                         <span>✓</span>
-                        <span><strong>Payment confirmed.</strong> {tier==="unlimited"?"Welcome to WeightedAI Unlimited! ":""}Your full plan is unlocked.</span>
+                        <span><strong>Payment confirmed.</strong> {tier==="unlimited"?"Welcome to WeightedAI Unlimited! ":tier==="annual"?"Welcome to WeightedAI Unlimited Annual! ":""}Your full plan is unlocked.</span>
                       </div>
                     )}
                     {workoutHistory.length > 0 && (
@@ -4191,7 +4191,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     <div className="paywall">
                       <div className="paywall-icon">🔒</div>
                       <h3>YOUR PLAN IS <span>READY</span></h3>
-                      <p className="paywall-sub">{tier==="individual"?"Unlock this workout now.":"Unlock your full program, nutrition plan, and 4-week progression."}</p>
+                      <p className="paywall-sub">{tier==="individual"?"Unlock this workout now.":"Unlock unlimited workouts, any muscle focus, and nutrition guidance."}</p>
                       <div className="paywall-price-row">
                         <div className="paywall-price">{tier==="individual"?"$3.99":tier==="annual"?"$149.99":"$14.99"}</div>
                         <div className="paywall-price-unit">{tier==="individual"?"one-time":tier==="annual"?"/year":"/month"}</div>
