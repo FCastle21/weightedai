@@ -3568,7 +3568,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               <div className="tier-price"><sup>$</sup>3.99</div>
               <div className="tier-price-note">per workout · <em>single session · no subscription</em></div>
               <div className="tier-features">
-                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Any workout type, full nutrition & recovery guidance</div>
+                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Any workout type, any muscle focus</div>
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> No weekly limit — pay per workout, whenever</div>
               </div>
             </div>
@@ -3602,6 +3602,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               <div className="tier-features">
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Everything in Individual, plus:</div>
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Unlimited workouts — no per-workout fee</div>
+                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Nutrition & recovery guidance via your 30-Day Goal</div>
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> One flat monthly price</div>
               </div>
             </div>
@@ -3848,7 +3849,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                   {MUSCLES.map(m=><button key={m} className={`toggle ${form.muscles.includes(m)?"active":""}`} onClick={()=>toggleMuscle(m)}>{m}</button>)}
                 </div>
               </div>
-              {tier==="unlimited" && (
+              {(tier==="unlimited"||tier==="annual") && (
                 <div className="field full">
                   <label>Plan Type <span className="optional-tag">(optional — defaults to Standard Program)</span></label>
                   <div className="toggle-group">
@@ -3858,7 +3859,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                   {thirtyDayPlan && <p style={{fontSize:13,color:"#666",marginTop:8,lineHeight:1.5}}>A complete day-by-day 30-day program built around your goals and schedule.</p>}
                 </div>
               )}
-              {tier==="unlimited" && (
+              {(tier==="unlimited"||tier==="annual") && (
                 <div className="field full">
                   <label>30-Day Goal</label>
                   {!isThirtyDayGoalStale(form.thirtyDayGoalSetAt) && form.thirtyDayGoal ? (
@@ -3885,7 +3886,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                   )}
                 </div>
               )}
-              {tier==="unlimited" && thirtyDayPlan && (
+              {(tier==="unlimited"||tier==="annual") && thirtyDayPlan && (
                 <div className="field full">
                   <label>Days Per Week <span className="optional-tag">(optional)</span></label>
                   <div className="toggle-group">
@@ -4157,7 +4158,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
 <div className="upsell-strip" style={{borderTopColor:"var(--acid)"}}>
                           <div className="upsell-strip-text">
                             <h4>GO UNLIMITED</h4>
-                            <p>Unlimited workouts, full nutrition plans, 4-week progression & more — $14.99/month.</p>
+                            <p>Unlimited workouts, any muscle focus, nutrition & recovery guidance & more — $14.99/month.</p>
                           </div>
                           <button className="upsell-strip-btn" style={{background:"var(--acid)",color:"var(--black)"}} onClick={()=>{ setTier("unlimited"); setStep("form"); setUnlocked(false); setPlan(null); setTimeout(()=>{ const el=document.getElementById("form-top"); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:"smooth"}); }}, 50); }}>
                             GO UNLIMITED — $14.99 →
