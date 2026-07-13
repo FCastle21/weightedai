@@ -74,14 +74,6 @@
       position: relative; overflow: hidden;
     }
     .hero-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
-    .hero-bg::before {
-      content: ""; position: absolute; inset: 0; opacity: 0.25;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    }
-    .hero-bg::after {
-      content: ""; position: absolute; width: 500px; height: 500px; top: -180px; left: 50%; transform: translateX(-50%);
-      background: radial-gradient(circle, rgba(93,138,122,0.22) 0%, rgba(93,138,122,0) 70%);
-    }
     .hero-number { display: none; }
     .hero-label {
       font-size: 10px; letter-spacing: 5px; text-transform: uppercase;
@@ -460,14 +452,6 @@ const styles = `
   /* HERO */
   .app-hero { padding: 16px 20px 14px; max-width: 100%; border-bottom: 1px solid #1a1a1a; position: relative; overflow: hidden; }
   .app-hero-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
-  .app-hero-bg::before {
-    content: ""; position: absolute; inset: 0; opacity: 0.2;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-  .app-hero-bg::after {
-    content: ""; position: absolute; width: 320px; height: 320px; top: -140px; left: -60px;
-    background: radial-gradient(circle, rgba(93,138,122,0.20) 0%, rgba(93,138,122,0) 70%);
-  }
   .app-hero-label { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--acid); margin-bottom: 8px; }
   .app-hero-h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px, 5vw, 52px); line-height: 0.92; letter-spacing: 2px; color: var(--white); margin-bottom: 8px; }
   .app-hero-h1 em { font-style: normal; color: var(--white); }
@@ -520,8 +504,16 @@ const styles = `
   .submit-btn:hover { background: #4a6f61; }
   .submit-btn:disabled { background: #333; color: #555; cursor: not-allowed; }
 
+  /* Shared visual treatment for all informational/status banners - kept as one rule so the
+     gradient/border/radius stay in sync by construction rather than six separately-maintained
+     copies that could quietly drift apart over time. Each banner below still sets its own
+     padding/margin/layout, since those are legitimately context-dependent. */
+  .profile-banner, .rating-done, .overload-banner, .resume-banner, .success-banner, .email-confirmed {
+    background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; border-radius: 14px;
+  }
+
   /* PROFILE LOADED BANNER */
-  .profile-banner { max-width: 900px; background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; border-radius: 14px; padding: 14px 24px; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: #888; animation: fadeUp 0.4s ease; }
+  .profile-banner { max-width: 900px; padding: 14px 24px; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: #888; animation: fadeUp 0.4s ease; }
   .profile-banner strong { color: var(--acid); }
   .profile-edit-btn { background: transparent; border: 1px solid #2a2a2a; color: #555; font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 1px; padding: 6px 12px; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 500px; }
   .profile-edit-btn:hover { border-color: var(--acid); color: var(--acid); }
@@ -608,7 +600,7 @@ const styles = `
   .rating-submit { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 3px; padding: 14px 28px; cursor: pointer; border-radius: 500px; transition: opacity 0.2s; }
   .rating-submit:hover { opacity: 0.85; }
   .rating-submit:disabled { background: #333; color: #555; cursor: not-allowed; }
-  .rating-done { background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; padding: 16px 20px; font-size: 14px; color: #aaa; border-radius: 14px; }
+  .rating-done { padding: 16px 20px; font-size: 14px; color: #aaa; }
   .rating-done strong { color: var(--acid); }
 
   /* WEIGHT LOG */
@@ -624,7 +616,7 @@ const styles = `
   .weight-log-unit { font-size: 11px; color: #666; }
 
   /* PROGRESSIVE OVERLOAD BANNER */
-  .overload-banner { background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; }
+  .overload-banner { padding: 16px 20px; margin-bottom: 24px; }
   .overload-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--acid); margin-bottom: 6px; font-weight: 500; }
   .overload-text { font-size: 14px; color: #aaa; line-height: 1.6; }
 
@@ -637,10 +629,6 @@ const styles = `
   .workout-log-label { font-size: 14px; color: #aaa; }
   .workout-log-badge { background: var(--acid); color: var(--black); font-size: 10px; letter-spacing: 2px; padding: 4px 12px; font-weight: 500; border-radius: 500px; }
   .progress-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; background: #1a1a1a; margin-bottom: 20px; }
-  .streak-banner { display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #1a1208 0%, #0d0805 100%); border: 1px solid #2e2010; border-radius: 14px; padding: 14px 18px; margin-bottom: 20px; }
-  .streak-flame { font-size: 22px; }
-  .streak-text { font-size: 14px; color: #ccc; }
-  .streak-text strong { color: var(--orange); font-size: 16px; }
   .trend-chart { background: #101010; border: 1px solid #1c1c1c; border-radius: 14px; padding: 18px 16px; margin-bottom: 20px; }
   .trend-chart-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #555; margin-bottom: 14px; }
   .trend-chart-bars { display: flex; align-items: flex-end; justify-content: space-between; gap: 6px; height: 70px; }
@@ -674,7 +662,7 @@ const styles = `
   .workout-mode-footer { position: sticky; bottom: 0; background: var(--black); border-top: 1px solid #1e1e1e; padding: 16px 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 16px)); }
   .workout-mode-done { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 4px; padding: 18px; cursor: pointer; border-radius: 500px; transition: opacity 0.2s; max-width: 700px; display: block; margin: 0 auto; }
   .workout-mode-done:hover { opacity: 0.85; }
-  .resume-banner { background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; border-radius: 14px; padding: 16px 22px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; animation: fadeUp 0.4s ease; }
+  .resume-banner { padding: 16px 22px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; animation: fadeUp 0.4s ease; }
   .resume-banner-text { font-size: 14px; color: #888; }
   .resume-banner-text strong { color: var(--acid); }
   .resume-btn { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; padding: 10px 20px; cursor: pointer; border-radius: 500px; white-space: nowrap; }
@@ -733,9 +721,9 @@ const styles = `
   .upsell-strip-btn:hover { opacity: 0.85; }
 
   /* SUCCESS / CONFIRMED */
-  .success-banner { background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; border-radius: 14px; padding: 14px 24px; margin-bottom: 28px; display: flex; align-items: center; gap: 12px; font-size: 14px; color: #aaa; }
+  .success-banner { padding: 14px 24px; margin-bottom: 28px; display: flex; align-items: center; gap: 12px; font-size: 14px; color: #aaa; }
   .success-banner strong { color: var(--acid); }
-  .email-confirmed { max-width: 900px; background: linear-gradient(135deg, #0f1813 0%, #0a0d0a 100%); border: 1px solid #1a2620; border-radius: 14px; padding: 14px 24px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #888; animation: fadeUp 0.4s ease; }
+  .email-confirmed { max-width: 900px; padding: 14px 24px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; font-size: 13px; color: #888; animation: fadeUp 0.4s ease; }
   .email-confirmed strong { color: var(--acid); }
 
   /* PAYMENT MODAL */
@@ -2104,6 +2092,11 @@ function WeightedAI() {
   const [expandedSections, setExpandedSections] = useState({});
   const [error, setError]       = useState(null);
   const [unlocked, setUnlocked] = useState(false);
+  // Separate from `unlocked`, which is true for every generation a subscriber makes, forever -
+  // this is only true in the narrow window right after an actual Stripe payment redirect, so the
+  // "Payment confirmed / Welcome to Unlimited" banner shows once, not on every single workout a
+  // long-time subscriber generates.
+  const [justPaid, setJustPaid] = useState(false);
   const [thirtyDayPlan, setThirtyDayPlan] = useState(false);
   const [showAllPlans, setShowAllPlans] = useState(false);
   const [regenNote, setRegenNote] = useState("");
@@ -2417,6 +2410,7 @@ function WeightedAI() {
             } catch(e) {}
 
             setTier(_paidTier || "unlimited");
+            setJustPaid(true);
             if (_paidTier === "unlimited" || _paidTier === "annual" || !_paidTier) {
               setHasActiveSubscription(true);
             }
@@ -3104,7 +3098,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
 
   const handleReset = () => {
     setRegenCount(0);
-    setPlan(null); setUnlocked(false); setPlanMuscles([]);
+    setPlan(null); setUnlocked(false); setPlanMuscles([]); setJustPaid(false);
     setBlocked(false); setEditingProfile(false); setThirtyDayPlan(false); setRegenNote(""); setIsStreaming(false); setDifficulty(0); setRatingSubmitted(false); setWorkoutMode(false); setSavedWorkout(null); try { localStorage.removeItem("weightedai_active_workout"); } catch(e) {}
     // Keep the user signed in - only reset muscle selection, not their saved profile.
     // If they're already a signed-in subscriber, keep their tier set so "Start Over" takes
@@ -3144,6 +3138,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
   };
 
   const handleRegenerate = async () => {
+    setJustPaid(false);
     if (tier === "free") {
       showToast("Rebuilds aren't available on the Free plan. Upgrade to unlock this.", "info");
       return;
@@ -3238,28 +3233,6 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
     } : form;
     setStep("loading");
     await generatePlan(lead, null, updatedForm);
-  };
-
-  const calculateStreak = (log) => {
-    if (!log || log.length === 0) return 0;
-    const sortedDates = [...new Set(log.map(w => new Date(w.date).toDateString()))]
-      .map(d => new Date(d))
-      .sort((a, b) => b - a);
-    if (sortedDates.length === 0) return 0;
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const mostRecent = new Date(sortedDates[0]);
-    mostRecent.setHours(0,0,0,0);
-    const daysSinceLastWorkout = Math.floor((today - mostRecent) / (1000*60*60*24));
-    if (daysSinceLastWorkout > 7) return 0; // streak broken if more than a week since last workout
-    let streak = 1;
-    for (let i = 0; i < sortedDates.length - 1; i++) {
-      const current = new Date(sortedDates[i]); current.setHours(0,0,0,0);
-      const next = new Date(sortedDates[i+1]); next.setHours(0,0,0,0);
-      const gap = Math.floor((current - next) / (1000*60*60*24));
-      if (gap <= 7) streak++; else break;
-    }
-    return streak;
   };
 
   const getWeeklyWorkoutCounts = (log, weeksBack = 8) => {
@@ -3556,7 +3529,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
           {lead && savedWorkout && !workoutLog.some(w => new Date(w.date).toDateString() === new Date(savedWorkout.savedAt).toDateString()) && (
             <div className="resume-banner" style={{borderLeftColor:"var(--acid)"}}>
               <div className="resume-banner-text">
-                <strong>⚡ Active Workout</strong> — {savedWorkout.muscles} · {new Date(savedWorkout.savedAt).toLocaleDateString()}
+                <strong>Active Workout</strong> — {savedWorkout.muscles} · {new Date(savedWorkout.savedAt).toLocaleDateString()}
               </div>
               <button className="resume-btn" onClick={() => {
                 setPlan(savedWorkout.plan);
@@ -3620,7 +3593,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               <div className="tier-popular-tag" style={{background:"var(--acid)",color:"var(--black)"}}>BEST VALUE</div>
               <div className="tier-name">Unlimited Annual</div>
               <div className="tier-price"><sup>$</sup>149.99</div>
-              <div className="tier-price-note">per year · <em>2 months free!</em></div>
+              <div className="tier-price-note">per year · <em>2 months free</em></div>
               <div className="tier-features">
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Everything in Unlimited, plus:</div>
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> 2 months free vs monthly</div>
@@ -3678,6 +3651,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     if (!repeatForm.goal || !repeatForm.level || !repeatForm.equipment) { setError("Missing profile info. Please fill out your profile first."); return; }
                     setForm(repeatForm);
                     setError(null);
+                    setJustPaid(false);
                     setStep("loading");
                     generatePlan(lead, null, repeatForm);
                   }} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:2,padding:"10px 16px",cursor:"pointer",borderRadius:500,marginTop:4}}>
@@ -3962,15 +3936,14 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
 
                 {unlocked ? (
                   <>
-                    {tier!=="free" && (
+                    {justPaid && tier!=="free" ? (
                       <div className="success-banner">
                         <span>✓</span>
-                        <span><strong>Payment confirmed.</strong> {tier==="unlimited"?"Welcome to WeightedAI Unlimited! ":tier==="annual"?"Welcome to WeightedAI Unlimited Annual! ":""}Your full plan is unlocked.</span>
+                        <span><strong>Payment confirmed.</strong> {tier==="unlimited"?"Welcome to WeightedAI Unlimited. ":tier==="annual"?"Welcome to WeightedAI Unlimited Annual. ":""}Your full plan is unlocked.</span>
                       </div>
-                    )}
-                    {workoutHistory.length > 0 && (
+                    ) : workoutHistory.length > 0 && (
                       <div className="overload-banner">
-                        <div className="overload-label">⚡ Progressive Overload Active</div>
+                        <div className="overload-label">Progressive Overload Active</div>
                         <div className="overload-text">
                           Based on your last session ({workoutHistory[0].muscles} — difficulty {workoutHistory[0].difficulty}/5), this workout has been adjusted for optimal progression.
                         </div>
@@ -4035,12 +4008,6 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                             <div className="progress-stat-label">Per Week Avg</div>
                           </div>
                         </div>
-                        {workoutLog.length > 0 && calculateStreak(workoutLog) > 0 && (
-                          <div className="streak-banner">
-                            <span className="streak-flame">🔥</span>
-                            <span className="streak-text"><strong>{calculateStreak(workoutLog)}</strong> week streak — keep it going!</span>
-                          </div>
-                        )}
                         {workoutLog.length > 0 && (
                           <div className="trend-chart">
                             <div className="trend-chart-label">LAST 8 WEEKS</div>
@@ -4115,7 +4082,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                         ) : (
                           <>
                           <div className="rating-done">
-                            <strong>✓ Workout logged!</strong> Your next plan will be adjusted based on today's difficulty rating of {difficulty}/5.
+                            <strong>✓ Workout logged.</strong> Your next plan will be adjusted based on today's difficulty rating of {difficulty}/5.
                           </div>
                           {shareWorkout ? <button
                             onClick={() => {
@@ -4145,7 +4112,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                                 navigator.share({ title: "WeightedAI Workout", text: shareText, url: "https://weightedai.net" });
                               } else if (navigator.clipboard && navigator.clipboard.writeText) {
                                 navigator.clipboard.writeText(shareText)
-                                  .then(() => showToast("Workout copied to clipboard!", "success"))
+                                  .then(() => showToast("Workout copied to clipboard.", "success"))
                                   .catch(() => window.open("sms:?body=" + encodeURIComponent(shareText)));
                               } else {
                                 window.open("sms:?body=" + encodeURIComponent(shareText));
@@ -4344,7 +4311,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                         navigator.share({ title: "WeightedAI Workout", text: shareText, url: "https://weightedai.net" });
                       } else if (navigator.clipboard && navigator.clipboard.writeText) {
                         navigator.clipboard.writeText(shareText)
-                          .then(() => showToast("Workout copied to clipboard!", "success"))
+                          .then(() => showToast("Workout copied to clipboard.", "success"))
                           .catch(() => window.open("sms:?body=" + encodeURIComponent(shareText)));
                       } else {
                         window.open("sms:?body=" + encodeURIComponent(shareText));
