@@ -99,7 +99,7 @@ exports.handler = async function(event, context) {
     }
 
     if (action === "createCheckoutSession") {
-      const { priceId, mode, email: checkoutEmail, successUrl, cancelUrl } = parsed;
+      const { priceId, mode, email: checkoutEmail, successUrl, cancelUrl, trialDays } = parsed;
       if (!priceId) return { statusCode: 400, headers, body: JSON.stringify({ error: "priceId required" }) };
 
       const params = new URLSearchParams();
@@ -110,6 +110,12 @@ exports.handler = async function(event, context) {
       params.append("cancel_url", cancelUrl || "https://weightedai.net?payment=cancelled");
       params.append("allow_promotion_codes", "true");
       if (checkoutEmail) params.append("customer_email", checkoutEmail);
+      // Card is still collected upfront at checkout regardless of trial - trial_period_days just
+      // delays the first charge, it doesn't skip payment method collection. Only meaningful for
+      // subscription mode - Individual is a one-time payment and has no concept of a trial.
+      if (trialDays && mode === "subscription") {
+        params.append("subscription_data[trial_period_days]", String(trialDays));
+      }
 
       const postData = params.toString();
       const res = await httpsRequest({
