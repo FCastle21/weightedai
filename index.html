@@ -2028,7 +2028,7 @@ const STRIPE_PRICE_IDS = {
   annual: "price_1Tk56ZHOTWRdSkL3V2zkitzL"
 };
 
-async function startStripeCheckout(tier, email, planContent, formData) {
+async function startStripeCheckout(tier, email, planContent, formData, withTrial) {
   const priceId = STRIPE_PRICE_IDS[tier];
   const mode = (tier === "unlimited" || tier === "annual") ? "subscription" : "payment";
   try {
@@ -2052,7 +2052,8 @@ async function startStripeCheckout(tier, email, planContent, formData) {
         mode,
         email,
         successUrl: window.location.origin + "?payment=success&tier=" + tier + "&session_id={CHECKOUT_SESSION_ID}",
-        cancelUrl: window.location.origin + "?payment=cancelled"
+        cancelUrl: window.location.origin + "?payment=cancelled",
+        trialDays: (withTrial && mode === "subscription") ? 7 : undefined
       })
     });
     const data = await res.json();
@@ -2695,7 +2696,7 @@ PROFILE:
 - Level: ${currentForm.goal === "The Marla" ? "Advanced" : currentForm.level}
 - Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}${currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
 - Goal: ${currentForm.goal}
-- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : "Full Body — Free tier workouts are always full-body, regardless of any muscle selection in the profile data."} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
+- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
 - Injuries or Limitations: ${currentForm.notes ? expandSafetyNotes(currentForm.notes) : "None"}
 ${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; const perfList = h.performance ? h.performance.split("|").filter(Boolean) : []; const perfText = perfList.length > 0 ? "\nWeights used: " + perfList.map(p => p.replace(":", " - ") + " lb").join(", ") : ""; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : "") + perfText; }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed\n\nPROGRESSIVE OVERLOAD RULES (based on Session 1's difficulty rating above, which is the user's most recent session):\n1. If Session 1 difficulty was 4-5/5 (felt easy): for exercises from Session 1 that reasonably repeat this session, increase intensity. If a specific weight was logged in \"Weights used\" above for that exercise, calculate and recommend that exact weight plus 5-10% (e.g. if 135 lb was logged, recommend 140-145 lb) instead of vague language. If no weight was logged, add reps, add a set, or say \"increase weight slightly from last time\".\n2. If Session 1 difficulty was 3/5 (moderate): maintain the same intensity level as Session 1 for repeated movement patterns - same rep target, same suggested weight.\n3. If Session 1 difficulty was 1-2/5 (felt hard): maintain or slightly reduce intensity, prioritize form over load, and say so explicitly in that exercise's description (e.g. \"focus on control here - reduce weight slightly if last session felt tough\").\n4. If no history exists yet, use standard beginner/intermediate/advanced defaults per the user's stated level with no reference to a previous session." : ""}
 
@@ -3832,28 +3833,21 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                   {EQUIPMENT.map(e=><button key={e} className={`toggle ${form.equipment===e?"active":""}`} onClick={()=>toggle("equipment",e)}>{e}</button>)}
                 </div>
               </div>
-              {tier==="free" ? (
-                <div className="field full">
-                  <label>Muscle Groups</label>
-                  <div style={{fontSize:13,color:"#666",lineHeight:1.5}}>Free workouts are always Full Body. Upgrade to target specific muscle groups.</div>
+              <div className="field full">
+                <label>Muscle Groups <span className="optional-tag">(optional — defaults to Full Body)</span></label>
+                {(() => {
+                  const suggestion = getSuggestedMuscleGroups(workoutLog);
+                  if (!suggestion) return null;
+                  return (
+                    <div style={{fontSize:12,color:"#888",marginBottom:8,lineHeight:1.5}}>
+                      💡 Based on your recent workouts, you might focus on: <strong style={{color:"var(--acid)"}}>{suggestion.join(", ")}</strong>
+                    </div>
+                  );
+                })()}
+                <div className="toggle-group">
+                  {MUSCLES.map(m=><button key={m} className={`toggle ${form.muscles.includes(m)?"active":""}`} onClick={()=>toggleMuscle(m)}>{m}</button>)}
                 </div>
-              ) : (
-                <div className="field full">
-                  <label>Muscle Groups <span className="optional-tag">(optional — defaults to Full Body)</span></label>
-                  {(() => {
-                    const suggestion = getSuggestedMuscleGroups(workoutLog);
-                    if (!suggestion) return null;
-                    return (
-                      <div style={{fontSize:12,color:"#888",marginBottom:8,lineHeight:1.5}}>
-                        💡 Based on your recent workouts, you might focus on: <strong style={{color:"var(--acid)"}}>{suggestion.join(", ")}</strong>
-                      </div>
-                    );
-                  })()}
-                  <div className="toggle-group">
-                    {MUSCLES.map(m=><button key={m} className={`toggle ${form.muscles.includes(m)?"active":""}`} onClick={()=>toggleMuscle(m)}>{m}</button>)}
-                  </div>
-                </div>
-              )}
+              </div>
               {tier==="unlimited" && (
                 <div className="field full">
                   <label>Plan Type <span className="optional-tag">(optional — defaults to Standard Program)</span></label>
@@ -4205,6 +4199,13 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                       <button className="paywall-btn" onClick={()=>startStripeCheckout(tier, lead?.email, plan, form)}>
                         {tier==="individual"?"UNLOCK WORKOUT →":tier==="annual"?"START ANNUAL PLAN →":"START UNLIMITED →"}
                       </button>
+                      {(tier==="unlimited"||tier==="annual") && (
+                        <div style={{textAlign:"center",marginTop:14}}>
+                          <span onClick={()=>startStripeCheckout(tier, lead?.email, plan, form, true)} style={{fontSize:13,color:"#888",textDecoration:"underline",cursor:"pointer"}}>
+                            Or start with a 7-day free trial
+                          </span>
+                        </div>
+                      )}
                       <div className="paywall-note">🔒 Secure payment · Instant access</div>
                     </div>
                   </>
