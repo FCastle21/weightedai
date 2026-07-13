@@ -2094,6 +2094,13 @@ function WeightedAI() {
   const [showDemographics, setShowDemographics] = useState(false);
   const [blocked, setBlocked]   = useState(false); // free tier weekly limit hit
   const [plan, setPlan]         = useState(null);
+  // Snapshot of the muscle groups actually used to generate the CURRENT plan, captured at
+  // generation time. Deliberately separate from form.muscles (which is live, mutable state) -
+  // logging a completed workout should always reflect what was actually generated, not whatever
+  // the live form happens to contain by the time the user gets around to rating it, which could
+  // in principle drift from what was originally selected for reasons unrelated to this specific
+  // workout.
+  const [planMuscles, setPlanMuscles] = useState([]);
   const [expandedSections, setExpandedSections] = useState({});
   const [error, setError]       = useState(null);
   const [unlocked, setUnlocked] = useState(false);
@@ -3024,6 +3031,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       }
       setIsStreaming(false);
       setPlan(cleanPlan);
+      setPlanMuscles(currentForm.muscles || []); // snapshot at generation time, see planMuscles declaration comment
       setStep("plan");
       setRegenCount(0); // fresh rebuild allowance for this newly generated workout
       if (tier === "free" && leadData?.email) {
@@ -3096,7 +3104,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
 
   const handleReset = () => {
     setRegenCount(0);
-    setPlan(null); setUnlocked(false);
+    setPlan(null); setUnlocked(false); setPlanMuscles([]);
     setBlocked(false); setEditingProfile(false); setThirtyDayPlan(false); setRegenNote(""); setIsStreaming(false); setDifficulty(0); setRatingSubmitted(false); setWorkoutMode(false); setSavedWorkout(null); try { localStorage.removeItem("weightedai_active_workout"); } catch(e) {}
     // Keep the user signed in - only reset muscle selection, not their saved profile.
     // If they're already a signed-in subscriber, keep their tier set so "Start Over" takes
@@ -3410,7 +3418,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
   const handleMarkDone = async (difficultyRating) => {
     const entry = {
       date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-      muscles: form.muscles.length > 0 ? form.muscles.join(", ") : "Full Body",
+      muscles: planMuscles.length > 0 ? planMuscles.join(", ") : "Full Body",
       difficulty: difficultyRating,
       tier,
       goal: form.goal || ""
