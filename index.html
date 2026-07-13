@@ -1973,11 +1973,11 @@ function EmailGate({ tier, onSubmit, onClose, waiverAccepted, setWaiverAccepted,
         <button onClick={() => onClose()} style={{position:"absolute",top:16,right:16,background:"transparent",border:"1px solid #2a2a2a",color:"#666",width:32,height:32,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.2s"}} onMouseOver={e=>{e.target.style.borderColor="var(--acid)";e.target.style.color="var(--acid)"}} onMouseOut={e=>{e.target.style.borderColor="#2a2a2a";e.target.style.color="#666"}}>✕</button>
         <p className="gate-label">{isFree ? "Free Access" : "Almost There"}</p>
         <h2 className="gate-title">{isFree ? <><span>FREE</span> WORKOUT</> : <>YOUR <span>PLAN</span></>}</h2>
-        <p className="gate-sub">{isFree ? "One free full-body workout every week — no credit card needed." : "Enter your details below. Returning users will have their profile auto-loaded."}</p>
+        <p className="gate-sub">{isFree ? "One free workout of your choice every week — no credit card needed." : "Enter your details below. Returning users will have their profile auto-loaded."}</p>
         <div className="gate-perks">
           {isFree ? (
             <>
-              <div className="gate-perk"><span className="gate-check">✓</span> 1 free full-body workout per week</div>
+              <div className="gate-perk"><span className="gate-check">✓</span> 1 free workout of your choice per week</div>
               <div className="gate-perk"><span className="gate-check">✓</span> Science-based focus message</div>
             </>
           ) : (
@@ -2688,7 +2688,7 @@ NUMBERING RULE — STRICT: If you list exercises with a number/letter prefix, AL
 
 FORMATTING RULE: Do NOT use markdown tables ANYWHERE in the output — no | pipe characters, no |---|---| separator rows, no "Week | Mon | Tue..." style grids, no nutrient/macro tables. This includes weekly schedules, rest day calendars, and macronutrient breakdowns — convert all of these to bullet points or bold labels with colons instead (e.g. "**Protein:** 155-207g"). Do NOT use #### (4+ hashtags) for headers — use at most ### for sub-sections. Keep formatting clean and minimal: workout day titles, exercise lists, brief notes. No calendar grids, no tables of any kind.
 
-You are an elite fitness engine. Generate a single full-body workout for ${leadData.name}.
+You are an elite fitness engine. Generate a single workout for ${leadData.name} based on their selected muscle focus below.
 
 PROFILE:
 - Age: ${currentForm.age || "Not specified"}
@@ -2757,7 +2757,7 @@ HINGE: Good Morning, Single-Leg Romanian Deadlift, Hip Hinge, Donkey Kick, Fire 
 CORE: Plank, Side Plank, Hollow Hold, Dead Bug, Ab Wheel Rollout, Dragon Flag (assisted), Hanging Knee Raise, Hanging Leg Raise, V-Up, L-Sit, Bicycle Crunch, Russian Twist, Mountain Climber, Bear Crawl, Pallof Press (band), Windshield Wiper
 
 Then provide:
-## This Week's Full-Body Workout
+## This Week's ${currentForm.muscles && currentForm.muscles.length > 0 ? currentForm.muscles.join(" & ") : "Full-Body"} Workout
 ### Warm-Up (5 min)
 Exactly 3 warm-up moves — simple mobility/activation movements (arm circles, leg swings, inchworms, etc.), formatted as **Move Name** — duration or reps only (e.g. "30 seconds" or "10 reps"), NO sets, NO "work/rest" interval format. Warm-up moves must be DIFFERENT from anything appearing in the Main Workout below — never repeat the same exercise name in both sections.
 ### Main Workout
@@ -3589,7 +3589,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               <div className="tier-price">$0</div>
               <div className="tier-price-note">1 workout per week · no card needed</div>
               <div className="tier-features">
-                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> 1 full-body workout per week</div>
+                <div className="tier-feat on"><span className="tier-feat-icon">✓</span> 1 workout of your choice per week</div>
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> Profile saved</div>
               </div>
             </div>
