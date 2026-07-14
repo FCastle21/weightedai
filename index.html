@@ -3429,6 +3429,11 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
     setProfileLoaded(false);
   };
 
+  const handleCloseEditProfile = () => {
+    setEditingProfile(false);
+    setProfileLoaded(true);
+  };
+
   const handleCancelSubscription = () => {
     showConfirm(
       "Cancel your subscription? You'll keep access until the end of your current billing period, then it won't renew.",
@@ -3650,6 +3655,11 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
             <div className="form-grid">
               {(!profileLoaded || editingProfile) ? (
                 <>
+                  {editingProfile && (
+                    <div className="field full" style={{display:"flex",justifyContent:"flex-end",marginBottom:-6}}>
+                      <button onClick={handleCloseEditProfile} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#888",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 14px",cursor:"pointer",borderRadius:0}}>Done</button>
+                    </div>
+                  )}
                   {!(showDemographics || editingProfile) ? (
                     <div className="field full">
                       <div onClick={()=>setShowDemographics(true)} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontSize:13,color:"#888"}}>
