@@ -2509,13 +2509,36 @@ function WeightedAI() {
   const handleFormSubmit = () => {
     if (!form.goal||!form.level||!form.equipment) { setError("Please select your goal, level, and equipment."); return; }
     setError(null);
-    // Skip email gate if already signed in
-    if (lead && lead.email) {
-      setStep("loading");
-      generatePlan(lead, null);
-    } else {
-      setStep("email-gate");
+
+    const proceedToGenerate = () => {
+      // Skip email gate if already signed in
+      if (lead && lead.email) {
+        setStep("loading");
+        generatePlan(lead, null);
+      } else {
+        setStep("email-gate");
+      }
+    };
+
+    // Warn if the user has specifically selected a muscle group that's still Fatigued, rather
+    // than silently generating anyway or silently overriding their choice - they may have a good
+    // reason (e.g. their schedule only allows this day), so this is a confirmable warning, not a
+    // hard block.
+    if (form.muscles && form.muscles.length > 0 && workoutHistory && workoutHistory.length > 0) {
+      const fatigueNow = getMuscleFatigueStatus(workoutHistory);
+      const stillFatigued = form.muscles.filter(m => fatigueNow[m] && fatigueNow[m].status === "Fatigued");
+      if (stillFatigued.length > 0) {
+        const details = stillFatigued.map(m => `${m} (trained ${fatigueNow[m].daysSince}d ago at difficulty ${fatigueNow[m].lastDifficulty}/5)`).join(", ");
+        showConfirm(
+          `${stillFatigued.join(" and ")} still looks fatigued from a recent hard session — ${details}. Build this workout anyway?`,
+          proceedToGenerate,
+          { confirmLabel: "Build Anyway" }
+        );
+        return;
+      }
     }
+
+    proceedToGenerate();
   };
 
   // Called after email gate — profile may be pre-loaded
@@ -2664,6 +2687,14 @@ function expandSafetyNotes(noteText) {
   const generatePlan = async (leadData, existingProfile, formOverride, historyOverride) => {
     const currentForm = formOverride || form;
     const currentHistory = historyOverride || workoutHistory;
+    // Compute per-muscle-group fatigue from history and format it for the prompt, so the AI can
+    // actually factor it in - not just display it passively in the UI. Only worth including when
+    // there's real signal (at least one group isn't simply "Fresh" from no history at all).
+    const currentFatigueMap = getMuscleFatigueStatus(currentHistory);
+    const fatiguedOrRecovering = ALL_MUSCLE_GROUPS.filter(g => currentFatigueMap[g].status !== "Fresh");
+    const fatigueContextLine = fatiguedOrRecovering.length === 0 ? "" :
+      " Muscle Recovery Status: " + fatiguedOrRecovering.map(g => `${g} (${currentFatigueMap[g].status} — trained ${currentFatigueMap[g].daysSince}d ago at difficulty ${currentFatigueMap[g].lastDifficulty}/5)`).join(", ") +
+      ". If the selected Muscle Focus includes a Fatigued group, keep volume/intensity for that group moderate rather than pushing hard, and briefly note this in that exercise's description. For Full Body or no specific selection, favor Fresh and Recovering groups over Fatigued ones where reasonable.";
     const isFree = tier === "free";
     const isPaid = tier === "individual" || tier === "unlimited" || tier === "annual";
 
@@ -2684,7 +2715,7 @@ PROFILE:
 - Level: ${currentForm.goal === "The Marla" ? "Advanced" : currentForm.level}
 - Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}${currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
 - Goal: ${currentForm.goal}
-- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
+- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).${fatigueContextLine}
 - Injuries or Limitations: ${currentForm.notes ? expandSafetyNotes(currentForm.notes) : "None"}
 ${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; const perfList = h.performance ? h.performance.split("|").filter(Boolean) : []; const perfText = perfList.length > 0 ? "\nWeights used: " + perfList.map(p => p.replace(":", " - ") + " lb").join(", ") : ""; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : "") + perfText; }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed\n\nPROGRESSIVE OVERLOAD RULES (based on Session 1's difficulty rating above, which is the user's most recent session):\n1. If Session 1 difficulty was 4-5/5 (felt easy): for exercises from Session 1 that reasonably repeat this session, increase intensity. If a specific weight was logged in \"Weights used\" above for that exercise, calculate and recommend that exact weight plus 5-10% (e.g. if 135 lb was logged, recommend 140-145 lb) instead of vague language. If no weight was logged, add reps, add a set, or say \"increase weight slightly from last time\".\n2. If Session 1 difficulty was 3/5 (moderate): maintain the same intensity level as Session 1 for repeated movement patterns - same rep target, same suggested weight.\n3. If Session 1 difficulty was 1-2/5 (felt hard): maintain or slightly reduce intensity, prioritize form over load, and say so explicitly in that exercise's description (e.g. \"focus on control here - reduce weight slightly if last session felt tough\").\n4. If no history exists yet, use standard beginner/intermediate/advanced defaults per the user's stated level with no reference to a previous session." : ""}
 
@@ -2774,7 +2805,7 @@ PROFILE:
 - 30-Day Goal: ${currentForm.thirtyDayGoal || "Not specified"}${currentForm.thirtyDayGoal ? " — IMPORTANT: this is the user's overarching objective for the full 30 days. Base the Nutrition Strategy section on THIS 30-Day Goal. Also use it to inform the overall structure/emphasis of the weekly training split (e.g. if 30-Day Goal is Fat Loss, lean toward more Muscle Building and HIIT days across the week; if Strength Gaining, lean toward more Strength Gaining days; if Muscle Building, lean toward more Muscle Building days; if Build & Burn, use mostly Muscle Building days with 1-2 HIIT days per week woven in - this is a body recomposition goal, so training should stay muscle-focused rather than shifting toward pure cardio/HIIT; if General Fitness, keep a balanced mix). The Workout Type field above is the STARTING anchor for the split, but let the 30-Day Goal guide which session types fill the remaining training days each week." : ""}
 - Level: ${currentForm.goal === "The Marla" ? "Advanced" : currentForm.level}
 - Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
-- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")}${currentForm.goal !== "The Marla" && currentForm.muscles.length > 0 ? " — this is the user's PREFERRED muscle focus area, not a rigid single-day requirement. Build a smart training SPLIT across the " + currentForm.days + " training days/week using this as your anchor: dedicate roughly half the week's training days to the user's selected muscle group(s) (" + currentForm.muscles.join(", ") + "), and intelligently rotate the remaining days across complementary, undertrained muscle groups (e.g. if they selected Chest + Triceps, rotate other days through Back, Legs/Glutes, Shoulders, Biceps, Core) so the full body gets balanced training across the week, not the same 1-2 muscle groups every single day." : currentForm.muscles.length > 0 ? " — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla)." : " — design a balanced full-body split across the week."}
+- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")}${currentForm.goal !== "The Marla" && currentForm.muscles.length > 0 ? " — this is the user's PREFERRED muscle focus area, not a rigid single-day requirement. Build a smart training SPLIT across the " + currentForm.days + " training days/week using this as your anchor: dedicate roughly half the week's training days to the user's selected muscle group(s) (" + currentForm.muscles.join(", ") + "), and intelligently rotate the remaining days across complementary, undertrained muscle groups (e.g. if they selected Chest + Triceps, rotate other days through Back, Legs/Glutes, Shoulders, Biceps, Core) so the full body gets balanced training across the week, not the same 1-2 muscle groups every single day." : currentForm.muscles.length > 0 ? " — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla)." : " — design a balanced full-body split across the week."}${fatigueContextLine}
 - Days/week: ${currentForm.days}
 - IMPORTANT: Each of the ${currentForm.days} training days this week must have a CLEARLY DIFFERENT muscle group focus than the other days (unless Full Body is selected for every day, or the Workout Type itself dictates otherwise, e.g. Apex/HIIT). Never repeat the exact same muscle group combination on more than 2 days in a single week.
 - Injuries, Limitations & Special Instructions: ${currentForm.notes ? expandSafetyNotes(currentForm.notes) : "None"}
@@ -2862,7 +2893,7 @@ PROFILE:
 - 30-Day Goal: ${currentForm.thirtyDayGoal || "Not specified"}${currentForm.thirtyDayGoal === "Build & Burn" ? " — Build & Burn is a body recomposition goal (building muscle while losing fat) - structure the 30 days as mostly Muscle Building sessions with 1-2 HIIT sessions per week woven in, not a 50/50 split and not pure cardio." : ""}
 - Level: ${currentForm.goal === "The Marla" ? "Advanced" : currentForm.level}
 - Equipment: ${currentForm.goal === "The Marla" ? "Full Gym" : currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
-- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).
+- Muscle Focus: ${currentForm.goal === "The Marla" ? "Glutes and Hamstrings ONLY (The Marla always overrides muscle selection)" : (currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)")} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex or The Marla).${fatigueContextLine}
 - Injuries, Limitations & Special Instructions: ${currentForm.notes ? expandSafetyNotes(currentForm.notes) : "None"}
 ${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; const perfList = h.performance ? h.performance.split("|").filter(Boolean) : []; const perfText = perfList.length > 0 ? "\nWeights used: " + perfList.map(p => p.replace(":", " - ") + " lb").join(", ") : ""; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : "") + perfText; }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed\n\nPROGRESSIVE OVERLOAD RULES (based on Session 1's difficulty rating above, which is the user's most recent session):\n1. If Session 1 difficulty was 4-5/5 (felt easy): for exercises from Session 1 that reasonably repeat this session, increase intensity. If a specific weight was logged in \"Weights used\" above for that exercise, calculate and recommend that exact weight plus 5-10% (e.g. if 135 lb was logged, recommend 140-145 lb) instead of vague language. If no weight was logged, add reps, add a set, or say \"increase weight slightly from last time\".\n2. If Session 1 difficulty was 3/5 (moderate): maintain the same intensity level as Session 1 for repeated movement patterns - same rep target, same suggested weight.\n3. If Session 1 difficulty was 1-2/5 (felt hard): maintain or slightly reduce intensity, prioritize form over load, and say so explicitly in that exercise's description (e.g. \"focus on control here - reduce weight slightly if last session felt tough\").\n4. If no history exists yet, use standard beginner/intermediate/advanced defaults per the user's stated level with no reference to a previous session." : ""}
 
@@ -3276,28 +3307,66 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
     }
   };
 
-  const getSuggestedMuscleGroups = (log) => {
-    if (!log || log.length === 0) return null;
-    const allMuscleGroups = ["Back", "Biceps", "Chest", "Core / Abs", "Legs / Glutes", "Shoulders", "Triceps"];
-    // Look at the last 7 days of workouts to see what's been trained recently
+  const ALL_MUSCLE_GROUPS = ["Back", "Biceps", "Chest", "Core / Abs", "Legs / Glutes", "Shoulders", "Triceps"];
+  const LARGE_MUSCLE_GROUPS = ["Back", "Chest", "Legs / Glutes"];
+  // Base recovery windows in days before a muscle group is considered fully "Fresh" again.
+  // Large muscle groups get a longer baseline than smaller ones, reflecting that a hard leg or
+  // back session creates more systemic fatigue than a hard bicep session. These are baselines,
+  // not fixed - actual status is adjusted up or down by how hard that session actually was.
+  const BASE_RECOVERY_DAYS = { large: 3, small: 2 };
+  // How much the baseline window stretches or shrinks based on the difficulty rating from that
+  // specific session - a "Very Hard" session creates more fatigue than a "Too Easy" one, even for
+  // the same muscle group, so treating them identically (as a simple "trained in last N days"
+  // check would) loses real signal that's already being collected anyway.
+  const DIFFICULTY_MULTIPLIER = { 1: 0.5, 2: 0.75, 3: 1.0, 4: 1.25, 5: 1.5 };
+
+  // Computes a per-muscle-group fatigue status from workout history: for each of the 7 real
+  // muscle groups, finds the most recent session that trained it, and classifies it as Fresh,
+  // Recovering, or Fatigued based on days elapsed relative to that group's difficulty-adjusted
+  // recovery window. Groups never trained (or with no history at all) are treated as Fresh, since
+  // there's no fatigue to account for.
+  const getMuscleFatigueStatus = (log) => {
     const now = new Date();
-    const recentCutoff = new Date(now);
-    recentCutoff.setDate(now.getDate() - 7);
-
-    const recentlyTrained = new Set();
-    log.forEach(w => {
-      const d = new Date(w.date);
-      if (d >= recentCutoff) {
-        (w.muscles || "").split(",").map(m => m.trim()).forEach(m => {
-          if (allMuscleGroups.includes(m)) recentlyTrained.add(m);
-        });
-      }
+    const result = {};
+    ALL_MUSCLE_GROUPS.forEach(group => {
+      result[group] = { status: "Fresh", daysSince: null, lastDifficulty: null };
     });
+    if (!log || log.length === 0) return result;
 
-    const untrained = allMuscleGroups.filter(m => !recentlyTrained.has(m));
-    if (untrained.length === 0) return null; // everything trained recently, no specific suggestion
-    if (untrained.length === allMuscleGroups.length) return null; // no recent history at all, nothing to suggest against
-    return untrained;
+    ALL_MUSCLE_GROUPS.forEach(group => {
+      // Find the most recent session that included this muscle group
+      let mostRecent = null;
+      for (const w of log) {
+        const trained = (w.muscles || "").split(",").map(m => m.trim());
+        if (trained.includes(group)) {
+          const d = new Date(w.date);
+          if (!mostRecent || d > new Date(mostRecent.date)) mostRecent = w;
+        }
+      }
+      if (!mostRecent) return; // never trained - stays Fresh
+
+      const daysSince = (now - new Date(mostRecent.date)) / (1000 * 60 * 60 * 24);
+      const difficulty = mostRecent.difficulty || 3; // assume moderate if not rated for some reason
+      const baseWindow = LARGE_MUSCLE_GROUPS.includes(group) ? BASE_RECOVERY_DAYS.large : BASE_RECOVERY_DAYS.small;
+      const adjustedWindow = baseWindow * (DIFFICULTY_MULTIPLIER[difficulty] || 1.0);
+
+      let status;
+      if (daysSince >= adjustedWindow) status = "Fresh";
+      else if (daysSince >= adjustedWindow * 0.5) status = "Recovering";
+      else status = "Fatigued";
+
+      result[group] = { status, daysSince: Math.round(daysSince * 10) / 10, lastDifficulty: difficulty };
+    });
+    return result;
+  };
+
+  // Thin wrapper kept for the one remaining caller (the muscle-group suggestion hint) - returns
+  // just the currently-Fresh groups, so the existing UI text doesn't need to change shape.
+  const getSuggestedMuscleGroups = (log) => {
+    const fatigue = getMuscleFatigueStatus(log);
+    const fresh = ALL_MUSCLE_GROUPS.filter(g => fatigue[g].status === "Fresh");
+    if (fresh.length === 0 || fresh.length === ALL_MUSCLE_GROUPS.length) return null;
+    return fresh;
   };
 
   // Loads a longer window of workout_history (separate from the capped loadHistory used for AI
@@ -3816,11 +3885,25 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
               <div className="field full">
                 <label>Muscle Groups <span className="optional-tag">(optional — defaults to Full Body)</span></label>
                 {(() => {
-                  const suggestion = getSuggestedMuscleGroups(workoutLog);
-                  if (!suggestion) return null;
+                  if (!workoutLog || workoutLog.length === 0) return null;
+                  const fatigue = getMuscleFatigueStatus(workoutLog);
+                  const statusLabel = { Fresh: "FRESH", Recovering: "RECOVERING", Fatigued: "FATIGUED" };
+                  const statusStyle = {
+                    Fresh: { color: "var(--white)", opacity: 1, fontWeight: 600 },
+                    Recovering: { color: "#999", opacity: 1, fontWeight: 400 },
+                    Fatigued: { color: "#555", opacity: 1, fontWeight: 400 }
+                  };
                   return (
-                    <div style={{fontSize:12,color:"#888",marginBottom:8,lineHeight:1.5}}>
-                      💡 Based on your recent workouts, you might focus on: <strong style={{color:"var(--acid)"}}>{suggestion.join(", ")}</strong>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:12}}>
+                      {ALL_MUSCLE_GROUPS.map(group => {
+                        const s = fatigue[group];
+                        return (
+                          <div key={group} title={s.daysSince !== null ? `Last trained ${s.daysSince}d ago at difficulty ${s.lastDifficulty}/5` : "Not trained recently"} style={{border:"1px solid #2a2a2a",padding:"5px 10px",fontSize:10,fontFamily:"'Courier New',monospace",letterSpacing:0.5,display:"flex",alignItems:"center",gap:6,cursor:"default"}}>
+                            <span style={{color:"#888"}}>{group}</span>
+                            <span style={statusStyle[s.status]}>{statusLabel[s.status]}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   );
                 })()}
