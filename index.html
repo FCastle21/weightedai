@@ -131,11 +131,8 @@
     .feature-split { padding: 0 24px 24px; }
     .feature-text { padding: 0; }
     .feature-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px 28px; margin-top: 16px; }
-    .feature-item {
-      display: flex; align-items: flex-start; gap: 12px;
-    }
-    .feature-icon { color: var(--mint); font-size: 14px; flex-shrink: 0; margin-top: 2px; }
-    .feature-item h4 { font-size: 13px; font-weight: 500; margin-bottom: 2px; color: var(--white); }
+    .feature-item h4 { font-family: 'Courier New', monospace; font-size: 13px; font-weight: 700; margin-bottom: 4px; color: var(--white); }
+    .feature-item h4 .feature-prompt { color: var(--mint); margin-right: 8px; }
     .feature-item p { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
     /* ── CTA STRIP ── */
@@ -307,32 +304,20 @@
       <h2 class="section-title">BUILT ON SCIENCE AND EXPERIENCE. NOT TRENDS.</h2>
       <div class="feature-list">
         <div class="feature-item">
-          <div class="feature-icon">◆</div>
-          <div>
-            <h4>Remembers, Adapts, Improves</h4>
-            <p>Generic AI gives you a workout once. WeightedAI tracks your history and adjusts every session.</p>
-          </div>
+          <h4><span class="feature-prompt">&gt;</span>Remembers, Adapts, Improves</h4>
+          <p>Generic AI gives you a workout once. WeightedAI tracks your history and adjusts every session.</p>
         </div>
         <div class="feature-item">
-          <div class="feature-icon">◆</div>
-          <div>
-            <h4>Specialized Programs</h4>
-            <p>Beyond standard goals — real training methodology, not one-size-fits-all plans.</p>
-          </div>
+          <h4><span class="feature-prompt">&gt;</span>Specialized Programs</h4>
+          <p>Beyond standard goals — real training methodology, not one-size-fits-all plans.</p>
         </div>
         <div class="feature-item">
-          <div class="feature-icon">◆</div>
-          <div>
-            <h4>Kinesiology-Informed</h4>
-            <p>Real exercise science — muscle balance, exercise ordering, recovery windows.</p>
-          </div>
+          <h4><span class="feature-prompt">&gt;</span>Kinesiology-Informed</h4>
+          <p>Real exercise science — muscle balance, exercise ordering, recovery windows.</p>
         </div>
         <div class="feature-item">
-          <div class="feature-icon">◆</div>
-          <div>
-            <h4>Precision Nutrition</h4>
-            <p>Calorie and macro targets calculated to your body, goal, and training volume.</p>
-          </div>
+          <h4><span class="feature-prompt">&gt;</span>Precision Nutrition</h4>
+          <p>Calorie and macro targets calculated to your body, goal, and training volume.</p>
         </div>
 
       </div>
