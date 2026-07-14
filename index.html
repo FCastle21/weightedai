@@ -2067,6 +2067,7 @@ function WeightedAI() {
   const [editingProfile, setEditingProfile] = useState(false);
   const [showTierUpgrade, setShowTierUpgrade] = useState(false);
   const [showDemographics, setShowDemographics] = useState(false);
+  const [showFatigueStatus, setShowFatigueStatus] = useState(false);
   const [blocked, setBlocked]   = useState(false); // free tier weekly limit hit
   const [plan, setPlan]         = useState(null);
   // Snapshot of the muscle groups actually used to generate the CURRENT plan, captured at
@@ -3887,6 +3888,8 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 {(() => {
                   if (!workoutLog || workoutLog.length === 0) return null;
                   const fatigue = getMuscleFatigueStatus(workoutLog);
+                  const hasSignal = ALL_MUSCLE_GROUPS.some(g => fatigue[g].status !== "Fresh");
+                  if (!hasSignal) return null; // nothing recovering/fatigued right now - no reason to show anything
                   const statusLabel = { Fresh: "FRESH", Recovering: "RECOVERING", Fatigued: "FATIGUED" };
                   const statusStyle = {
                     Fresh: { color: "var(--white)", opacity: 1, fontWeight: 600 },
@@ -3894,16 +3897,24 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     Fatigued: { color: "#555", opacity: 1, fontWeight: 400 }
                   };
                   return (
-                    <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:12}}>
-                      {ALL_MUSCLE_GROUPS.map(group => {
-                        const s = fatigue[group];
-                        return (
-                          <div key={group} title={s.daysSince !== null ? `Last trained ${s.daysSince}d ago at difficulty ${s.lastDifficulty}/5` : "Not trained recently"} style={{border:"1px solid #2a2a2a",padding:"5px 10px",fontSize:10,fontFamily:"'Courier New',monospace",letterSpacing:0.5,display:"flex",alignItems:"center",gap:6,cursor:"default"}}>
-                            <span style={{color:"#888"}}>{group}</span>
-                            <span style={statusStyle[s.status]}>{statusLabel[s.status]}</span>
-                          </div>
-                        );
-                      })}
+                    <div style={{marginBottom:12}}>
+                      <div onClick={()=>setShowFatigueStatus(s=>!s)} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontSize:12,color:"#888"}}>
+                        <span style={{color:"var(--acid)"}}>{showFatigueStatus?"−":"+"}</span>
+                        <span style={{textDecoration:"underline"}}>Recovery status by muscle group</span>
+                      </div>
+                      {showFatigueStatus && (
+                        <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:10}}>
+                          {ALL_MUSCLE_GROUPS.map(group => {
+                            const s = fatigue[group];
+                            return (
+                              <div key={group} title={s.daysSince !== null ? `Last trained ${s.daysSince}d ago at difficulty ${s.lastDifficulty}/5` : "Not trained recently"} style={{border:"1px solid #2a2a2a",padding:"5px 10px",fontSize:10,fontFamily:"'Courier New',monospace",letterSpacing:0.5,display:"flex",alignItems:"center",gap:6,cursor:"default"}}>
+                                <span style={{color:"#888"}}>{group}</span>
+                                <span style={statusStyle[s.status]}>{statusLabel[s.status]}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   );
                 })()}
