@@ -30,9 +30,9 @@
     :root {
       --black: #080808;
       --white: #f2f0eb;
-      --mint: #5d8a7a;
-      --mint-dark: #4a6f61;
-      --orange: #ff5c00;
+      --mint: #c9c9c9;
+      --mint-dark: #999;
+      --orange: #e5e5e5;
       --gray: #111;
       --mid: #1c1c1c;
       --muted: #555;
@@ -58,13 +58,9 @@
       backdrop-filter: blur(12px);
     }
     .nav-logo {
-      font-family: 'Space Grotesk', sans-serif; font-weight: 700;
-      font-size: 16px; letter-spacing: 1px; color: var(--white);
+      font-family: 'Courier New', monospace; font-weight: 400;
+      font-size: 17px; letter-spacing: 0.5px; color: var(--white);
       text-decoration: none; line-height: 1; display: inline-flex; align-items: center;
-      border: 1.5px solid var(--white); padding: 10px 16px; background: var(--black);
-    }
-    .nav-logo .logo-badge {
-      color: var(--mint); margin-left: 3px;
     }
 
     /* ── HERO ── */
@@ -80,7 +76,7 @@
       color: var(--mint); margin-bottom: 14px;
     }
     .hero h1 {
-      font-family: 'Bebas Neue', sans-serif;
+      font-family: 'Courier New', sans-serif;
       font-size: clamp(52px, 12vw, 80px);
       line-height: 0.88; letter-spacing: 1px;
       margin-bottom: 16px;
@@ -95,9 +91,9 @@
     }
     .btn-primary {
       background: var(--mint); color: var(--black);
-      font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 3px;
+      font-family: 'Courier New', sans-serif; font-size: 15px; letter-spacing: 3px;
       padding: 13px 28px; text-decoration: none; transition: background 0.2s;
-      display: inline-block; border-radius: 500px;
+      display: inline-block; border-radius: 0;
     }
     .btn-primary:hover { background: var(--mint-dark); }
 
@@ -108,7 +104,7 @@
     .stat { padding: 20px 24px; border-right: 1px solid #151515; }
     .stat:last-child { border-right: none; }
     .stat-number {
-      font-family: 'Bebas Neue', sans-serif;
+      font-family: 'Courier New', sans-serif;
       font-size: 40px; color: var(--mint); letter-spacing: 1px; line-height: 1;
       margin-bottom: 4px;
     }
@@ -118,17 +114,17 @@
     .section { padding: 24px; }
     .section-label { font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: var(--mint); margin-bottom: 14px; }
     .section-title {
-      font-family: 'Bebas Neue', sans-serif;
+      font-family: 'Courier New', sans-serif;
       font-size: clamp(28px, 5vw, 40px); letter-spacing: 1px; line-height: 0.95;
       margin-bottom: 20px;
     }
     .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: #111; }
     .step { background: var(--black); padding: 16px 16px; position: relative; }
     .step-num {
-      font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 3px;
+      font-family: 'Courier New', sans-serif; font-size: 11px; letter-spacing: 3px;
       color: var(--mint); margin-bottom: 8px;
     }
-    .step h3 { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; margin-bottom: 6px; color: var(--white); }
+    .step h3 { font-family: 'Courier New', sans-serif; font-size: 18px; letter-spacing: 1px; margin-bottom: 6px; color: var(--white); }
     .step p { font-size: 12px; color: var(--muted); line-height: 1.6; }
 
     /* ── FEATURE SPLIT ── */
@@ -149,16 +145,16 @@
       display: flex; align-items: center; justify-content: space-between; gap: 16px;
     }
     .cta-strip h2 {
-      font-family: 'Bebas Neue', sans-serif;
+      font-family: 'Courier New', sans-serif;
       font-size: clamp(26px, 5vw, 36px); color: var(--black);
       letter-spacing: 1px; line-height: 1;
     }
     .cta-strip-right { flex-shrink: 0; }
     .btn-dark {
       background: var(--black); color: var(--white);
-      font-family: 'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 3px;
+      font-family: 'Courier New', sans-serif; font-size: 13px; letter-spacing: 3px;
       padding: 12px 22px; text-decoration: none; display: inline-block; transition: opacity 0.2s;
-      border-radius: 500px;
+      border-radius: 0;
     }
     .btn-dark:hover { opacity: 0.85; }
 
@@ -168,8 +164,7 @@
       display: flex; align-items: center; justify-content: space-between;
       border-top: 1px solid #111;
     }
-    .footer-logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1px; display: inline-flex; align-items: center; border: 1.5px solid #333; padding: 8px 14px; }
-    .footer-logo span { color: var(--mint); }
+    .footer-logo { font-family: 'Courier New', monospace; font-weight: 400; font-size: 15px; letter-spacing: 0.5px; color: var(--white); display: inline-flex; align-items: center; }
     .footer-copy { font-size: 11px; color: #333; letter-spacing: 1px; }
     .footer-links { display: flex; gap: 20px; }
     .footer-links a { font-size: 11px; color: #333; text-decoration: none; letter-spacing: 1px; transition: color 0.2s; }
@@ -216,15 +211,15 @@
 
   <!-- SIGN IN MODAL -->
   <div id="signin-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:500;align-items:flex-end;justify-content:center;padding:0;overflow-y:auto;">
-    <div style="background:#111;border-top:3px solid #5d8a7a;padding:32px 24px;padding-bottom:calc(32px + env(safe-area-inset-bottom, 16px));width:100%;max-width:100%;border-radius:20px 20px 0 0;">
+    <div style="background:#111;border-top:3px solid #c9c9c9;padding:32px 24px;padding-bottom:calc(32px + env(safe-area-inset-bottom, 16px));width:100%;max-width:100%;border-radius:20px 20px 0 0;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
-        <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;">SIGN IN</div>
+        <div style="font-family:'Courier New',sans-serif;font-size:26px;letter-spacing:2px;">SIGN IN</div>
         <button onclick="document.getElementById('signin-overlay').style.display='none'" style="background:transparent;border:1px solid #2a2a2a;color:#666;width:32px;height:32px;cursor:pointer;font-size:16px;border-radius:50%;">✕</button>
       </div>
       <div style="font-size:14px;color:#666;margin-bottom:24px;">Sign in with your Google account to access your profile and workout history.</div>
       
       <!-- Google Sign In Button -->
-      <button onclick="handleGoogleSignIn()" style="width:100%;background:#fff;border:none;color:#333;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;padding:14px 18px;cursor:pointer;border-radius:500px;display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px;">
+      <button onclick="handleGoogleSignIn()" style="width:100%;background:#fff;border:none;color:#333;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;padding:14px 18px;cursor:pointer;border-radius:0;display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:14px;">
         <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
         Continue with Google
       </button>
@@ -235,16 +230,16 @@
         <div style="flex:1;height:1px;background:#1e1e1e;"></div>
       </div>
 
-      <input id="signin-email" type="email" placeholder="your@email.com" autocomplete="email" name="email" style="background:#0a0a0a;border:1px solid #2a2a2a;color:#f5f3ef;font-family:'DM Sans',sans-serif;font-size:15px;padding:14px 16px;outline:none;width:100%;margin-bottom:14px;border-radius:500px;"/>
-      <button onclick="handleSignIn()" style="width:100%;background:#5d8a7a;border:none;color:#0a0a0a;font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:4px;padding:18px;cursor:pointer;border-radius:500px;">SIGN IN WITH EMAIL →</button>
+      <input id="signin-email" type="email" placeholder="your@email.com" autocomplete="email" name="email" style="background:#0a0a0a;border:1px solid #2a2a2a;color:#f5f3ef;font-family:'DM Sans',sans-serif;font-size:15px;padding:14px 16px;outline:none;width:100%;margin-bottom:14px;border-radius:0;"/>
+      <button onclick="handleSignIn()" style="width:100%;background:#c9c9c9;border:none;color:#0a0a0a;font-family:'Courier New',sans-serif;font-size:18px;letter-spacing:4px;padding:18px;cursor:pointer;border-radius:0;">SIGN IN WITH EMAIL →</button>
       <div style="font-size:11px;color:#333;text-align:center;margin-top:12px;letter-spacing:0.5px;">No account yet? Choose a plan below.</div>
     </div>
   </div>
 
   <!-- NAV -->
   <nav>
-    <a href="#" class="nav-logo">Weighted<span class="logo-badge">[AI]</span></a>
-    <button onclick="document.getElementById('signin-overlay').style.display='flex'" id="signin-nav-btn" style="background:#5d8a7a;border:none;color:#0a0a0a;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 20px;cursor:pointer;border-radius:500px;font-weight:500;">Sign In</button>
+    <a href="#" class="nav-logo">WeightedAI</a>
+    <button onclick="document.getElementById('signin-overlay').style.display='flex'" id="signin-nav-btn" style="background:#c9c9c9;border:none;color:#0a0a0a;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;padding:9px 20px;cursor:pointer;border-radius:0;font-weight:500;">Sign In</button>
   </nav>
 
   <!-- HERO -->
@@ -366,7 +361,7 @@
 
   <!-- FOOTER -->
   <footer>
-    <div class="footer-logo">Weighted<span>[AI]</span></div>
+    <div class="footer-logo">WeightedAI</div>
     <div class="footer-copy">© 2026 WeightedAI. All rights reserved.</div>
     <div class="footer-links">
       <a href="/privacy.html">Privacy</a>
@@ -427,31 +422,30 @@ const styles = `
   .waiver-check-label a { color: var(--acid); text-decoration: none; }
 
   /* GLOBAL ROUNDED CORNERS */
-  button, input, a.btn-primary, a.btn-dark, a.nav-cta, a.pricing-btn { border-radius: 500px !important; }
+  button, input, a.btn-primary, a.btn-dark, a.nav-cta, a.pricing-btn { border-radius: 0 !important; }
   textarea { border-radius: 12px !important; }
-  select { border-radius: 500px !important; }
+  select { border-radius: 0 !important; }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root { --black: #0a0a0a; --white: #f5f3ef; --acid: #5d8a7a; --orange: #ff5c00; }
+  :root { --black: #0a0a0a; --white: #f5f3ef; --acid: #c9c9c9; --orange: #e5e5e5; }
   body { background: var(--black); overflow-x: hidden; }
   html { overflow-x: hidden; }
   .app { min-height: 100vh; background: var(--black); color: var(--white); font-family: 'DM Sans', sans-serif; font-weight: 300; overflow-x: hidden; }
 
   /* HEADER */
   .header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #1e1e1e; }
-  .logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 1px; color: var(--white); line-height: 1; display: inline-flex; align-items: center; border: 1.5px solid var(--white); padding: 9px 15px; }
-  .logo .logo-badge { color: var(--acid); margin-left: 3px; }
-  .badge { background: var(--acid); color: var(--black); font-size: 11px; font-weight: 500; letter-spacing: 2px; padding: 6px 14px; border-radius: 500px; text-transform: uppercase; }
+  .logo { font-family: 'Courier New', monospace; font-weight: 400; font-size: 16px; letter-spacing: 0.5px; color: var(--white); line-height: 1; display: inline-flex; align-items: center; }
+  .badge { background: var(--acid); color: var(--black); font-size: 11px; font-weight: 500; letter-spacing: 2px; padding: 6px 14px; border-radius: 0; text-transform: uppercase; }
 
   /* HERO */
   .app-hero { padding: 16px 20px 14px; max-width: 100%; border-bottom: 1px solid #1a1a1a; position: relative; overflow: hidden; }
   .app-hero-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
   .app-hero-label { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--acid); margin-bottom: 8px; }
-  .app-hero-h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px, 5vw, 52px); line-height: 0.92; letter-spacing: 2px; color: var(--white); margin-bottom: 8px; }
+  .app-hero-h1 { font-family: 'Courier New', sans-serif; font-size: clamp(32px, 5vw, 52px); line-height: 0.92; letter-spacing: 2px; color: var(--white); margin-bottom: 8px; }
   .app-hero-h1 em { font-style: normal; color: var(--white); }
   .app-hero-p { font-size: 13px; line-height: 1.6; color: #666; max-width: 480px; }
   .hero-label { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--acid); margin-bottom: 20px; }
-  .hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(64px, 10vw, 120px); line-height: 0.92; letter-spacing: 2px; color: var(--white); margin-bottom: 24px; }
+  .hero h1 { font-family: 'Courier New', sans-serif; font-size: clamp(64px, 10vw, 120px); line-height: 0.92; letter-spacing: 2px; color: var(--white); margin-bottom: 24px; }
   .hero h1 em { font-style: normal; color: var(--acid); }
   .hero p { font-size: 17px; line-height: 1.6; color: #999; max-width: 480px; }
 
@@ -461,12 +455,12 @@ const styles = `
   .tier-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; background: transparent; border: none; margin-bottom: 2px; }
   .tier-card { background: #101010; padding: 24px 18px; cursor: pointer; transition: all 0.25s ease; position: relative; border: 1px solid #1c1c1c; border-radius: 16px; }
   .tier-card:hover { background: #141414; border-color: #2a2a2a; transform: translateY(-2px); }
-  .tier-card.active { border-color: var(--acid); background: linear-gradient(160deg, #0f1813 0%, #0a0f0c 100%); box-shadow: 0 0 0 1px var(--acid), 0 8px 24px rgba(93,138,122,0.12); }
+  .tier-card.active { border-color: var(--acid); background: linear-gradient(160deg, #0f1813 0%, #0a0f0c 100%); box-shadow: 0 0 0 1px var(--acid), 0 8px 24px rgba(200,200,200,0.12); }
   .tier-card.popular-tier { border-color: #2a241a; }
-  .tier-card.active.popular-tier { border-color: var(--acid); box-shadow: 0 0 0 1px var(--acid), 0 8px 24px rgba(93,138,122,0.12); }
-  .tier-popular-tag { position: absolute; top: -10px; right: 16px; background: var(--orange); color: var(--white); font-family: 'Bebas Neue', sans-serif; font-size: 10px; letter-spacing: 2px; padding: 4px 12px; border-radius: 500px; box-shadow: 0 2px 8px rgba(255,92,0,0.3); }
+  .tier-card.active.popular-tier { border-color: var(--acid); box-shadow: 0 0 0 1px var(--acid), 0 8px 24px rgba(200,200,200,0.12); }
+  .tier-popular-tag { position: absolute; top: -10px; right: 16px; background: var(--orange); color: var(--white); font-family: 'Courier New', sans-serif; font-size: 10px; letter-spacing: 2px; padding: 4px 12px; border-radius: 0; box-shadow: 0 2px 8px rgba(220,220,220,0.3); }
   .tier-name { font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--acid); margin-bottom: 18px; font-weight: 500; }
-  .tier-price { font-family: 'Bebas Neue', sans-serif; font-size: 38px; color: var(--white); letter-spacing: 0.5px; line-height: 1; margin-bottom: 6px; }
+  .tier-price { font-family: 'Courier New', sans-serif; font-size: 38px; color: var(--white); letter-spacing: 0.5px; line-height: 1; margin-bottom: 6px; }
   .tier-price sup { font-size: 16px; vertical-align: super; opacity: 0.7; }
   .tier-price-note { font-size: 11px; color: #5a5a5a; margin-bottom: 18px; line-height: 1.5; }
   .tier-price-note em { color: var(--orange); font-style: normal; }
@@ -474,8 +468,8 @@ const styles = `
   .tier-feat { display: flex; align-items: flex-start; gap: 9px; font-size: 12px; color: #6e6e6e; line-height: 1.4; }
   .tier-feat.on { color: #c8c8c8; }
   .tier-feat-icon { flex-shrink: 0; margin-top: 1px; color: var(--acid); }
-  .tier-cta { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 4px; padding: 20px; cursor: pointer; transition: background 0.2s;  border-radius: 500px; }
-  .tier-cta:hover { background: #4a6f61; }
+  .tier-cta { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Courier New', sans-serif; font-size: 20px; letter-spacing: 4px; padding: 20px; cursor: pointer; transition: background 0.2s;  border-radius: 0; }
+  .tier-cta:hover { background: #999; }
 
   /* FORM */
   .form-section { padding: 0 20px 16px; }
@@ -490,12 +484,12 @@ const styles = `
   .field input:focus, .field select:focus, .field textarea:focus { border-bottom-color: var(--acid); }
   .field textarea { resize: none; height: 80px; line-height: 1.5; }
   .toggle-group { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
-  .toggle { background: transparent; border: 1px solid #2a2a2a; color: #666; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 400; padding: 8px 16px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; border-radius: 500px; }
+  .toggle { background: transparent; border: 1px solid #2a2a2a; color: #666; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 400; padding: 8px 16px; cursor: pointer; transition: all 0.15s; letter-spacing: 0.5px; border-radius: 0; }
   .toggle:hover { border-color: #444; color: var(--white); }
   .toggle.active { background: var(--acid); border-color: var(--acid); color: var(--black); font-weight: 500; }
   .submit-row { max-width: 900px; margin-top: 2px; }
-  .submit-btn { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 4px; padding: 16px; cursor: pointer; transition: background 0.2s; border-radius: 500px; }
-  .submit-btn:hover { background: #4a6f61; }
+  .submit-btn { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Courier New', sans-serif; font-size: 18px; letter-spacing: 4px; padding: 16px; cursor: pointer; transition: background 0.2s; border-radius: 0; }
+  .submit-btn:hover { background: #999; }
   .submit-btn:disabled { background: #333; color: #555; cursor: not-allowed; }
 
   /* Shared visual treatment for all informational/status banners - kept as one rule so the
@@ -509,15 +503,15 @@ const styles = `
   /* PROFILE LOADED BANNER */
   .profile-banner { max-width: 900px; padding: 14px 24px; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px; color: #888; animation: fadeUp 0.4s ease; }
   .profile-banner strong { color: var(--acid); }
-  .profile-edit-btn { background: transparent; border: 1px solid #2a2a2a; color: #555; font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 1px; padding: 6px 12px; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 500px; }
+  .profile-edit-btn { background: transparent; border: 1px solid #2a2a2a; color: #555; font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 1px; padding: 6px 12px; cursor: pointer; white-space: nowrap; transition: all 0.2s; border-radius: 0; }
   .profile-edit-btn:hover { border-color: var(--acid); color: var(--acid); }
 
   /* BLOCKED BANNER */
   .blocked-banner { max-width: 900px; background: linear-gradient(135deg, #1a1008 0%, #0d0805 100%); border: 1px solid #2e1f10; border-radius: 16px; padding: 28px 32px; margin-bottom: 32px; animation: fadeUp 0.4s ease; }
-  .blocked-banner h3 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--orange); margin-bottom: 8px; }
+  .blocked-banner h3 { font-family: 'Courier New', sans-serif; font-size: 28px; letter-spacing: 2px; color: var(--orange); margin-bottom: 8px; }
   .blocked-banner p { font-size: 14px; color: #888; line-height: 1.6; margin-bottom: 20px; }
-  .blocked-upgrade-btn { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 3px; padding: 14px 28px; cursor: pointer; transition: background 0.2s; border-radius: 500px; }
-  .blocked-upgrade-btn:hover { background: #4a6f61; }
+  .blocked-upgrade-btn { background: var(--acid); border: none; color: var(--black); font-family: 'Courier New', sans-serif; font-size: 16px; letter-spacing: 3px; padding: 14px 28px; cursor: pointer; transition: background 0.2s; border-radius: 0; }
+  .blocked-upgrade-btn:hover { background: #999; }
 
   /* EMAIL GATE */
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; animation: fadeIn 0.25s ease; }
@@ -525,7 +519,7 @@ const styles = `
   .gate { background: #0f0f0f; border: 1px solid #2a2a2a; border-top: 3px solid var(--acid); padding: 48px 40px; width: 100%; max-width: 500px; animation: slideUp 0.3s ease; }
   @keyframes slideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
   .gate-label { font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: var(--acid); margin-bottom: 14px; }
-  .gate-title { font-family: 'Bebas Neue', sans-serif; font-size: 40px; letter-spacing: 2px; line-height: 1.05; margin-bottom: 10px; }
+  .gate-title { font-family: 'Courier New', sans-serif; font-size: 40px; letter-spacing: 2px; line-height: 1.05; margin-bottom: 10px; }
   .gate-title span { color: var(--acid); }
   .gate-sub { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 28px; }
   .gate-perks { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
@@ -533,11 +527,11 @@ const styles = `
   .gate-check { color: var(--acid); font-size: 15px; flex-shrink: 0; }
   .gate-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
   .gate-field label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #555; font-weight: 500; }
-  .gate-field input { background: #0a0a0a; border: 1px solid #2a2a2a; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 15px; padding: 14px 16px; outline: none; transition: border-color 0.2s; width: 100%; border-radius: 500px; }
+  .gate-field input { background: #0a0a0a; border: 1px solid #2a2a2a; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 15px; padding: 14px 16px; outline: none; transition: border-color 0.2s; width: 100%; border-radius: 0; }
   .gate-field input:focus { border-color: var(--acid); }
   .gate-field input::placeholder { color: #444; }
-  .gate-submit { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 4px; padding: 20px; cursor: pointer; margin-top: 8px; transition: background 0.2s; border-radius: 500px; }
-  .gate-submit:hover { background: #4a6f61; }
+  .gate-submit { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Courier New', sans-serif; font-size: 20px; letter-spacing: 4px; padding: 20px; cursor: pointer; margin-top: 8px; transition: background 0.2s; border-radius: 0; }
+  .gate-submit:hover { background: #999; }
   .gate-privacy { font-size: 11px; color: #aaa; text-align: center; margin-top: 14px; letter-spacing: 0.5px; }
 
   /* LOADING */
@@ -552,8 +546,8 @@ const styles = `
   .plan-wrapper { max-width: 900px; animation: fadeUp 0.5s ease both; }
   @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
   .results-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid #1e1e1e; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-  .results-header h2 { font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 2px; }
-  .reset-btn { background: transparent; border: 1px solid #2a2a2a; color: #666; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: all 0.2s; border-radius: 500px; }
+  .results-header h2 { font-family: 'Courier New', sans-serif; font-size: 36px; letter-spacing: 2px; }
+  .reset-btn { background: transparent; border: 1px solid #2a2a2a; color: #666; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: all 0.2s; border-radius: 0; }
   .reset-btn:hover { border-color: var(--acid); color: var(--acid); }
 
   /* INSPO */
@@ -564,7 +558,7 @@ const styles = `
   .info-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); display: flex; align-items: center; justify-content: center; z-index: 500; padding: 20px; animation: fadeIn 0.2s ease; }
   .info-modal { background: #111; border: 1px solid #2a2a2a; border-top: 3px solid var(--acid); width: 100%; max-width: 480px; animation: slideUp 0.25s ease; }
   .info-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; border-bottom: 1px solid #1e1e1e; }
-  .info-modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--acid); }
+  .info-modal-title { font-family: 'Courier New', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--acid); }
   .info-modal-close { background: transparent; border: 1px solid #2a2a2a; color: #666; width: 32px; height: 32px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; border-radius: 50%; }
   .info-modal-close:hover { border-color: var(--acid); color: var(--acid); }
 
@@ -574,24 +568,24 @@ const styles = `
 
   /* REGENERATE */
   .regen-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
-  .regen-btn { background: transparent; border: 1px solid #2a2a2a; color: #888; font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 10px 18px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; border-radius: 500px; }
+  .regen-btn { background: transparent; border: 1px solid #2a2a2a; color: #888; font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 10px 18px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; border-radius: 0; }
   .regen-btn:hover { border-color: var(--acid); color: var(--acid); }
-  .regen-input { background: #0a0a0a; border: 1px solid #2a2a2a; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px 14px; outline: none; flex: 1; min-width: 200px; transition: border-color 0.2s; border-radius: 500px; }
+  .regen-input { background: #0a0a0a; border: 1px solid #2a2a2a; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px 14px; outline: none; flex: 1; min-width: 200px; transition: border-color 0.2s; border-radius: 0; }
   .regen-input:focus { border-color: var(--acid); }
   .regen-input::placeholder { color: #444; }
-  .regen-submit { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; padding: 10px 20px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; border-radius: 500px; }
+  .regen-submit { background: var(--acid); border: none; color: var(--black); font-family: 'Courier New', sans-serif; font-size: 14px; letter-spacing: 2px; padding: 10px 20px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; border-radius: 0; }
   .regen-submit:hover { opacity: 0.85; }
 
   /* WORKOUT RATING */
   .rating-section { border-top: 1px solid #1e1e1e; padding-top: 28px; margin-top: 28px; }
-  .rating-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--white); margin-bottom: 6px; }
+  .rating-title { font-family: 'Courier New', sans-serif; font-size: 22px; letter-spacing: 2px; color: var(--white); margin-bottom: 6px; }
   .rating-sub { font-size: 13px; color: #555; margin-bottom: 20px; }
   .rating-stars { display: flex; gap: 10px; margin-bottom: 20px; }
-  .rating-star { width: 44px; height: 44px; border: 1px solid #2a2a2a; background: transparent; color: #444; font-family: 'Bebas Neue', sans-serif; font-size: 18px; cursor: pointer; transition: all 0.15s; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .rating-star { width: 44px; height: 44px; border: 1px solid #2a2a2a; background: transparent; color: #444; font-family: 'Courier New', sans-serif; font-size: 18px; cursor: pointer; transition: all 0.15s; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
   .rating-star.selected { background: var(--acid); border-color: var(--acid); color: var(--black); }
   .rating-star:hover { border-color: var(--acid); color: var(--acid); }
   .rating-labels { display: flex; justify-content: space-between; font-size: 10px; letter-spacing: 1px; color: #444; text-transform: uppercase; margin-bottom: 20px; }
-  .rating-submit { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 3px; padding: 14px 28px; cursor: pointer; border-radius: 500px; transition: opacity 0.2s; }
+  .rating-submit { background: var(--acid); border: none; color: var(--black); font-family: 'Courier New', sans-serif; font-size: 16px; letter-spacing: 3px; padding: 14px 28px; cursor: pointer; border-radius: 0; transition: opacity 0.2s; }
   .rating-submit:hover { opacity: 0.85; }
   .rating-submit:disabled { background: #333; color: #555; cursor: not-allowed; }
   .rating-done { padding: 16px 20px; font-size: 14px; color: #aaa; }
@@ -616,12 +610,12 @@ const styles = `
 
   /* PROGRESS TRACKING */
   .progress-section { border-top: 1px solid #1e1e1e; padding-top: 32px; margin-top: 32px; }
-  .progress-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 2px; color: var(--white); margin-bottom: 20px; }
+  .progress-title { font-family: 'Courier New', sans-serif; font-size: 24px; letter-spacing: 2px; color: var(--white); margin-bottom: 20px; }
   .workout-log { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
   .workout-log-item { display: flex; align-items: center; justify-content: space-between; background: #101010; border: 1px solid #1c1c1c; border-radius: 12px; padding: 12px 16px; }
   .workout-log-date { font-size: 12px; color: #555; letter-spacing: 1px; }
   .workout-log-label { font-size: 14px; color: #aaa; }
-  .workout-log-badge { background: var(--acid); color: var(--black); font-size: 10px; letter-spacing: 2px; padding: 4px 12px; font-weight: 500; border-radius: 500px; }
+  .workout-log-badge { background: var(--acid); color: var(--black); font-size: 10px; letter-spacing: 2px; padding: 4px 12px; font-weight: 500; border-radius: 0; }
   .progress-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; background: #1a1a1a; margin-bottom: 20px; }
   .trend-chart { background: #101010; border: 1px solid #1c1c1c; border-radius: 14px; padding: 18px 16px; margin-bottom: 20px; }
   .trend-chart-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #555; margin-bottom: 14px; }
@@ -630,22 +624,21 @@ const styles = `
   .trend-bar { width: 100%; max-width: 24px; background: var(--acid); border-radius: 4px 4px 0 0; transition: height 0.3s ease; }
   .trend-bar-count { font-size: 10px; color: #666; }
   .progress-stat { background: var(--black); padding: 20px; text-align: center; }
-  .progress-stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 40px; color: var(--acid); line-height: 1; margin-bottom: 4px; }
+  .progress-stat-num { font-family: 'Courier New', sans-serif; font-size: 40px; color: var(--acid); line-height: 1; margin-bottom: 4px; }
   .progress-stat-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #555; }
 
   /* WORKOUT MODE */
   .workout-mode { position: fixed; inset: 0; background: var(--black); z-index: 400; overflow-y: auto; display: flex; flex-direction: column; animation: fadeIn 0.3s ease; padding-bottom: env(safe-area-inset-bottom, 0); }
   .workout-mode-header { position: sticky; top: 0; background: var(--black); border-bottom: 1px solid #1e1e1e; padding: 16px 20px; padding-top: calc(16px + env(safe-area-inset-top, 44px)); display: flex; align-items: center; justify-content: space-between; z-index: 10; }
-  .workout-mode-logo { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 1px; color: var(--white); display: inline-flex; align-items: center; border: 1.5px solid var(--white); padding: 8px 14px; }
-  .workout-mode-logo span { color: var(--acid); margin-left: 3px; }
-  .workout-mode-close { background: transparent; border: 1px solid #2a2a2a; color: #666; font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 8px 16px; cursor: pointer; border-radius: 500px; transition: all 0.2s; }
+  .workout-mode-logo { font-family: 'Courier New', monospace; font-weight: 400; font-size: 15px; letter-spacing: 0.5px; color: var(--white); display: inline-flex; align-items: center; }
+  .workout-mode-close { background: transparent; border: 1px solid #2a2a2a; color: #666; font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 8px 16px; cursor: pointer; border-radius: 0; transition: all 0.2s; }
   .workout-mode-close:hover { border-color: var(--acid); color: var(--acid); }
   .workout-mode-body { flex: 1; padding: 24px 20px 40px; max-width: 700px; margin: 0 auto; width: 100%; }
   .workout-mode-focus { background: #0d1a00; border-left: 3px solid var(--acid); padding: 16px 20px; margin-bottom: 28px; display: flex; gap: 12px; align-items: flex-start; border-radius: 4px; }
   .workout-mode-content { line-height: 1.9; font-size: 17px; color: var(--white); }
-  .workout-mode-content h1 { font-family: 'Bebas Neue', sans-serif; font-size: 36px; color: var(--acid); letter-spacing: 2px; margin: 24px 0 12px; }
-  .workout-mode-content h2 { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: var(--white); letter-spacing: 2px; margin: 28px 0 10px; border-bottom: 1px solid #1e1e1e; padding-bottom: 8px; }
-  .workout-mode-content h3 { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--acid); letter-spacing: 2px; margin: 20px 0 8px; }
+  .workout-mode-content h1 { font-family: 'Courier New', sans-serif; font-size: 36px; color: var(--acid); letter-spacing: 2px; margin: 24px 0 12px; }
+  .workout-mode-content h2 { font-family: 'Courier New', sans-serif; font-size: 26px; color: var(--white); letter-spacing: 2px; margin: 28px 0 10px; border-bottom: 1px solid #1e1e1e; padding-bottom: 8px; }
+  .workout-mode-content h3 { font-family: 'Courier New', sans-serif; font-size: 20px; color: var(--acid); letter-spacing: 2px; margin: 20px 0 8px; }
   .workout-mode-content p { margin-bottom: 12px; color: #ccc; font-size: 15px; }
   .workout-mode-content ul { padding-left: 20px; margin-bottom: 16px; }
   .workout-mode-content li { margin-bottom: 10px; font-size: 16px; color: var(--white); }
@@ -654,13 +647,13 @@ const styles = `
   .workout-mode-content th { background: #1a1a1a; color: var(--acid); text-align: left; padding: 10px 14px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; }
   .workout-mode-content td { padding: 12px 14px; border-bottom: 1px solid #1a1a1a; color: var(--white); }
   .workout-mode-footer { position: sticky; bottom: 0; background: var(--black); border-top: 1px solid #1e1e1e; padding: 16px 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom, 16px)); }
-  .workout-mode-done { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 4px; padding: 18px; cursor: pointer; border-radius: 500px; transition: opacity 0.2s; max-width: 700px; display: block; margin: 0 auto; }
+  .workout-mode-done { width: 100%; background: var(--acid); border: none; color: var(--black); font-family: 'Courier New', sans-serif; font-size: 20px; letter-spacing: 4px; padding: 18px; cursor: pointer; border-radius: 0; transition: opacity 0.2s; max-width: 700px; display: block; margin: 0 auto; }
   .workout-mode-done:hover { opacity: 0.85; }
   .resume-banner { padding: 16px 22px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; animation: fadeUp 0.4s ease; }
   .resume-banner-text { font-size: 14px; color: #888; }
   .resume-banner-text strong { color: var(--acid); }
-  .resume-btn { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 2px; padding: 10px 20px; cursor: pointer; border-radius: 500px; white-space: nowrap; }
-  .start-workout-btn { width: 100%; background: transparent; border: 2px solid var(--acid); color: var(--acid); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 4px; padding: 16px; cursor: pointer; border-radius: 500px; transition: all 0.2s; margin-bottom: 16px; }
+  .resume-btn { background: var(--acid); border: none; color: var(--black); font-family: 'Courier New', sans-serif; font-size: 14px; letter-spacing: 2px; padding: 10px 20px; cursor: pointer; border-radius: 0; white-space: nowrap; }
+  .start-workout-btn { width: 100%; background: transparent; border: 2px solid var(--acid); color: var(--acid); font-family: 'Courier New', sans-serif; font-size: 18px; letter-spacing: 4px; padding: 16px; cursor: pointer; border-radius: 0; transition: all 0.2s; margin-bottom: 16px; }
   .start-workout-btn:hover { background: var(--acid); color: var(--black); }
 
   /* STREAMING CURSOR */
@@ -671,12 +664,12 @@ const styles = `
 
   /* PLAN CONTENT */
   .plan-content { line-height: 1.8; font-size: 15px; color: var(--white); padding-bottom: 20px; }
-  .plan-content h1, .plan-content h2, .plan-content h3 { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; color: var(--white); margin: 36px 0 14px; }
+  .plan-content h1, .plan-content h2, .plan-content h3 { font-family: 'Courier New', sans-serif; letter-spacing: 2px; color: var(--white); margin: 36px 0 14px; }
   .plan-content h1 { font-size: 42px; color: var(--acid); }
   .plan-content h2 { font-size: 28px; border-bottom: 1px solid #1e1e1e; padding-bottom: 10px; }
   .plan-content h3 { font-size: 20px; color: var(--acid); border-top: 1px solid #1e1e1e; padding-top: 24px; }
   .collapsible-section { margin: 16px 0; border: 1px solid #1c1c1c; border-radius: 12px; overflow: hidden; }
-  .collapsible-header { width: 100%; background: #101010; border: none; color: var(--white); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1px; padding: 16px 18px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.15s; text-align: left; }
+  .collapsible-header { width: 100%; background: #101010; border: none; color: var(--white); font-family: 'Courier New', sans-serif; font-size: 16px; letter-spacing: 1px; padding: 16px 18px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: background 0.15s; text-align: left; }
   .collapsible-header:hover { background: #161616; }
   .collapsible-chevron { color: var(--acid); font-size: 18px; transition: transform 0.2s ease; display: inline-block; }
   .collapsible-body { padding: 4px 18px 18px; }
@@ -695,23 +688,23 @@ const styles = `
   .plan-preview { position: relative; overflow: hidden; max-height: 300px; }
   .plan-preview-inner { filter: blur(6px); user-select: none; pointer-events: none; opacity: 0.45; }
   .plan-preview-fade { position: absolute; bottom: 0; left: 0; right: 0; height: 180px; background: linear-gradient(to bottom, transparent, var(--black)); }
-  .paywall { background: linear-gradient(180deg, #0f1410 0%, #0a0a0a 100%); border: 1px solid #1e2e22; border-radius: 16px; padding: 36px 28px; text-align: center; margin-top: 4px; box-shadow: 0 0 40px rgba(93,138,122,0.06); }
+  .paywall { background: linear-gradient(180deg, #0f1410 0%, #0a0a0a 100%); border: 1px solid #1e2e22; border-radius: 16px; padding: 36px 28px; text-align: center; margin-top: 4px; box-shadow: 0 0 40px rgba(200,200,200,0.06); }
   .paywall-icon { font-size: 28px; margin-bottom: 12px; opacity: 0.9; }
-  .paywall h3 { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 2px; margin-bottom: 6px; line-height: 1.1; }
+  .paywall h3 { font-family: 'Courier New', sans-serif; font-size: 30px; letter-spacing: 2px; margin-bottom: 6px; line-height: 1.1; }
   .paywall h3 span { color: var(--acid); }
   .paywall-sub { font-size: 13px; color: #777; max-width: 340px; margin: 0 auto 24px; line-height: 1.6; }
   .paywall-price-row { display: flex; align-items: baseline; justify-content: center; gap: 4px; margin-bottom: 4px; }
-  .paywall-price { font-family: 'Bebas Neue', sans-serif; font-size: 44px; color: var(--white); line-height: 1; }
+  .paywall-price { font-family: 'Courier New', sans-serif; font-size: 44px; color: var(--white); line-height: 1; }
   .paywall-price-unit { font-size: 13px; color: #555; letter-spacing: 1px; }
-  .paywall-btn { background: var(--acid); border: none; color: var(--black); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 3px; padding: 15px 36px; cursor: pointer; display: block; width: 100%; max-width: 320px; margin: 0 auto 14px; transition: background 0.2s; border-radius: 500px; }
-  .paywall-btn:hover { background: #4a6f61; }
+  .paywall-btn { background: var(--acid); border: none; color: var(--black); font-family: 'Courier New', sans-serif; font-size: 16px; letter-spacing: 3px; padding: 15px 36px; cursor: pointer; display: block; width: 100%; max-width: 320px; margin: 0 auto 14px; transition: background 0.2s; border-radius: 0; }
+  .paywall-btn:hover { background: #999; }
   .paywall-note { font-size: 11px; color: #aaa; letter-spacing: 1px; }
 
   /* UPSELL */
   .upsell-strip { background: #0a0a0a; border: 1px solid #1e1e1e; border-top: 2px solid var(--orange); padding: 24px 28px; margin-top: 32px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-  .upsell-strip-text h4 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; margin-bottom: 4px; }
+  .upsell-strip-text h4 { font-family: 'Courier New', sans-serif; font-size: 22px; letter-spacing: 2px; margin-bottom: 4px; }
   .upsell-strip-text p { font-size: 13px; color: #666; }
-  .upsell-strip-btn { background: var(--orange); border: none; color: var(--white); font-family: 'Bebas Neue', sans-serif; font-size: 15px; letter-spacing: 2px; padding: 12px 24px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; border-radius: 500px; }
+  .upsell-strip-btn { background: var(--orange); border: none; color: var(--white); font-family: 'Courier New', sans-serif; font-size: 15px; letter-spacing: 2px; padding: 12px 24px; cursor: pointer; white-space: nowrap; transition: opacity 0.2s; border-radius: 0; }
   .upsell-strip-btn:hover { opacity: 0.85; }
 
   /* SUCCESS / CONFIRMED */
@@ -721,7 +714,7 @@ const styles = `
   .email-confirmed strong { color: var(--acid); }
 
   /* PAYMENT MODAL */
-  .modal-submit:hover { background: #4a6f61; }
+  .modal-submit:hover { background: #999; }
 
   @media (max-width: 768px) {
     /* APP MOBILE */
@@ -796,10 +789,10 @@ const styles = `
   .confirm-box.danger { border-top-color: var(--orange); }
   .confirm-text { font-size: 14px; color: #ddd; line-height: 1.6; margin-bottom: 22px; }
   .confirm-actions { display: flex; gap: 10px; }
-  .confirm-btn { flex: 1; border: 1px solid #2a2a2a; background: transparent; color: #999; font-family: 'DM Sans', sans-serif; font-size: 13px; letter-spacing: 0.5px; padding: 12px; border-radius: 500px; cursor: pointer; transition: all 0.2s; }
+  .confirm-btn { flex: 1; border: 1px solid #2a2a2a; background: transparent; color: #999; font-family: 'DM Sans', sans-serif; font-size: 13px; letter-spacing: 0.5px; padding: 12px; border-radius: 0; cursor: pointer; transition: all 0.2s; }
   .confirm-btn:hover { border-color: #444; color: var(--white); }
   .confirm-btn.primary { background: var(--acid); border-color: var(--acid); color: var(--black); font-weight: 500; }
-  .confirm-btn.primary:hover { background: #4a6f61; }
+  .confirm-btn.primary:hover { background: #999; }
   .confirm-btn.primary.danger { background: var(--orange); border-color: var(--orange); color: var(--white); }
   .confirm-btn.primary.danger:hover { background: #cc4a00; }
 
@@ -811,7 +804,7 @@ const styles = `
     .coach-chat-panel { left: auto; right: 20px; bottom: 90px; width: 360px; border-radius: 16px; }
   }
   .coach-chat-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid #1e1e1e; }
-  .coach-chat-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; color: var(--acid); }
+  .coach-chat-title { font-family: 'Courier New', sans-serif; font-size: 18px; letter-spacing: 1px; color: var(--acid); }
   .coach-chat-close { background: transparent; border: 1px solid #2a2a2a; color: #666; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .coach-chat-messages { flex: 1; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
   .coach-msg { max-width: 80%; padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.5; word-wrap: break-word; }
@@ -819,13 +812,13 @@ const styles = `
   .coach-msg.coach { align-self: flex-start; background: #1c1c1c; color: var(--white); border: 1px solid #2a2a2a; border-bottom-left-radius: 4px; }
   .coach-chat-empty { color: #666; font-size: 13px; text-align: center; margin-top: 40px; padding: 0 20px; }
   .coach-chat-input-row { display: flex; gap: 8px; padding: 14px 16px; border-top: 1px solid #1e1e1e; }
-  .coach-chat-input-row input { flex: 1; background: #0a0a0a; border: 1px solid #2a2a2a; border-radius: 500px; padding: 10px 16px; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 13.5px; outline: none; }
+  .coach-chat-input-row input { flex: 1; background: #0a0a0a; border: 1px solid #2a2a2a; border-radius: 0; padding: 10px 16px; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 13.5px; outline: none; }
   .coach-chat-send { background: var(--acid); border: none; color: var(--black); width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .coach-chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
 
   /* ADMIN INBOX */
-  .admin-inbox-btn { position: fixed; bottom: 24px; left: 20px; z-index: 500; background: var(--orange); color: var(--white); border: none; border-radius: 500px; padding: 12px 18px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 0.5px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 8px; }
-  .admin-inbox-badge { background: rgba(255,255,255,0.25); font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 500px; }
+  .admin-inbox-btn { position: fixed; bottom: 24px; left: 20px; z-index: 500; background: var(--orange); color: var(--white); border: none; border-radius: 0; padding: 12px 18px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: 0.5px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 8px; }
+  .admin-inbox-badge { background: rgba(255,255,255,0.25); font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 0; }
   .admin-thread-list { padding: 8px 0; overflow-y: auto; flex: 1; }
   .admin-thread-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-bottom: 1px solid #1a1a1a; cursor: pointer; }
   .admin-thread-item:hover { background: #161616; }
@@ -1972,7 +1965,7 @@ function EmailGate({ tier, onSubmit, onClose, waiverAccepted, setWaiverAccepted,
         </div>
         <div className="gate-field"><label>First Name</label><input placeholder="John" value={name} onChange={e => { setName(e.target.value); setError(""); }} /></div>
         <div className="gate-field"><label>Email Address</label><input type="email" placeholder="john@email.com" value={email} onChange={e => { setEmail(e.target.value); setError(""); }} /></div>
-        {error && <p style={{ color: "#ff5c00", fontSize: 13, marginTop: 4 }}>{error}</p>}
+        {error && <p style={{ color: "#e5e5e5", fontSize: 13, marginTop: 4 }}>{error}</p>}
 
         {!existingProfile && (
           <div className="waiver-box">
@@ -2289,8 +2282,8 @@ function WeightedAI() {
       if (btn) {
         btn.textContent = "Hi, " + name.split(" ")[0];
         btn.style.background = "transparent";
-        btn.style.border = "1px solid #5d8a7a";
-        btn.style.color = "#5d8a7a";
+        btn.style.border = "1px solid #c9c9c9";
+        btn.style.color = "#c9c9c9";
         btn.onclick = () => {
           const appEl = document.getElementById("app");
           if (appEl) appEl.scrollIntoView({ behavior: "smooth" });
@@ -3495,7 +3488,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       <div className="app">
 
         <header className="header">
-          <div className="logo">Weighted<span className="logo-badge">[AI]</span></div>
+          <div className="logo">WeightedAI</div>
           <div className="badge">Beta</div>
         </header>
 
@@ -3514,7 +3507,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 <div style={{fontSize:10,letterSpacing:3,textTransform:"uppercase",color:"var(--acid)",marginBottom:4,fontWeight:500}}>Install App</div>
                 <div style={{fontSize:13,color:"#666"}}>Add WeightedAI to your home screen for the best experience.</div>
               </div>
-              <button style={{background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"Bebas Neue, sans-serif",fontSize:14,letterSpacing:2,padding:"10px 20px",cursor:"pointer",borderRadius:500,whiteSpace:"nowrap"}}
+              <button style={{background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"Courier New, sans-serif",fontSize:14,letterSpacing:2,padding:"10px 20px",cursor:"pointer",borderRadius:0,whiteSpace:"nowrap"}}
                 onClick={() => { if(window.__deferredPrompt){ window.__deferredPrompt.prompt(); window.__deferredPrompt=null; }}}>
                 INSTALL →
               </button>
@@ -3547,7 +3540,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 <div className="tier-feat on"><span className="tier-feat-icon">✓</span> No weekly limit — pay per workout, whenever</div>
               </div>
             </div>
-            <button onClick={() => handleTierSelect("individual")} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Bebas Neue',sans-serif",fontSize:17,letterSpacing:3,padding:"16px",cursor:"pointer",borderRadius:500,marginTop:14}}>
+            <button onClick={() => handleTierSelect("individual")} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Courier New',sans-serif",fontSize:17,letterSpacing:3,padding:"16px",cursor:"pointer",borderRadius:0,marginTop:14}}>
               GET STARTED →
             </button>
             <div onClick={() => setShowAllPlans(s => !s)} style={{textAlign:"center",marginTop:18,fontSize:13,color:"#888",cursor:"pointer",textDecoration:"underline"}}>
@@ -3603,7 +3596,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
             <div style={{maxWidth:420,margin:"0 auto",textAlign:"center"}}>
               <p className="tier-label">Welcome Back</p>
               <p style={{fontSize:15,color:"#999",lineHeight:1.6,marginBottom:20}}>You're all set on the <strong style={{color:"var(--acid)"}}>{tier==="annual"?"Unlimited Annual":tier==="unlimited"?"Unlimited":tier==="individual"?"Individual":"Free"}</strong> plan. Scroll down to build your next workout.</p>
-              <button onClick={() => { setStep("form"); setTimeout(()=>{ const el=document.getElementById('form-top'); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:'smooth'}); }}, 50); }} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Bebas Neue',sans-serif",fontSize:17,letterSpacing:3,padding:"16px",cursor:"pointer",borderRadius:500}}>
+              <button onClick={() => { setStep("form"); setTimeout(()=>{ const el=document.getElementById('form-top'); if(el){ const y=el.getBoundingClientRect().top+window.pageYOffset-80; window.scrollTo({top:y,behavior:'smooth'}); }}, 50); }} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Courier New',sans-serif",fontSize:17,letterSpacing:3,padding:"16px",cursor:"pointer",borderRadius:0}}>
                 CONTINUE →
               </button>
             </div>
@@ -3625,12 +3618,12 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 {(workoutLog.length > 0 || logWeights) && (
                   <div style={{display:"flex",gap:10,flexWrap:"wrap",width:"100%"}}>
                     {workoutLog.length > 0 && (
-                      <button onClick={() => setShowWorkoutHistory(true)} style={{display:"flex",alignItems:"center",gap:7,background:"transparent",border:"1px solid var(--acid)",color:"var(--acid)",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:0.5,padding:"8px 14px",cursor:"pointer",borderRadius:500}}>
+                      <button onClick={() => setShowWorkoutHistory(true)} style={{display:"flex",alignItems:"center",gap:7,background:"transparent",border:"1px solid var(--acid)",color:"var(--acid)",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:0.5,padding:"8px 14px",cursor:"pointer",borderRadius:0}}>
                         📋 Workout History
                       </button>
                     )}
                     {logWeights && (
-                      <button onClick={() => setShowProgressChart(true)} style={{display:"flex",alignItems:"center",gap:7,background:"transparent",border:"1px solid var(--acid)",color:"var(--acid)",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:0.5,padding:"8px 14px",cursor:"pointer",borderRadius:500}}>
+                      <button onClick={() => setShowProgressChart(true)} style={{display:"flex",alignItems:"center",gap:7,background:"transparent",border:"1px solid var(--acid)",color:"var(--acid)",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:0.5,padding:"8px 14px",cursor:"pointer",borderRadius:0}}>
                         📈 Weight Progress
                       </button>
                     )}
@@ -3648,7 +3641,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                     setJustPaid(false);
                     setStep("loading");
                     generatePlan(lead, null, repeatForm);
-                  }} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Bebas Neue',sans-serif",fontSize:14,letterSpacing:2,padding:"10px 16px",cursor:"pointer",borderRadius:500,marginTop:4}}>
+                  }} style={{width:"100%",background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"'Courier New',sans-serif",fontSize:14,letterSpacing:2,padding:"10px 16px",cursor:"pointer",borderRadius:0,marginTop:4}}>
                     REPEAT LAST WORKOUT →
                   </button>
                 )}
@@ -3692,7 +3685,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 <div className="field full" style={{background:"var(--black)",padding:"20px 28px"}}>
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:12}}>
                     <div style={{fontSize:10,letterSpacing:3,textTransform:"uppercase",color:"var(--acid)",fontWeight:500}}>Your Profile</div>
-                    <button onClick={handleEditProfile} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#666",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#666"}}>Edit Profile</button>
+                    <button onClick={handleEditProfile} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#666",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:0,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#666"}}>Edit Profile</button>
                   </div>
                   <div style={{fontSize:14,color:"#888",lineHeight:1.8,marginBottom:16}}>
                     {[form.age && `Age: ${form.age}`, form.gender && form.gender !== "Prefer not to say" && form.gender, form.weight && `${form.weight}`, form.height && form.height].filter(Boolean).join(" · ")}
@@ -3721,7 +3714,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                         }}
                         style={{width:56,height:44,display:"flex",alignItems:"center",justifyContent:"center",margin:"-12px -10px",cursor:"pointer",flexShrink:0,outline:"none"}}
                       >
-                        <div style={{width:36,height:20,borderRadius:500,background:logWeights?"var(--acid)":"#2a2a2a",position:"relative",transition:"background 0.2s"}}>
+                        <div style={{width:36,height:20,borderRadius:0,background:logWeights?"var(--acid)":"#2a2a2a",position:"relative",transition:"background 0.2s"}}>
                           <div style={{position:"absolute",top:3,left:logWeights?18:3,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
                         </div>
                       </div>
@@ -3749,7 +3742,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                         }}
                         style={{width:56,height:44,display:"flex",alignItems:"center",justifyContent:"center",margin:"-12px -10px",cursor:"pointer",flexShrink:0,outline:"none"}}
                       >
-                        <div style={{width:36,height:20,borderRadius:500,background:shareWorkout?"var(--acid)":"#2a2a2a",position:"relative",transition:"background 0.2s"}}>
+                        <div style={{width:36,height:20,borderRadius:0,background:shareWorkout?"var(--acid)":"#2a2a2a",position:"relative",transition:"background 0.2s"}}>
                           <div style={{position:"absolute",top:3,left:shareWorkout?18:3,width:14,height:14,borderRadius:"50%",background:"#fff",transition:"left 0.2s"}}/>
                         </div>
                       </div>
@@ -3757,7 +3750,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap",maxWidth:"100%"}}>
                     {tier === "free" && (
-                      <button onClick={() => { setShowTierUpgrade(true); setTimeout(() => { const el = document.getElementById("tier-upgrade-section"); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({top:y,behavior:"smooth"}); } }, 50); }} style={{background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"DM Sans,sans-serif",fontWeight:600,fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 14px",cursor:"pointer",borderRadius:500,whiteSpace:"nowrap",flexShrink:0}}>Upgrade Plan</button>
+                      <button onClick={() => { setShowTierUpgrade(true); setTimeout(() => { const el = document.getElementById("tier-upgrade-section"); if (el) { const y = el.getBoundingClientRect().top + window.pageYOffset - 80; window.scrollTo({top:y,behavior:"smooth"}); } }, 50); }} style={{background:"var(--acid)",border:"none",color:"var(--black)",fontFamily:"DM Sans,sans-serif",fontWeight:600,fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 14px",cursor:"pointer",borderRadius:0,whiteSpace:"nowrap",flexShrink:0}}>Upgrade Plan</button>
                     )}
                     {(tier === "unlimited" || tier === "annual") && (
                       form.subscriptionCancelAtPeriodEnd ? (
@@ -3765,17 +3758,17 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                           {form.subscriptionPeriodEnd ? `Cancelled — access until ${new Date(form.subscriptionPeriodEnd).toLocaleDateString()}` : "Cancelled — access continues through current billing period"}
                         </div>
                       ) : (
-                      <button onClick={handleCancelSubscription} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#999",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.color="var(--orange)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#999"}}>Cancel Subscription</button>
+                      <button onClick={handleCancelSubscription} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#999",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:0,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--orange)";e.currentTarget.style.color="var(--orange)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#999"}}>Cancel Subscription</button>
                       )
                     )}
-                    <button onClick={handleDeleteAccount} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#555",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="#ff4444";e.currentTarget.style.color="#ff4444"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#555"}}>Delete Account</button>
-                    <button onClick={handleSignOut} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#666",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:500,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#666"}}>Sign Out</button>
+                    <button onClick={handleDeleteAccount} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#555",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:0,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="#ff4444";e.currentTarget.style.color="#ff4444"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#555"}}>Delete Account</button>
+                    <button onClick={handleSignOut} style={{background:"transparent",border:"1px solid #2a2a2a",color:"#666",fontFamily:"DM Sans,sans-serif",fontSize:11,letterSpacing:1,textTransform:"uppercase",padding:"7px 12px",cursor:"pointer",borderRadius:0,transition:"all 0.2s",whiteSpace:"nowrap",flexShrink:0}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#666"}}>Sign Out</button>
                   </div>
                 </div>
               )}
               <div className="field full">
                 <label style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                  <span>Workout Type <span className="optional-tag" style={{color:"#5d8a7a"}}>(required)</span></span>
+                  <span>Workout Type <span className="optional-tag" style={{color:"#c9c9c9"}}>(required)</span></span>
                   <span onClick={()=>setShowGoalDescriptions(true)} style={{color:"#666",textTransform:"none",letterSpacing:0,fontSize:11,cursor:"pointer",textDecoration:"underline",fontWeight:400}}>Descriptions</span>
                 </label>
                 {form.thirtyDayGoal && (() => {
@@ -3799,13 +3792,13 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 </div>
               </div>
               <div className="field full">
-                <label>Experience Level <span className="optional-tag" style={{color:"#5d8a7a"}}>(required)</span></label>
+                <label>Experience Level <span className="optional-tag" style={{color:"#c9c9c9"}}>(required)</span></label>
                 <div className="toggle-group">
                   {LEVELS.map(l=><button key={l} className={`toggle ${form.level===l?"active":""}`} onClick={()=>toggle("level",l)}>{l}</button>)}
                 </div>
               </div>
               <div className="field full">
-                <label>Available Equipment <span className="optional-tag" style={{color:"#5d8a7a"}}>(required)</span></label>
+                <label>Available Equipment <span className="optional-tag" style={{color:"#c9c9c9"}}>(required)</span></label>
                 <div className="toggle-group">
                   {EQUIPMENT.map(e=><button key={e} className={`toggle ${form.equipment===e?"active":""}`} onClick={()=>toggle("equipment",e)}>{e}</button>)}
                 </div>
@@ -3844,7 +3837,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                         <span>Current goal: <strong style={{color:"var(--acid)"}}>{form.thirtyDayGoal}</strong> ({Math.max(0, 30 - Math.floor((Date.now() - new Date(form.thirtyDayGoalSetAt).getTime())/(1000*60*60*24)))} days left)</span>
                         <span onClick={()=>setForm(f=>({...f, thirtyDayGoalSetAt:""}))} style={{color:"#666",fontSize:12,cursor:"pointer",textDecoration:"underline",whiteSpace:"nowrap",marginLeft:12}}>Change</span>
                       </div>
-                      <button onClick={() => handleViewThirtyDayOverview(false)} style={{marginTop:10,background:"transparent",border:"1px solid #2a2a2a",color:"var(--acid)",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:1,textTransform:"uppercase",padding:"9px 16px",cursor:"pointer",borderRadius:500,transition:"all 0.2s"}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a"}}>📋 View Nutrition & Overview</button>
+                      <button onClick={() => handleViewThirtyDayOverview(false)} style={{marginTop:10,background:"transparent",border:"1px solid #2a2a2a",color:"var(--acid)",fontFamily:"DM Sans,sans-serif",fontSize:12,letterSpacing:1,textTransform:"uppercase",padding:"9px 16px",cursor:"pointer",borderRadius:0,transition:"all 0.2s"}} onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)"}} onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a"}}>📋 View Nutrition & Overview</button>
                     </>
                   ) : (
                     <>
@@ -3875,7 +3868,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 <textarea placeholder={tier==="free" ? "e.g. Lower back pain, bad knees, shoulder injury... (or leave blank)" : "e.g. Lower back pain, bad knees, I travel often, I hate cardio, I want to run a 5K... (or leave blank)"} value={form.notes} onChange={e=>set("notes",e.target.value)} />
               </div>
             </div>
-            {error && <p style={{color:"#ff5c00",fontSize:14,marginTop:16}}>{error}</p>}
+            {error && <p style={{color:"#e5e5e5",fontSize:14,marginTop:16}}>{error}</p>}
             <div className="submit-row">
               <button className="submit-btn" onClick={handleFormSubmit}>
                 BUILD IT →
@@ -4112,7 +4105,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                                 window.open("sms:?body=" + encodeURIComponent(shareText));
                               }
                             }}
-                            style={{width:"100%",background:"transparent",border:"1px solid #2a2a2a",color:"#888",fontFamily:"DM Sans,sans-serif",fontSize:13,letterSpacing:1,padding:"12px 20px",cursor:"pointer",borderRadius:500,marginTop:12,transition:"all 0.2s",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}
+                            style={{width:"100%",background:"transparent",border:"1px solid #2a2a2a",color:"#888",fontFamily:"DM Sans,sans-serif",fontSize:13,letterSpacing:1,padding:"12px 20px",cursor:"pointer",borderRadius:0,marginTop:12,transition:"all 0.2s",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}
                             onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}}
                             onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#888"}}
                           >
@@ -4214,7 +4207,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
         {workoutMode && plan && (
           <div className="workout-mode">
             <div className="workout-mode-header">
-              <div className="workout-mode-logo">Weighted<span>[AI]</span></div>
+              <div className="workout-mode-logo">WeightedAI</div>
               <button className="workout-mode-close" onClick={() => {
                 setWorkoutMode(false);
                 setSavedWorkout(null);
@@ -4275,7 +4268,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                 </div>
               ) : (
                 <div style={{textAlign:"center",padding:"8px 0"}}>
-                  <div style={{color:"var(--acid)",fontFamily:"Bebas Neue, sans-serif",fontSize:22,letterSpacing:2,marginBottom:4}}>WORKOUT COMPLETE ✓</div>
+                  <div style={{color:"var(--acid)",fontFamily:"Courier New, sans-serif",fontSize:22,letterSpacing:2,marginBottom:4}}>WORKOUT COMPLETE ✓</div>
                   <div style={{fontSize:13,color:"#666",marginBottom:12}}>Next plan will be adjusted based on your rating of {difficulty}/5</div>
                   {shareWorkout && <button
                     onClick={() => {
@@ -4311,7 +4304,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                         window.open("sms:?body=" + encodeURIComponent(shareText));
                       }
                     }}
-                    style={{width:"100%",background:"transparent",border:"1px solid #2a2a2a",color:"#888",fontFamily:"DM Sans,sans-serif",fontSize:13,letterSpacing:1,padding:"12px 20px",cursor:"pointer",borderRadius:500,transition:"all 0.2s"}}
+                    style={{width:"100%",background:"transparent",border:"1px solid #2a2a2a",color:"#888",fontFamily:"DM Sans,sans-serif",fontSize:13,letterSpacing:1,padding:"12px 20px",cursor:"pointer",borderRadius:0,transition:"all 0.2s"}}
                     onMouseOver={e=>{e.currentTarget.style.borderColor="var(--acid)";e.currentTarget.style.color="var(--acid)"}}
                     onMouseOut={e=>{e.currentTarget.style.borderColor="#2a2a2a";e.currentTarget.style.color="#888"}}
                   >📲 Share Workout with Friends</button>}
@@ -4335,7 +4328,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setVideoModal(null)}
-                  style={{display:"block",width:"100%",background:"#c0392b",color:"#fff",fontFamily:"Bebas Neue, sans-serif",fontSize:18,letterSpacing:3,padding:"14px 20px",borderRadius:500,textAlign:"center",textDecoration:"none"}}
+                  style={{display:"block",width:"100%",background:"#c0392b",color:"#fff",fontFamily:"Courier New, sans-serif",fontSize:18,letterSpacing:3,padding:"14px 20px",borderRadius:0,textAlign:"center",textDecoration:"none"}}
                 >
                   VIEW ON YOUTUBE
                 </a>
@@ -4421,7 +4414,7 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                             color: selectedProgressExercise===name ? "var(--black)" : "#999",
                             border: `1px solid ${selectedProgressExercise===name ? "var(--acid)" : "#2a2a2a"}`,
                             fontFamily:"DM Sans,sans-serif", fontSize:12, padding:"7px 14px",
-                            borderRadius:500, cursor:"pointer", whiteSpace:"nowrap"
+                            borderRadius:0, cursor:"pointer", whiteSpace:"nowrap"
                           }}
                         >{name}</button>
                       ))}
@@ -4614,7 +4607,7 @@ class AppErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div style={{maxWidth: 600, margin: "60px auto", padding: "40px 24px", textAlign: "center"}}>
-          <div style={{fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 2, color: "#f2f0eb", marginBottom: 16}}>
+          <div style={{fontFamily: "'Courier New', sans-serif", fontSize: 28, letterSpacing: 2, color: "#f2f0eb", marginBottom: 16}}>
             Something went wrong
           </div>
           <p style={{color: "#999", fontSize: 15, lineHeight: 1.6, marginBottom: 28}}>
@@ -4622,7 +4615,7 @@ class AppErrorBoundary extends React.Component {
           </p>
           <button
             onClick={() => window.location.reload()}
-            style={{background: "var(--acid)", border: "none", color: "var(--black)", fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, letterSpacing: 2, padding: "14px 32px", cursor: "pointer", borderRadius: 500}}
+            style={{background: "var(--acid)", border: "none", color: "var(--black)", fontFamily: "'Courier New', sans-serif", fontSize: 16, letterSpacing: 2, padding: "14px 32px", cursor: "pointer", borderRadius: 0}}
           >
             REFRESH PAGE
           </button>
