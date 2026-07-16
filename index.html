@@ -473,7 +473,6 @@ const styles = `
   /* HERO */
   .app-hero { padding: 16px 20px 14px; max-width: 100%; border-bottom: 1px solid #1a1a1a; position: relative; overflow: hidden; }
   .app-hero-bg { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
-  .app-hero-label { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--acid); margin-bottom: 8px; }
   .app-hero-h1 { font-family: 'Courier New', sans-serif; font-size: clamp(32px, 5vw, 52px); line-height: 0.92; letter-spacing: 2px; color: var(--white); margin-bottom: 8px; }
   .app-hero-h1 em { font-style: normal; color: var(--white); }
   .app-hero-p { font-size: 13px; line-height: 1.6; color: #666; max-width: 480px; }
@@ -794,7 +793,7 @@ const styles = `
   @media (max-width: 768px) {
     /* Minimum font size on mobile */
     .tier-feat, .tier-price-note, .principle p, .step p,
-    .stat-label, .section-label, .tier-label, .app-hero-label,
+    .stat-label, .section-label, .tier-label,
     .gate-label, .gate-privacy, .modal-fine, .rating-sub,
     .rating-labels, .overload-text, .workout-log-date,
     .progress-stat-label, .footer-copy, .footer-links a,
@@ -3560,7 +3559,6 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
 
         <section className="app-hero">
           <div className="app-hero-bg"></div>
-          <p className="app-hero-label">Built on Real Training Principles</p>
           <h1 className="app-hero-h1">YOUR PLAN.<br />BUILT IN<br />SECONDS.</h1>
           <p className="app-hero-p">Choose your plan below. Our AI engine builds a personalized workout instantly — for free, on-demand, or unlimited.</p>
         </section>
