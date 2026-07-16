@@ -1381,6 +1381,26 @@ function injectMetconExercises(planText, neededCount) {
 // Apex-style workouts entirely (detected by the presence of both rep-based AND time-interval
 // formatted exercises in the same workout) since Apex's Muscle Building/Metcon alternation is a
 // different, already-enforced ordering rule that this shouldn't interfere with.
+// Safety net: the prompt instructs the AI not to specify which side leads on unilateral
+// exercises (e.g. "Bulgarian Split Squat (Right Leg Leading)"), since both sides are always
+// expected - but the AI sometimes includes it anyway. This strips that parenthetical directly
+// from bolded exercise names, regardless of whether the prompt instruction was followed.
+function stripUnilateralSideLabels(planText) {
+  try {
+    if (!planText) return planText;
+    // Matches "(Right/Left Leg/Arm/Side Leading)" and close variants like "(Right Leg)" /
+    // "(Left Side)" - deliberately scoped to this specific pattern rather than any parenthetical
+    // mentioning left/right, to avoid stripping something else that happens to use those words.
+    const sideLabelPattern = /\s*\((?:Right|Left)\s+(?:Leg|Arm|Side)(?:\s+Leading)?\)/gi;
+    return planText.replace(/\*\*([^*]+)\*\*/g, (match, exerciseName) => {
+      const cleaned = exerciseName.replace(sideLabelPattern, "").trim();
+      return `**${cleaned}**`;
+    });
+  } catch (e) {
+    return planText;
+  }
+}
+
 function fixAbsCoreOrder(planText) {
   try {
     if (!planText) return planText;
@@ -2775,7 +2795,7 @@ Then provide:
 ### Warm-Up (5 min)
 Exactly 3 warm-up moves — simple mobility/activation movements (arm circles, leg swings, inchworms, etc.), formatted as **Move Name** — duration or reps only (e.g. "30 seconds" or "10 reps"), NO sets, NO "work/rest" interval format. Warm-up moves must be DIFFERENT from anything appearing in the Main Workout below — never repeat the same exercise name in both sections.
 ### Main Workout
-MANDATORY: You MUST write the literal heading "### Main Workout" here, exactly as shown, before listing any main exercises — even if every exercise (including HIIT/metcon ones) uses a timed work/rest format. Do not skip this heading or merge it with the Warm-Up section. Exercise count and sets per the Exercise Count By Level and Sets By Level rules above. For each: **Exercise Name** — sets x reps, rest (use actual numbers, e.g. "3 sets x 10 reps"). EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps — write "3 sets x 40 seconds", not "3 sets x 12 reps". Then one short sentence describing what it works and why it's in this workout.
+MANDATORY: You MUST write the literal heading "### Main Workout" here, exactly as shown, before listing any main exercises — even if every exercise (including HIIT/metcon ones) uses a timed work/rest format. Do not skip this heading or merge it with the Warm-Up section. Exercise count and sets per the Exercise Count By Level and Sets By Level rules above. For each: **Exercise Name** — sets x reps, rest (use actual numbers, e.g. "3 sets x 10 reps"). EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps — write "3 sets x 40 seconds", not "3 sets x 12 reps". Then one short sentence describing what it works and why it's in this workout. UNILATERAL EXERCISE NAMING: for any single-leg or single-arm exercise (Bulgarian Split Squat, single-arm rows, single-leg deadlifts, TRX single-leg squats, etc.), name it WITHOUT specifying which side leads - just "Bulgarian Split Squat", not "Bulgarian Split Squat (Right Leg Leading)". It's already expected that the user performs both sides; do not treat left and right as separate exercises or call out a side in the name.
 ### Cool-Down (5 min)
 Exactly 3 stretches.
 
@@ -2863,7 +2883,7 @@ VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different sta
 Then create a complete 30-DAY plan:
 # ${leadData.name}'s 30-Day Plan
 ## How To Use This Plan
-## The 30-Day Schedule (4 weeks, every training day MUST start with a "### Day N" header, e.g. "### Day 1" — this exact format is required. Within each day: focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps") — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — one short sentence on what it works, one training note per day, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh at the beginning of EACH day — every single day's exercises must alternate independently.)
+## The 30-Day Schedule (4 weeks, every training day MUST start with a "### Day N" header, e.g. "### Day 1" — this exact format is required. Within each day: focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps") — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — one short sentence on what it works, one training note per day, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh at the beginning of EACH day — every single day's exercises must alternate independently.) UNILATERAL EXERCISE NAMING: for any single-leg or single-arm exercise, name it WITHOUT specifying which side leads - just "Bulgarian Split Squat", not "Bulgarian Split Squat (Right Leg Leading)". Both sides are always expected; do not call out a side in the name or treat left/right as separate exercises.
 ## End of 30 Days
 
 Do NOT include an Overview section, a Nutrition Strategy section, a Recovery Protocol section, a 4-Week Progression section, or a Success Metrics section anywhere in this output. This information is already available to the user elsewhere in their profile and should never be duplicated here. The ONLY sections in this output are: How To Use This Plan, The 30-Day Schedule, and End of 30 Days.
@@ -2947,7 +2967,7 @@ VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different sta
 VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group — these are last resorts only. Rotate movement patterns. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
 
 # ${leadData.name}'s Personalized Plan
-## Workout Plan (this is a SINGLE workout for ONE training session — do NOT generate multiple days, do NOT use "### Day N" headers, do NOT repeat this structure for a week. Just one workout: name, muscle focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — then one short sentence describing what it works, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown — warm-up and cool-down move names must be plain text. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh — every exercise must alternate properly.)
+## Workout Plan (this is a SINGLE workout for ONE training session — do NOT generate multiple days, do NOT use "### Day N" headers, do NOT repeat this structure for a week. Just one workout: name, muscle focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — then one short sentence describing what it works, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown — warm-up and cool-down move names must be plain text. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh — every exercise must alternate properly.) UNILATERAL EXERCISE NAMING: for any single-leg or single-arm exercise, name it WITHOUT specifying which side leads - just "Bulgarian Split Squat", not "Bulgarian Split Squat (Right Leg Leading)". Both sides are always expected; do not call out a side in the name or treat left/right as separate exercises.
 
 Do NOT include an Overview section, a Nutrition Strategy section, a Recovery Protocol section, a 4-Week Progression section, or a Success Metrics section anywhere in this output. This information is already available to the user elsewhere in their profile and should never be duplicated here. The ONLY section in this output is Workout Plan itself - Warm-Up, Main Workout, and Cool-Down. Nothing else.
 
@@ -3029,6 +3049,9 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       // Safety net: cluster all Abs/Core exercises at the end of the Main Workout, not just the
       // final exercise - skips Apex workouts, which have their own alternation rule.
       cleanPlan = fixAbsCoreOrder(cleanPlan);
+      // Safety net: strip "(Right/Left Leg/Arm Leading)" labels from exercise names, since both
+      // sides are always expected and shouldn't be called out or treated as separate exercises.
+      cleanPlan = stripUnilateralSideLabels(cleanPlan);
       // Safety net: each goal type needs ONE consistent rep range on every exercise - normalize any
       // single-number rep count (e.g. "10 reps" or "4 reps") the AI wrote instead of the required range
       if (["Muscle Building", "Apex"].includes(currentForm.goal)) {
