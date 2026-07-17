@@ -1322,18 +1322,138 @@ function padHiitExerciseCount(planText, level) {
 }
 
 
+const ABS_CORE_KEYWORDS = ["sit-up", "sit up", "crunch", "dead bug", "plank", "russian twist", "leg raise", "ab wheel", "hollow hold", "bicycle crunch", "v-up", "toe touch", "flutter kick", "hanging leg raise", "cable crunch", "pallof press", "wood chop", "side plank", "ab rollout", "reverse crunch", "knee raise"];
+
+// Safety net: every workout is now supposed to end with exactly one Abs/Core exercise regardless
+// of Muscle Focus, but the AI sometimes skips it anyway (especially when Core/Abs isn't part of
+// the selected focus and the strict muscle-limiting instruction wins out over the mandatory-core
+// carve-out). This checks whether ANY core exercise exists at all, and if not, appends one from a
+// small pool - placed last, right before Cool-Down, matching where fixAbsCoreOrder would put it
+// anyway. Skips Apex workouts, consistent with fixAbsCoreOrder's own scope.
+function ensureCoreExercise(planText) {
+  try {
+    if (!planText) return planText;
+    const isApexStyle = /\d+\s*sets?\s*[x×]\s*[\d.\-–—]+\s*reps?/i.test(planText) && /\d+\s*seconds?\s*work/i.test(planText);
+    if (isApexStyle) return planText;
+
+    const boldMatches = planText.match(/\*\*([^*]+)\*\*/g) || [];
+    const exNames = boldMatches.map(m => m.replace(/\*\*/g, "").toLowerCase());
+    const hasCoreExercise = exNames.some(name => ABS_CORE_KEYWORDS.some(kw => name.includes(kw)));
+    if (hasCoreExercise) return planText; // already present, nothing to do
+
+    const corePool = [
+      { name: "Plank", format: "3 sets x 30-45 seconds", desc: "Core stability hold that builds trunk endurance to finish the session." },
+      { name: "Dead Bug", format: "3 sets x 12 reps", desc: "Anti-extension core exercise that reinforces spinal stability." },
+      { name: "Russian Twist", format: "3 sets x 15-20 reps", desc: "Rotational core work targeting the obliques." },
+      { name: "Bicycle Crunch", format: "3 sets x 15-20 reps", desc: "Dynamic core exercise hitting the abs through rotation and flexion." }
+    ];
+    const chosen = corePool[Math.floor(Math.random() * corePool.length)];
+    const injectedBlock = `\n\n**${chosen.name}** — ${chosen.format}\n${chosen.desc}`;
+
+    const lines = planText.split("\n");
+    let insertAt = lines.length;
+    for (let i = 0; i < lines.length; i++) {
+      if (/^[ \t#*]*(Cool-?Down|Cooldown)/i.test(lines[i])) { insertAt = i; break; }
+    }
+    const before = lines.slice(0, insertAt).join("\n").replace(/\s+$/, "");
+    const after = lines.slice(insertAt).join("\n");
+    return before + injectedBlock + (after ? "\n\n" + after : "");
+  } catch (e) {
+    return planText;
+  }
+}
+
+const METCON_POOL = [
+  { name: "Burpees", desc: "Full-body explosive movement that spikes heart rate and burns calories fast." },
+  { name: "Mountain Climbers", desc: "Dynamic core and cardio exercise that keeps the body moving continuously." },
+  { name: "Kettlebell Swings", desc: "Full-body conditioning that elevates heart rate and maintains work capacity between strength blocks." },
+  { name: "Box Jumps", desc: "Explosive plyometric movement building power while elevating heart rate." },
+  { name: "Battle Ropes (Alternating Waves)", desc: "Upper body and core conditioning that drives metabolic demand." },
+  { name: "Jump Rope", desc: "Classic cardio conditioning that builds coordination and elevates heart rate." },
+  { name: "Mountain Climber Sprints", desc: "High-intensity core and cardio finisher between strength movements." },
+  { name: "Assault Bike Sprints", desc: "Full-body cardio conditioning that maintains intensity throughout the session." },
+  { name: "Wall Balls", desc: "Full-body power and conditioning movement combining a squat with an overhead throw." },
+  { name: "Rowing Sprints", desc: "Full-body cardio conditioning that builds power while sparing the joints." }
+];
+
+// Safety net: the AI sometimes uses the same exercise name (most often a Metcon move in
+// Apex/HIIT workouts, since that pool is smaller than the general strength-exercise pool) twice
+// within a single workout - a real reported failure mode. This finds any exercise appearing more
+// than once and swaps every repeat occurrence for a different exercise from METCON_POOL that
+// isn't already used elsewhere in the workout, rather than just deleting it and shrinking the
+// workout. Only handles Metcon-style duplicates, since that's the confirmed failure pattern and
+// METCON_POOL gives a ready, appropriately-formatted set of replacements; a duplicate of a
+// non-Metcon exercise is left as-is rather than guessing at a strength-exercise substitute.
+function fixDuplicateMetconExercises(planText) {
+  try {
+    if (!planText) return planText;
+    const lines = planText.split("\n");
+    let mainStartLine = 0, mainEndLine = lines.length;
+    for (let i = 0; i < lines.length; i++) {
+      if (/##?#?\s*(Main Workout|Workout Plans?)/i.test(lines[i])) { mainStartLine = i + 1; break; }
+    }
+    for (let i = mainStartLine; i < lines.length; i++) {
+      if (/^[ \t#*]*(Cool-?Down|Cooldown)/i.test(lines[i])) { mainEndLine = i; break; }
+    }
+    const exerciseLineIndices = [];
+    for (let i = mainStartLine; i < mainEndLine; i++) {
+      if (/\*\*([^*]+)\*\*/.test(lines[i])) exerciseLineIndices.push(i);
+    }
+    if (exerciseLineIndices.length < 2) return planText;
+
+    const blocks = exerciseLineIndices.map((startIdx, i) => {
+      const endIdx = i + 1 < exerciseLineIndices.length ? exerciseLineIndices[i + 1] : mainEndLine;
+      const blockLines = lines.slice(startIdx, endIdx);
+      const nameMatch = blockLines[0].match(/\*\*([^*]+)\*\*/);
+      const name = nameMatch ? nameMatch[1].split("—")[0].split("–")[0].trim() : "";
+      return { lines: blockLines, name, nameLower: name.toLowerCase() };
+    });
+
+    const seenNames = new Set();
+    const usedPoolNames = new Set(blocks.map(b => b.nameLower));
+    let poolCursor = 0;
+    let changed = false;
+
+    blocks.forEach(block => {
+      if (!seenNames.has(block.nameLower)) {
+        seenNames.add(block.nameLower);
+        return; // first occurrence - always kept as-is
+      }
+      // This is a repeat - only fix it if it's a Metcon-style exercise (matches the pool by name,
+      // or uses the "X seconds work, Y second rest" interval format specific to Metcon exercises)
+      const isMetconStyle = METCON_POOL.some(m => m.name.toLowerCase() === block.nameLower) ||
+        block.lines.some(l => /\d+\s*seconds?\s*work/i.test(l));
+      if (!isMetconStyle) return; // leave non-Metcon duplicates alone
+
+      // Find a replacement from the pool not already used anywhere in this workout
+      let replacement = null;
+      for (let i = 0; i < METCON_POOL.length; i++) {
+        const candidate = METCON_POOL[(poolCursor + i) % METCON_POOL.length];
+        if (!usedPoolNames.has(candidate.name.toLowerCase())) { replacement = candidate; poolCursor = (poolCursor + i + 1) % METCON_POOL.length; break; }
+      }
+      if (!replacement) return; // pool exhausted (extremely unlikely) - leave the duplicate as-is
+
+      const nameLine = block.lines[0];
+      const dashSplit = nameLine.split(/—|–/);
+      const format = dashSplit.length > 1 ? dashSplit.slice(1).join("—").trim() : "4 sets x 40 seconds work, 20 second rest";
+      block.lines = [`**${replacement.name}** — ${format}`, replacement.desc, ""];
+      usedPoolNames.add(replacement.name.toLowerCase());
+      changed = true;
+    });
+
+    if (!changed) return planText;
+    const before = lines.slice(0, exerciseLineIndices[0]);
+    const after = lines.slice(mainEndLine);
+    const bodyLines = blocks.flatMap(b => b.lines);
+    return [...before, ...bodyLines, ...after].join("\n");
+  } catch (e) {
+    return planText;
+  }
+}
+
 function injectMetconExercises(planText, neededCount) {
   try {
-    const metconPool = [
-      { name: "Burpees", desc: "Full-body explosive movement that spikes heart rate and burns calories fast." },
-      { name: "Mountain Climbers", desc: "Dynamic core and cardio exercise that keeps the body moving continuously." },
-      { name: "Kettlebell Swings", desc: "Full-body conditioning that elevates heart rate and maintains work capacity between strength blocks." },
-      { name: "Box Jumps", desc: "Explosive plyometric movement building power while elevating heart rate." },
-      { name: "Battle Ropes (Alternating Waves)", desc: "Upper body and core conditioning that drives metabolic demand." },
-      { name: "Jump Rope", desc: "Classic cardio conditioning that builds coordination and elevates heart rate." },
-      { name: "Mountain Climber Sprints", desc: "High-intensity core and cardio finisher between strength movements." },
-      { name: "Assault Bike Sprints", desc: "Full-body cardio conditioning that maintains intensity throughout the session." }
-    ];
+    const metconPool = METCON_POOL;
     const lines = planText.split("\n");
     const exerciseLineIndices = [];
     lines.forEach((line, idx) => {
@@ -1418,7 +1538,7 @@ function fixAbsCoreOrder(planText) {
     }
     if (mainEndLine <= mainStartLine) return planText; // no identifiable Main Workout range
 
-    const absCoreKeywords = ["sit-up", "sit up", "crunch", "dead bug", "plank", "russian twist", "leg raise", "ab wheel", "hollow hold", "bicycle crunch", "v-up", "toe touch", "flutter kick", "hanging leg raise", "cable crunch", "pallof press", "wood chop", "side plank", "ab rollout", "reverse crunch", "knee raise"];
+    // uses the shared ABS_CORE_KEYWORDS constant defined above, near ensureCoreExercise
 
     // Find every bolded exercise-name line within the Main Workout range - each one starts a block
     const boldLineIdxs = [];
@@ -1433,7 +1553,7 @@ function fixAbsCoreOrder(planText) {
       const blockLines = lines.slice(startIdx, endIdx);
       const nameMatch = blockLines[0].match(/\*\*([^*]+)\*\*/);
       const name = nameMatch ? nameMatch[1].toLowerCase() : "";
-      const isAbsCore = absCoreKeywords.some(kw => name.includes(kw));
+      const isAbsCore = ABS_CORE_KEYWORDS.some(kw => name.includes(kw));
       return { lines: blockLines, isAbsCore };
     });
 
@@ -1580,11 +1700,18 @@ function fixApexAlternation(planText, level) {
         continue;
       }
 
+      // Safety net: the AI sometimes generates far more exercises than the level calls for - a
+      // real reported case had 19 exercises in an Advanced (10-exercise) workout. Unlike a
+      // shortfall, an excess can be safely trimmed without losing correctness or needing a
+      // regeneration retry - forces the reorder path below to run even if alternation is already
+      // valid, since a perfectly-alternating but over-long workout still needs cutting down.
+      const needsTrim = exerciseLineIndices.length > minExpected;
+
       let isValid = true;
       for (let i = 1; i < classifications.length; i++) {
         if (classifications[i] === classifications[i - 1]) { isValid = false; break; }
       }
-      if (isValid) continue; // this day is fine
+      if (isValid && !needsTrim) continue; // this day is fine, nothing to fix
 
       const hasA = classifications.includes("A");
       const hasB = classifications.includes("B");
@@ -1616,7 +1743,12 @@ function fixApexAlternation(planText, level) {
       }
       const firstBlockStart = exerciseLineIndices[0];
       const lastBlockEnd = exerciseLineIndices[exerciseLineIndices.length - 1] + blocks[blocks.length - 1].lines.length;
-      const reorderedLines = reordered.flatMap(b => b.lines);
+      // Trim down to the exact target count for this level if there were more exercises than
+      // needed - lastBlockEnd above is still calculated from the ORIGINAL full block list, so
+      // whatever follows the original last exercise (e.g. Cool-Down) is correctly preserved
+      // regardless of how many blocks get kept here.
+      const finalBlocks = needsTrim ? reordered.slice(0, minExpected) : reordered;
+      const reorderedLines = finalBlocks.flatMap(b => b.lines);
 
       // Splice the reordered lines back into resultLines at the correct position
       const before = resultLines.slice(0, firstBlockStart);
@@ -2801,7 +2933,7 @@ EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order
 
 SETS BY LEVEL: Beginner = 3 sets per exercise. Intermediate = 3 sets per exercise. Advanced = 4 sets per exercise.
 
-EXERCISE COUNT BY LEVEL: Beginner = 6-7 exercises. Intermediate = 8-9 exercises. Advanced = 10-11 exercises. (Exception: if the user has noted a time restriction, you may reduce the count accordingly.)
+EXERCISE COUNT BY LEVEL: Beginner = exactly 6 exercises. Intermediate = exactly 8 exercises. Advanced = exactly 10 exercises. (Exception: if the user has noted a time restriction, you may reduce the count accordingly.) MANDATORY CORE EXERCISE: regardless of the selected Muscle Focus, the LAST exercise in this count must always be one Abs/Core exercise - this applies even if Core/Abs is not part of the user's selected Muscle Focus (e.g. a Shoulders-only workout still ends with one Abs/Core exercise as its 6th/8th/10th exercise). This is the one exception to the STRICT muscle-focus limiting rule above. Do not add an extra exercise beyond the count for this - it IS the final exercise in the count, not an addition to it.
 
 EXERCISE COMPLEXITY BY LEVEL: This affects which exercises get chosen, not just how many - level should change exercise selection, not just volume.
 - Beginner: prioritize stable, lower-skill-demand movements - machines, bodyweight, and dumbbells over barbells for compound lifts where a reasonable alternative exists. Avoid highly technical or balance-intensive variations (single-leg/unilateral work, unstable-surface exercises, Olympic-lift-style movements like cleans or snatches). Favor exercises with a short learning curve and lower technique-error injury risk.
@@ -2840,9 +2972,9 @@ EQUIPMENT-BASED METCON (use ONLY if the user's equipment selection includes the 
 
 CRITICAL EQUIPMENT RULE: If equipment is "Bodyweight Only", you may ONLY select from the Bodyweight-Only Metcon list above for conditioning exercises, AND every strength/resistance exercise must use bodyweight alone — no equipment of any kind. NEVER use exercise names that inherently imply equipment, such as "goblet squat" (implies holding a dumbbell/kettlebell), "dumbbell press," "barbell row," "cable pulldown," "weighted lunge," "band-resisted X," or any name containing equipment terminology — even if you intend the exercise to be done without the equipment, the NAME itself is wrong and confusing. Use genuinely bodyweight-only names instead (e.g. "Bodyweight Squat" not "Goblet Squat," "Pike Push-Up" not "Dumbbell Shoulder Press"). Using any Equipment-Based exercise (rowing machine, assault bike, battle ropes, kettlebells, sleds, goblet squats, etc.) in a Bodyweight Only workout is a hard violation with zero exceptions.
 
-VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
+VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3. NEVER use the same exercise name twice within this single workout - each exercise, including Metcon/conditioning moves in Apex or HIIT workouts, must appear only once. This applies even when alternating between exercise types (e.g. Apex alternating Muscle Building and Metcon) - track which exercises you've already used in THIS workout and pick a different one each time a repeat would otherwise occur.
 
-VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
+VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3. NEVER use the same exercise name twice within this single workout - each exercise, including Metcon/conditioning moves in Apex or HIIT workouts, must appear only once. This applies even when alternating between exercise types (e.g. Apex alternating Muscle Building and Metcon) - track which exercises you've already used in THIS workout and pick a different one each time a repeat would otherwise occur.
 
 BODYWEIGHT EXERCISE POOL (for Bodyweight Only equipment) — randomly select from this list, never repeat an exercise from the previous 3 sessions:
 PULL: Pull-Up, Chin-Up, Inverted Row, Australian Pull-Up, Commando Pull-Up, L-Sit Pull-Up, Towel Row, Doorframe Row, Scapular Pull-Up, Negative Pull-Up, Mixed Grip Pull-Up
@@ -2898,7 +3030,7 @@ EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order
 
 SETS BY LEVEL: Beginner = 3 sets per exercise. Intermediate = 3 sets per exercise. Advanced = 4 sets per exercise.
 
-EXERCISE COUNT BY LEVEL: Beginner = 6-7 exercises. Intermediate = 8-9 exercises. Advanced = 10-11 exercises. (Exception: if the user has noted a time restriction, you may reduce the count accordingly.)
+EXERCISE COUNT BY LEVEL: Beginner = exactly 6 exercises. Intermediate = exactly 8 exercises. Advanced = exactly 10 exercises. (Exception: if the user has noted a time restriction, you may reduce the count accordingly.) MANDATORY CORE EXERCISE: regardless of the selected Muscle Focus, the LAST exercise in this count must always be one Abs/Core exercise - this applies even if Core/Abs is not part of the user's selected Muscle Focus (e.g. a Shoulders-only workout still ends with one Abs/Core exercise as its 6th/8th/10th exercise). This is the one exception to the STRICT muscle-focus limiting rule above. Do not add an extra exercise beyond the count for this - it IS the final exercise in the count, not an addition to it.
 
 EXERCISE COMPLEXITY BY LEVEL: This affects which exercises get chosen, not just how many - level should change exercise selection, not just volume.
 - Beginner: prioritize stable, lower-skill-demand movements - machines, bodyweight, and dumbbells over barbells for compound lifts where a reasonable alternative exists. Avoid highly technical or balance-intensive variations (single-leg/unilateral work, unstable-surface exercises, Olympic-lift-style movements like cleans or snatches). Favor exercises with a short learning curve and lower technique-error injury risk.
@@ -2937,9 +3069,9 @@ EQUIPMENT-BASED METCON (use ONLY if the user's equipment selection includes the 
 
 CRITICAL EQUIPMENT RULE: If equipment is "Bodyweight Only", you may ONLY select from the Bodyweight-Only Metcon list above for conditioning exercises, AND every strength/resistance exercise must use bodyweight alone — no equipment of any kind. NEVER use exercise names that inherently imply equipment, such as "goblet squat" (implies holding a dumbbell/kettlebell), "dumbbell press," "barbell row," "cable pulldown," "weighted lunge," "band-resisted X," or any name containing equipment terminology — even if you intend the exercise to be done without the equipment, the NAME itself is wrong and confusing. Use genuinely bodyweight-only names instead (e.g. "Bodyweight Squat" not "Goblet Squat," "Pike Push-Up" not "Dumbbell Shoulder Press"). Using any Equipment-Based exercise (rowing machine, assault bike, battle ropes, kettlebells, sleds, goblet squats, etc.) in a Bodyweight Only workout is a hard violation with zero exceptions.
 
-VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
+VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3. NEVER use the same exercise name twice within this single workout - each exercise, including Metcon/conditioning moves in Apex or HIIT workouts, must appear only once. This applies even when alternating between exercise types (e.g. Apex alternating Muscle Building and Metcon) - track which exercises you've already used in THIS workout and pick a different one each time a repeat would otherwise occur.
 
-VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group — these are last resorts only. Rotate movement patterns. Across the 30 days, ensure later weeks don't repeat the same exercises as earlier weeks for the same muscle groups.
+VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group — these are last resorts only. Rotate movement patterns. Across the 30 days, ensure later weeks don't repeat the same exercises as earlier weeks for the same muscle groups. NEVER use the same exercise name twice within this single workout - each exercise, including Metcon/conditioning moves in Apex or HIIT workouts, must appear only once. This applies even when alternating between exercise types (e.g. Apex alternating Muscle Building and Metcon) - track which exercises you've already used in THIS workout and pick a different one each time a repeat would otherwise occur.
 
 Then create a complete 30-DAY plan:
 # ${leadData.name}'s 30-Day Plan
@@ -2984,7 +3116,7 @@ EXERCISE ORDER: Sequence exercises from larger muscles to smaller, in this order
 
 SETS BY LEVEL: Beginner = 3 sets per exercise. Intermediate = 3 sets per exercise. Advanced = 4 sets per exercise.
 
-EXERCISE COUNT BY LEVEL: Beginner = 6-7 exercises. Intermediate = 8-9 exercises. Advanced = 10-11 exercises. (Exception: if the user has noted a time restriction, you may reduce the count accordingly.)
+EXERCISE COUNT BY LEVEL: Beginner = exactly 6 exercises. Intermediate = exactly 8 exercises. Advanced = exactly 10 exercises. (Exception: if the user has noted a time restriction, you may reduce the count accordingly.) MANDATORY CORE EXERCISE: regardless of the selected Muscle Focus, the LAST exercise in this count must always be one Abs/Core exercise - this applies even if Core/Abs is not part of the user's selected Muscle Focus (e.g. a Shoulders-only workout still ends with one Abs/Core exercise as its 6th/8th/10th exercise). This is the one exception to the STRICT muscle-focus limiting rule above. Do not add an extra exercise beyond the count for this - it IS the final exercise in the count, not an addition to it.
 
 EXERCISE COMPLEXITY BY LEVEL: This affects which exercises get chosen, not just how many - level should change exercise selection, not just volume.
 - Beginner: prioritize stable, lower-skill-demand movements - machines, bodyweight, and dumbbells over barbells for compound lifts where a reasonable alternative exists. Avoid highly technical or balance-intensive variations (single-leg/unilateral work, unstable-surface exercises, Olympic-lift-style movements like cleans or snatches). Favor exercises with a short learning curve and lower technique-error injury risk.
@@ -3023,9 +3155,9 @@ EQUIPMENT-BASED METCON (use ONLY if the user's equipment selection includes the 
 
 CRITICAL EQUIPMENT RULE: If equipment is "Bodyweight Only", you may ONLY select from the Bodyweight-Only Metcon list above for conditioning exercises, AND every strength/resistance exercise must use bodyweight alone — no equipment of any kind. NEVER use exercise names that inherently imply equipment, such as "goblet squat" (implies holding a dumbbell/kettlebell), "dumbbell press," "barbell row," "cable pulldown," "weighted lunge," "band-resisted X," or any name containing equipment terminology — even if you intend the exercise to be done without the equipment, the NAME itself is wrong and confusing. Use genuinely bodyweight-only names instead (e.g. "Bodyweight Squat" not "Goblet Squat," "Pike Push-Up" not "Dumbbell Shoulder Press"). Using any Equipment-Based exercise (rowing machine, assault bike, battle ropes, kettlebells, sleds, goblet squats, etc.) in a Bodyweight Only workout is a hard violation with zero exceptions.
 
-VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
+VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group (e.g. Push-Up for chest, Squat for legs, Plank for core) — these are last resorts only. Rotate movement patterns (horizontal/vertical/unilateral push and pull, squat/hinge/lunge for legs). Check the user's workout history (below, if provided) and do not repeat exercises used in the last 2 sessions. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3. NEVER use the same exercise name twice within this single workout - each exercise, including Metcon/conditioning moves in Apex or HIIT workouts, must appear only once. This applies even when alternating between exercise types (e.g. Apex alternating Muscle Building and Metcon) - track which exercises you've already used in THIS workout and pick a different one each time a repeat would otherwise occur.
 
-VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group — these are last resorts only. Rotate movement patterns. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3.
+VARIETY AND ANTI-REPETITION: Use this randomization seed to pick a different starting point each generation: ${Date.now()}. Avoid defaulting to the most obvious/common exercise for a muscle group — these are last resorts only. Rotate movement patterns. Before finalizing, ask "would someone who did this app yesterday recognize these exercises?" — if yes, change at least 3. NEVER use the same exercise name twice within this single workout - each exercise, including Metcon/conditioning moves in Apex or HIIT workouts, must appear only once. This applies even when alternating between exercise types (e.g. Apex alternating Muscle Building and Metcon) - track which exercises you've already used in THIS workout and pick a different one each time a repeat would otherwise occur.
 
 # ${leadData.name}'s Personalized Plan
 ## Workout Plan (this is a SINGLE workout for ONE training session — do NOT generate multiple days, do NOT use "### Day N" headers, do NOT repeat this structure for a week. Just one workout: name, muscle focus, exactly 3 warm-up moves listed as plain text — NOT bolded, no "work/rest" interval format, and never repeating an exercise name used in the Main Workout, then main exercises per the Exercise Count By Level rule with each one as **Exercise Name** — sets x reps (use actual numbers, e.g. "3 sets x 10 reps"), rest period — EXCEPTION for isometric holds (Plank, Side Plank, Hollow Hold, Wall Sit, Dead Hang, Glute Bridge Hold, and any similar static-hold exercise): these are prescribed for TIME, never reps, e.g. "3 sets x 40 seconds", not "3 sets x 12 reps" — then one short sentence describing what it works, then exactly 3 cool-down stretches listed as plain text — NOT bolded. Only the main exercises should use ** bold markdown — warm-up and cool-down move names must be plain text. IMPORTANT FOR APEX: The alternation between Muscle Building and Metcon must restart fresh — every exercise must alternate properly.) UNILATERAL EXERCISE NAMING: for any single-leg or single-arm exercise, name it WITHOUT specifying which side leads - just "Bulgarian Split Squat", not "Bulgarian Split Squat (Right Leg Leading)". Both sides are always expected; do not call out a side in the name or treat left/right as separate exercises.
@@ -3100,6 +3232,10 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       // Safety net: Cool-Down must be the last thing in the workout - the AI sometimes generates
       // a main exercise after it instead of before.
       cleanPlan = fixCoolDownPosition(cleanPlan);
+      // Safety net: the same exercise (most often a Metcon move in Apex/HIIT) sometimes appears
+      // twice within one workout - a real reported failure mode. Runs after Cool-Down positioning
+      // so the Main Workout boundary this relies on is already correct.
+      cleanPlan = fixDuplicateMetconExercises(cleanPlan);
       // Safety net: ensure Nutrition Strategy content has a proper heading so it gets correctly
       // isolated into the collapsible section instead of bleeding into the main workout view.
       // Safety net: normalize any bare-line collapsible titles (Overview, Recovery Protocol, etc.)
@@ -3113,6 +3249,10 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
       // bolded sub-labels like "**Protein:**") were still present when Abs/Core reordering scans
       // for exercise blocks, it could misread those labels as exercises and reorder them too.
       cleanPlan = stripUnwantedSections(cleanPlan);
+      // Safety net: guarantee at least one Abs/Core exercise exists, since every workout is now
+      // supposed to end with one regardless of Muscle Focus - runs before fixAbsCoreOrder so
+      // there's always something for the ordering logic to place correctly.
+      cleanPlan = ensureCoreExercise(cleanPlan);
       // Safety net: cluster all Abs/Core exercises at the end of the Main Workout, not just the
       // final exercise - skips Apex workouts, which have their own alternation rule.
       cleanPlan = fixAbsCoreOrder(cleanPlan);
