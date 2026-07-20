@@ -2312,6 +2312,7 @@ function WeightedAI() {
   const [showTierUpgrade, setShowTierUpgrade] = useState(false);
   const [showDemographics, setShowDemographics] = useState(false);
   const [showFatigueStatus, setShowFatigueStatus] = useState(false);
+  const [showTrainingTrend, setShowTrainingTrend] = useState(false);
   const [blocked, setBlocked]   = useState(false); // free tier weekly limit hit
   const [plan, setPlan]         = useState(null);
   // Snapshot of the muscle groups actually used to generate the CURRENT plan, captured at
@@ -2903,6 +2904,16 @@ function expandSafetyNotes(noteText) {
     const fatigueContextLine = fatiguedOrRecovering.length === 0 ? "" :
       " Muscle Recovery Status: " + fatiguedOrRecovering.map(g => `${g} (${currentFatigueMap[g].status} — trained ${currentFatigueMap[g].daysSince}d ago at difficulty ${currentFatigueMap[g].lastDifficulty}/5)`).join(", ") +
       ". If the selected Muscle Focus includes a Fatigued group, keep volume/intensity for that group moderate rather than pushing hard, and briefly note this in that exercise's description. For Full Body or no specific selection, favor Fresh and Recovering groups over Fatigued ones where reasonable.";
+    // Compute per-muscle-group difficulty TREND across a longer window than fatigue status looks
+    // at (several sessions, not just the last one), so the AI can factor in longer-run patterns
+    // like accumulating fatigue or a plateau, not just how the most recent session went. Only
+    // included when a group actually has enough sessions to say something real - see
+    // MIN_SESSIONS_FOR_TREND.
+    const currentTrendMap = getTrainingTrend(currentHistory);
+    const trendingGroups = ALL_MUSCLE_GROUPS.filter(g => currentTrendMap[g].trend === "Trending Harder" || currentTrendMap[g].trend === "Trending Easier");
+    const trendContextLine = trendingGroups.length === 0 ? "" :
+      " Training Trend: " + trendingGroups.map(g => `${g} is ${currentTrendMap[g].trend} (average difficulty ${currentTrendMap[g].olderAvg}/5 in earlier sessions vs ${currentTrendMap[g].recentAvg}/5 more recently, across the last ${currentTrendMap[g].sessionCount} sessions)`).join(", ") +
+      ". A group Trending Harder may be approaching a plateau or accumulating fatigue - consider holding intensity steady or introducing a variation rather than continuing to push harder. A group Trending Easier has room to add intensity beyond what the single-session progressive overload rules alone would suggest.";
     const isFree = tier === "free";
     const isPaid = tier === "unlimited" || tier === "annual";
 
@@ -2923,7 +2934,7 @@ PROFILE:
 - Level: ${currentForm.level}
 - Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX straps)":""}${currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
 - Goal: ${currentForm.goal}
-- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body"} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex). Be careful with adjacent muscle groups that share pressing/pushing movements: Chest Press, Bench Press, Incline Press, Close-Grip Press, and Chest Fly variations are CHEST exercises, not Shoulder exercises, even though shoulders assist - if Chest is not in the selected Muscle Focus, none of these belong in the workout. The same caution applies to any other muscle groups with overlapping movement patterns (e.g. Back vs Biceps on pulling movements, Triceps vs Chest on pressing movements) - classify each exercise by its PRIMARY target muscle, not by which muscles merely assist.${fatigueContextLine}
+- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body"} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex). Be careful with adjacent muscle groups that share pressing/pushing movements: Chest Press, Bench Press, Incline Press, Close-Grip Press, and Chest Fly variations are CHEST exercises, not Shoulder exercises, even though shoulders assist - if Chest is not in the selected Muscle Focus, none of these belong in the workout. The same caution applies to any other muscle groups with overlapping movement patterns (e.g. Back vs Biceps on pulling movements, Triceps vs Chest on pressing movements) - classify each exercise by its PRIMARY target muscle, not by which muscles merely assist.${fatigueContextLine}${trendContextLine}
 - Injuries or Limitations: ${currentForm.notes ? expandSafetyNotes(currentForm.notes) : "None"}
 ${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; const perfList = h.performance ? h.performance.split("|").filter(Boolean) : []; const perfText = perfList.length > 0 ? "\nWeights used: " + perfList.map(p => p.replace(":", " - ") + " lb").join(", ") : ""; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : "") + perfText; }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed\n\nPROGRESSIVE OVERLOAD RULES (based on Session 1's difficulty rating above, which is the user's most recent session):\n1. If Session 1 difficulty was 4-5/5 (felt easy): for exercises from Session 1 that reasonably repeat this session, increase intensity. If a specific weight was logged in \"Weights used\" above for that exercise, calculate and recommend that exact weight plus 5-10% (e.g. if 135 lb was logged, recommend 140-145 lb) instead of vague language. If no weight was logged, add reps, add a set, or say \"increase weight slightly from last time\".\n2. If Session 1 difficulty was 3/5 (moderate): maintain the same intensity level as Session 1 for repeated movement patterns - same rep target, same suggested weight.\n3. If Session 1 difficulty was 1-2/5 (felt hard): maintain or slightly reduce intensity, prioritize form over load, and say so explicitly in that exercise's description (e.g. \"focus on control here - reduce weight slightly if last session felt tough\").\n4. If no history exists yet, use standard beginner/intermediate/advanced defaults per the user's stated level with no reference to a previous session." : ""}
 
@@ -3013,7 +3024,7 @@ PROFILE:
 - 30-Day Goal: ${currentForm.thirtyDayGoal || "Not specified"}${currentForm.thirtyDayGoal ? " — IMPORTANT: this is the user's overarching objective for the full 30 days. Base the Nutrition Strategy section on THIS 30-Day Goal. Also use it to inform the overall structure/emphasis of the weekly training split (e.g. if 30-Day Goal is Fat Loss, lean toward more Muscle Building and HIIT days across the week; if Strength Gaining, lean toward more Strength Gaining days; if Muscle Building, lean toward more Muscle Building days; if Build & Burn, use mostly Muscle Building days with 1-2 HIIT days per week woven in - this is a body recomposition goal, so training should stay muscle-focused rather than shifting toward pure cardio/HIIT; if General Fitness, keep a balanced mix). The Workout Type field above is the STARTING anchor for the split, but let the 30-Day Goal guide which session types fill the remaining training days each week." : ""}
 - Level: ${currentForm.level}
 - Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
-- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)"}${currentForm.muscles.length > 0 ? " — this is the user's PREFERRED muscle focus area, not a rigid single-day requirement. Build a smart training SPLIT across the " + currentForm.days + " training days/week using this as your anchor: dedicate roughly half the week's training days to the user's selected muscle group(s) (" + currentForm.muscles.join(", ") + "), and intelligently rotate the remaining days across complementary, undertrained muscle groups (e.g. if they selected Chest + Triceps, rotate other days through Back, Legs/Glutes, Shoulders, Biceps, Core) so the full body gets balanced training across the week, not the same 1-2 muscle groups every single day." : " — design a balanced full-body split across the week."} On any day dedicated to a specific muscle group, be careful with adjacent groups that share pressing/pushing movements: Chest Press, Bench Press, Incline Press, Close-Grip Press, and Chest Fly variations are CHEST exercises, not Shoulder exercises, even though shoulders assist - a Shoulders day should not include these. Classify each exercise by its PRIMARY target muscle, not by which muscles merely assist.${fatigueContextLine}
+- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)"}${currentForm.muscles.length > 0 ? " — this is the user's PREFERRED muscle focus area, not a rigid single-day requirement. Build a smart training SPLIT across the " + currentForm.days + " training days/week using this as your anchor: dedicate roughly half the week's training days to the user's selected muscle group(s) (" + currentForm.muscles.join(", ") + "), and intelligently rotate the remaining days across complementary, undertrained muscle groups (e.g. if they selected Chest + Triceps, rotate other days through Back, Legs/Glutes, Shoulders, Biceps, Core) so the full body gets balanced training across the week, not the same 1-2 muscle groups every single day." : " — design a balanced full-body split across the week."} On any day dedicated to a specific muscle group, be careful with adjacent groups that share pressing/pushing movements: Chest Press, Bench Press, Incline Press, Close-Grip Press, and Chest Fly variations are CHEST exercises, not Shoulder exercises, even though shoulders assist - a Shoulders day should not include these. Classify each exercise by its PRIMARY target muscle, not by which muscles merely assist.${fatigueContextLine}${trendContextLine}
 - Days/week: ${currentForm.days}
 - IMPORTANT: Each of the ${currentForm.days} training days this week must have a CLEARLY DIFFERENT muscle group focus than the other days (unless Full Body is selected for every day, or the Workout Type itself dictates otherwise, e.g. Apex/HIIT). Never repeat the exact same muscle group combination on more than 2 days in a single week.
 - Injuries, Limitations & Special Instructions: ${currentForm.notes ? expandSafetyNotes(currentForm.notes) : "None"}
@@ -3108,7 +3119,7 @@ PROFILE:
 - 30-Day Goal: ${currentForm.thirtyDayGoal || "Not specified"}${currentForm.thirtyDayGoal === "Build & Burn" ? " — Build & Burn is a body recomposition goal (building muscle while losing fat) - structure the 30 days as mostly Muscle Building sessions with 1-2 HIIT sessions per week woven in, not a 50/50 split and not pure cardio." : ""}
 - Level: ${currentForm.level}
 - Equipment: ${currentForm.equipment}${currentForm.equipment==="TRX"?" (TRX only — all exercises must use TRX suspension straps only. Include TRX-specific movements: rows, push-ups, squats, lunges, hamstring curls, pikes, fallouts, mountain climbers, and single-leg variations. No barbell, dumbbell, or machine exercises.)":currentForm.equipment==="Kettlebells"?" (Kettlebells only — all exercises must use kettlebells. Include kettlebell-specific movements: swings, goblet squats, Turkish get-ups, clean and press, snatches, rows, deadlifts, lunges, halos, windmills, and farmer carries. No barbells or machines.)":currentForm.equipment==="Full Gym"?" — Full Gym includes TRX suspension straps as part of the available equipment pool. TRX exercises (rows, push-ups, pikes, single-leg squats, hamstring curls, fallouts) are valid options to draw from when selecting exercises, but are not required in every workout.":""}
-- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)"} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex). Be careful with adjacent muscle groups that share pressing/pushing movements: Chest Press, Bench Press, Incline Press, Close-Grip Press, and Chest Fly variations are CHEST exercises, not Shoulder exercises, even though shoulders assist - if Chest is not in the selected Muscle Focus, none of these belong in the workout. The same caution applies to any other muscle groups with overlapping movement patterns (e.g. Back vs Biceps on pulling movements, Triceps vs Chest on pressing movements) - classify each exercise by its PRIMARY target muscle, not by which muscles merely assist.${fatigueContextLine}
+- Muscle Focus: ${currentForm.muscles.length>0?currentForm.muscles.join(", "):"Full Body (balanced)"} — STRICTLY limit all exercises to ONLY these muscle groups (or per the Workout Type Definitions below if it specifies otherwise, e.g. Apex). Be careful with adjacent muscle groups that share pressing/pushing movements: Chest Press, Bench Press, Incline Press, Close-Grip Press, and Chest Fly variations are CHEST exercises, not Shoulder exercises, even though shoulders assist - if Chest is not in the selected Muscle Focus, none of these belong in the workout. The same caution applies to any other muscle groups with overlapping movement patterns (e.g. Back vs Biceps on pulling movements, Triceps vs Chest on pressing movements) - classify each exercise by its PRIMARY target muscle, not by which muscles merely assist.${fatigueContextLine}${trendContextLine}
 - Injuries, Limitations & Special Instructions: ${currentForm.notes ? expandSafetyNotes(currentForm.notes) : "None"}
 ${currentHistory.length > 0 ? "\nPREVIOUS WORKOUT HISTORY (last " + Math.min(currentHistory.length, 3) + " sessions):\n" + currentHistory.slice(0,3).map((h,i) => { const exList = h.exercises ? h.exercises.split("|").filter(Boolean) : []; const perfList = h.performance ? h.performance.split("|").filter(Boolean) : []; const perfText = perfList.length > 0 ? "\nWeights used: " + perfList.map(p => p.replace(":", " - ") + " lb").join(", ") : ""; return "Session " + (i+1) + " (" + h.date + "): " + h.muscles + " — Difficulty " + h.difficulty + "/5" + (exList.length > 0 ? "\nExercises used: " + exList.join(", ") : "") + perfText; }).join("\n\n") + "\n\nCRITICAL EXERCISE ROTATION RULES:\n1. DO NOT use any exercise listed above from the last 2 sessions\n2. If an exercise appears in session 1 AND session 2 above, it is BANNED for this session\n3. Choose completely different movement variations each session\n4. The goal is NO repeated exercises until at least 3 sessions have passed\n\nPROGRESSIVE OVERLOAD RULES (based on Session 1's difficulty rating above, which is the user's most recent session):\n1. If Session 1 difficulty was 4-5/5 (felt easy): for exercises from Session 1 that reasonably repeat this session, increase intensity. If a specific weight was logged in \"Weights used\" above for that exercise, calculate and recommend that exact weight plus 5-10% (e.g. if 135 lb was logged, recommend 140-145 lb) instead of vague language. If no weight was logged, add reps, add a set, or say \"increase weight slightly from last time\".\n2. If Session 1 difficulty was 3/5 (moderate): maintain the same intensity level as Session 1 for repeated movement patterns - same rep target, same suggested weight.\n3. If Session 1 difficulty was 1-2/5 (felt hard): maintain or slightly reduce intensity, prioritize form over load, and say so explicitly in that exercise's description (e.g. \"focus on control here - reduce weight slightly if last session felt tough\").\n4. If no history exists yet, use standard beginner/intermediate/advanced defaults per the user's stated level with no reference to a previous session." : ""}
 
@@ -3602,6 +3613,59 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
     const fresh = ALL_MUSCLE_GROUPS.filter(g => fatigue[g].status === "Fresh");
     if (fresh.length === 0 || fresh.length === ALL_MUSCLE_GROUPS.length) return null;
     return fresh;
+  };
+
+  // Minimum number of past sessions targeting a muscle group before attempting any trend
+  // classification at all - 2-3 data points is noise, not a trend, and claiming a trend from too
+  // little history would fabricate confidence the data doesn't actually support.
+  const MIN_SESSIONS_FOR_TREND = 4;
+  // Minimum difference between the older and more recent half's average difficulty before calling
+  // it a real trend rather than ordinary session-to-session variation.
+  const TREND_THRESHOLD = 0.5;
+
+  // Computes a per-muscle-group difficulty TREND (distinct from fatigue status, which only looks
+  // at the single most recent session): compares the average difficulty rating of a muscle
+  // group's older sessions against its more recent sessions, in chronological order. A rising
+  // average suggests accumulating fatigue or an approaching plateau; a falling average suggests
+  // real adaptation and room to add intensity. Groups without enough history return "Not enough
+  // data yet" rather than guessing.
+  const getTrainingTrend = (log) => {
+    const result = {};
+    ALL_MUSCLE_GROUPS.forEach(group => { result[group] = { trend: "Not enough data yet", sessionCount: 0 }; });
+    if (!log || log.length === 0) return result;
+
+    ALL_MUSCLE_GROUPS.forEach(group => {
+      const sessions = log
+        .filter(w => (w.muscles || "").split(",").map(m => m.trim()).includes(group))
+        .filter(w => typeof w.difficulty === "number")
+        .sort((a, b) => new Date(a.date) - new Date(b.date)); // oldest first
+
+      if (sessions.length < MIN_SESSIONS_FOR_TREND) {
+        result[group] = { trend: "Not enough data yet", sessionCount: sessions.length };
+        return;
+      }
+
+      const midpoint = Math.floor(sessions.length / 2);
+      const olderHalf = sessions.slice(0, midpoint);
+      const recentHalf = sessions.slice(midpoint);
+      const avg = arr => arr.reduce((sum, s) => sum + s.difficulty, 0) / arr.length;
+      const olderAvg = avg(olderHalf);
+      const recentAvg = avg(recentHalf);
+      const diff = recentAvg - olderAvg;
+
+      let trend;
+      if (diff >= TREND_THRESHOLD) trend = "Trending Harder";
+      else if (diff <= -TREND_THRESHOLD) trend = "Trending Easier";
+      else trend = "Stable";
+
+      result[group] = {
+        trend,
+        sessionCount: sessions.length,
+        olderAvg: Math.round(olderAvg * 10) / 10,
+        recentAvg: Math.round(recentAvg * 10) / 10
+      };
+    });
+    return result;
   };
 
   // Loads a longer window of workout_history (separate from the capped loadHistory used for AI
@@ -4131,6 +4195,40 @@ Be specific. Do NOT use markdown tables (no | pipe characters or |---|---| separ
                               <div key={group} title={s.daysSince !== null ? `Last trained ${s.daysSince}d ago at difficulty ${s.lastDifficulty}/5` : "Not trained recently"} style={{border:"1px solid #2a2a2a",padding:"5px 10px",fontSize:10,fontFamily:"'Courier New',monospace",letterSpacing:0.5,display:"flex",alignItems:"center",gap:6,cursor:"default"}}>
                                 <span style={{color:"#888"}}>{group}</span>
                                 <span style={statusStyle[s.status]}>{statusLabel[s.status]}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+                {(() => {
+                  if (!workoutLog || workoutLog.length === 0) return null;
+                  const trends = getTrainingTrend(workoutLog);
+                  const hasTrendSignal = ALL_MUSCLE_GROUPS.some(g => trends[g].trend === "Trending Harder" || trends[g].trend === "Trending Easier");
+                  if (!hasTrendSignal) return null; // no group has enough data showing a real trend - nothing worth surfacing
+                  const trendLabel = { "Trending Harder": "TRENDING HARDER", "Trending Easier": "TRENDING EASIER", "Stable": "STABLE", "Not enough data yet": null };
+                  const trendStyle = {
+                    "Trending Harder": { color: "var(--white)", fontWeight: 600 },
+                    "Trending Easier": { color: "#999", fontWeight: 400 },
+                    "Stable": { color: "#666", fontWeight: 400 }
+                  };
+                  const relevantGroups = ALL_MUSCLE_GROUPS.filter(g => trendLabel[trends[g].trend] !== null);
+                  return (
+                    <div style={{marginBottom:12}}>
+                      <div onClick={()=>setShowTrainingTrend(s=>!s)} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontSize:12,color:"#888"}}>
+                        <span style={{color:"var(--acid)"}}>{showTrainingTrend?"−":"+"}</span>
+                        <span style={{textDecoration:"underline"}}>Training trends by muscle group</span>
+                      </div>
+                      {showTrainingTrend && (
+                        <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:10}}>
+                          {relevantGroups.map(group => {
+                            const t = trends[group];
+                            return (
+                              <div key={group} title={`Based on your last ${t.sessionCount} sessions targeting this group - average difficulty went from ${t.olderAvg}/5 to ${t.recentAvg}/5`} style={{border:"1px solid #2a2a2a",padding:"5px 10px",fontSize:10,fontFamily:"'Courier New',monospace",letterSpacing:0.5,display:"flex",alignItems:"center",gap:6,cursor:"default"}}>
+                                <span style={{color:"#888"}}>{group}</span>
+                                <span style={trendStyle[t.trend]}>{trendLabel[t.trend]}</span>
                               </div>
                             );
                           })}
